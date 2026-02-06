@@ -4,6 +4,9 @@
     "/*"
   ],
   "exclude": [
-    "/robots.txt"
+    "/robots.txt",
+    "/favicon.ico",
+    "/sitemap.xml",
+    "/*.txt"
   ]
 }
