@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Middlesbrough Transporter Bridge - 3D Model</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #000; font-family: Arial, sans-serif; }
+  canvas { display: block; }
+  #info {
+    position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+    color: #fff; background: rgba(0,0,0,0.65); padding: 10px 24px;
+    border-radius: 8px; text-align: center; pointer-events: none;
+    font-size: 14px;
+  }
+  #info h1 { font-size: 18px; margin-bottom: 4px; color: #7ec8e3; }
+  #controls {
+    position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+    color: #ccc; background: rgba(0,0,0,0.55); padding: 8px 20px;
+    border-radius: 8px; font-size: 12px; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="info">
+  <h1>Middlesbrough Transporter Bridge</h1>
+  <span>Opened 1911 &mdash; One of only a few operational transporter bridges in the world</span>
+</div>
+<div id="controls">Click &amp; drag to rotate &bull; Scroll to zoom &bull; Right-click to pan</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const scene = new THREE.Scene();
+
+// Sky gradient
+const canvas2 = document.createElement('canvas');
+canvas2.width = 1; canvas2.height = 512;
+const ctx = canvas2.getContext('2d');
+const grad = ctx.createLinearGradient(0, 0, 0, 512);
+grad.addColorStop(0, '#0a1628');
+grad.addColorStop(0.4, '#1a3a5c');
+grad.addColorStop(0.7, '#d4886a');
+grad.addColorStop(1, '#f0c27f');
+ctx.fillStyle = grad;
+ctx.fillRect(0, 0, 1, 512);
+const skyTex = new THREE.CanvasTexture(canvas2);
+scene.background = skyTex;
+scene.fog = new THREE.FogExp2(0x2a4a6a, 0.0012);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(120, 50, 160);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 30, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.maxPolarAngle = Math.PI / 2 + 0.1;
+controls.minDistance = 30;
+controls.maxDistance = 500;
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0x6688aa, 0.6);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xffeedd, 2.0);
+sunLight.position.set(80, 100, 60);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048, 2048);
+sunLight.shadow.camera.left = -200;
+sunLight.shadow.camera.right = 200;
+sunLight.shadow.camera.top = 200;
+sunLight.shadow.camera.bottom = -50;
+sunLight.shadow.camera.far = 400;
+scene.add(sunLight);
+
+const fillLight = new THREE.DirectionalLight(0x8ab4f8, 0.4);
+fillLight.position.set(-60, 40, -40);
+scene.add(fillLight);
+
+// Materials
+const steelBlue = new THREE.MeshStandardMaterial({
+  color: 0x4a7a9b, metalness: 0.7, roughness: 0.4
+});
+const steelDark = new THREE.MeshStandardMaterial({
+  color: 0x3a5a6a, metalness: 0.6, roughness: 0.5
+});
+const cableMat = new THREE.MeshStandardMaterial({
+  color: 0x556677, metalness: 0.8, roughness: 0.3
+});
+const gondolaMat = new THREE.MeshStandardMaterial({
+  color: 0x2255aa, metalness: 0.3, roughness: 0.6
+});
+const gondolaFloor = new THREE.MeshStandardMaterial({
+  color: 0x334455, metalness: 0.4, roughness: 0.7
+});
+const concreteMat = new THREE.MeshStandardMaterial({
+  color: 0x8a8a7a, roughness: 0.9, metalness: 0.05
+});
+const redPaint = new THREE.MeshStandardMaterial({
+  color: 0x993333, roughness: 0.6, metalness: 0.2
+});
+
+// Helper functions
+function createBeam(w, h, d, mat) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+function createCylinder(rTop, rBot, height, mat, segments = 8) {
+  const geo = new THREE.CylinderGeometry(rTop, rBot, height, segments);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  return mesh;
+}
+
+// Bridge dimensions (approx scale: 1 unit = ~1 meter)
+const span = 180;       // total span
+const towerHeight = 70; // tower height
+const deckHeight = 60;  // high-level walkway height
+const towerWidth = 12;  // tower base width
+const halfSpan = span / 2;
+
+const bridge = new THREE.Group();
+scene.add(bridge);
+
+// --- TOWER CONSTRUCTION ---
+function buildTower(xPos) {
+  const tower = new THREE.Group();
+  const legInset = towerWidth / 2;
+  const legTopInset = 3;
+  const legRadius = 0.8;
+
+  // Four main legs with taper
+  const legPositions = [
+    [-legInset, -legInset],
+    [legInset, -legInset],
+    [-legInset, legInset],
+    [legInset, legInset]
+  ];
+
+  legPositions.forEach(([lx, lz]) => {
+    // Main leg
+    const topX = lx > 0 ? legTopInset : -legTopInset;
+    const topZ = lz > 0 ? legTopInset : -legTopInset;
+
+    const points = [];
+    const segments = 20;
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const px = THREE.MathUtils.lerp(lx, topX, t);
+      const pz = THREE.MathUtils.lerp(lz, topZ, t);
+      points.push(new THREE.Vector3(px, t * towerHeight, pz));
+    }
+
+    // Build leg from cylinder segments
+    for (let i = 0; i < segments; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const dir = new THREE.Vector3().subVectors(p2, p1);
+      const len = dir.length();
+      const seg = createCylinder(legRadius * 0.85, legRadius, len, steelBlue);
+      seg.position.copy(p1).add(dir.clone().multiplyScalar(0.5));
+      tower.add(seg);
+    }
+
+    // Horizontal cross braces at intervals
+    for (let h = 5; h < towerHeight; h += 10) {
+      const t = h / towerHeight;
+      const cx = THREE.MathUtils.lerp(lx, topX, t);
+      const cz = THREE.MathUtils.lerp(lz, topZ, t);
+
+      // Connect to adjacent legs
+      legPositions.forEach(([ox, oz]) => {
+        if (ox === lx && oz === lz) return;
+        const ocx = THREE.MathUtils.lerp(ox, ox > 0 ? legTopInset : -legTopInset, t);
+        const ocz = THREE.MathUtils.lerp(oz, oz > 0 ? legTopInset : -legTopInset, t);
+
+        if ((ox === lx || oz === lz)) {
+          const start = new THREE.Vector3(cx, h, cz);
+          const end = new THREE.Vector3(ocx, h, ocz);
+          const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+          const d = start.distanceTo(end);
+          const brace = createCylinder(0.3, 0.3, d, steelDark, 6);
+          brace.position.copy(mid);
+          brace.lookAt(end);
+          brace.rotateX(Math.PI / 2);
+          tower.add(brace);
+        }
+      });
+    }
+  });
+
+  // Diagonal cross braces on each face
+  for (let h = 0; h < towerHeight - 10; h += 10) {
+    const t1 = h / towerHeight;
+    const t2 = (h + 10) / towerHeight;
+
+    // Front and back faces (z-aligned)
+    [-1, 1].forEach(side => {
+      const z1 = THREE.MathUtils.lerp(side * legInset, side * legTopInset, t1);
+      const z2 = THREE.MathUtils.lerp(side * legInset, side * legTopInset, t2);
+      const x1L = THREE.MathUtils.lerp(-legInset, -legTopInset, t1);
+      const x1R = THREE.MathUtils.lerp(legInset, legTopInset, t1);
+      const x2L = THREE.MathUtils.lerp(-legInset, -legTopInset, t2);
+      const x2R = THREE.MathUtils.lerp(legInset, legTopInset, t2);
+
+      const diagStart = new THREE.Vector3(x1L, h, z1);
+      const diagEnd = new THREE.Vector3(x2R, h + 10, z2);
+      const mid = new THREE.Vector3().addVectors(diagStart, diagEnd).multiplyScalar(0.5);
+      const dLen = diagStart.distanceTo(diagEnd);
+      const diag = createCylinder(0.25, 0.25, dLen, steelDark, 6);
+      diag.position.copy(mid);
+      diag.lookAt(diagEnd);
+      diag.rotateX(Math.PI / 2);
+      tower.add(diag);
+
+      const diagStart2 = new THREE.Vector3(x1R, h, z1);
+      const diagEnd2 = new THREE.Vector3(x2L, h + 10, z2);
+      const mid2 = new THREE.Vector3().addVectors(diagStart2, diagEnd2).multiplyScalar(0.5);
+      const dLen2 = diagStart2.distanceTo(diagEnd2);
+      const diag2 = createCylinder(0.25, 0.25, dLen2, steelDark, 6);
+      diag2.position.copy(mid2);
+      diag2.lookAt(diagEnd2);
+      diag2.rotateX(Math.PI / 2);
+      tower.add(diag2);
+    });
+
+    // Side faces (x-aligned)
+    [-1, 1].forEach(side => {
+      const x1 = THREE.MathUtils.lerp(side * legInset, side * legTopInset, t1);
+      const x2 = THREE.MathUtils.lerp(side * legInset, side * legTopInset, t2);
+      const z1F = THREE.MathUtils.lerp(-legInset, -legTopInset, t1);
+      const z1B = THREE.MathUtils.lerp(legInset, legTopInset, t1);
+      const z2F = THREE.MathUtils.lerp(-legInset, -legTopInset, t2);
+      const z2B = THREE.MathUtils.lerp(legInset, legTopInset, t2);
+
+      const ds = new THREE.Vector3(x1, h, z1F);
+      const de = new THREE.Vector3(x2, h + 10, z2B);
+      const dm = new THREE.Vector3().addVectors(ds, de).multiplyScalar(0.5);
+      const dl = ds.distanceTo(de);
+      const db = createCylinder(0.25, 0.25, dl, steelDark, 6);
+      db.position.copy(dm);
+      db.lookAt(de);
+      db.rotateX(Math.PI / 2);
+      tower.add(db);
+    });
+  }
+
+  // Tower top cap / housing
+  const topCap = createBeam(towerWidth * 0.6, 3, towerWidth * 0.6, steelBlue);
+  topCap.position.set(0, towerHeight + 1, 0);
+  tower.add(topCap);
+
+  // Above-deck tower extensions (above the walkway)
+  const extHeight = 8;
+  [-legTopInset, legTopInset].forEach(lx => {
+    [-legTopInset, legTopInset].forEach(lz => {
+      const ext = createCylinder(0.7, 0.8, extHeight, steelBlue);
+      ext.position.set(lx, towerHeight + extHeight / 2 + 2, lz);
+      tower.add(ext);
+    });
+  });
+
+  // Concrete base / pier
+  const base = createBeam(towerWidth * 1.6, 8, towerWidth * 1.6, concreteMat);
+  base.position.set(0, -4, 0);
+  base.receiveShadow = true;
+  tower.add(base);
+
+  tower.position.x = xPos;
+  return tower;
+}
+
+const towerLeft = buildTower(-halfSpan / 2 - 20);
+bridge.add(towerLeft);
+const towerRight = buildTower(halfSpan / 2 + 20);
+bridge.add(towerRight);
+
+// --- HIGH-LEVEL BEAM / WALKWAY ---
+const beamGroup = new THREE.Group();
+
+// Main horizontal truss beams (top and bottom chords)
+const trussDepth = 5;
+const trussWidth = 8;
+const beamSpan = span + 40;
+
+// Bottom chord beams
+[[-trussWidth / 2, deckHeight, -trussWidth / 2],
+ [trussWidth / 2, deckHeight, -trussWidth / 2],
+ [-trussWidth / 2, deckHeight, trussWidth / 2],
+ [trussWidth / 2, deckHeight, trussWidth / 2]].forEach(([x, y, z]) => {
+  const chord = createCylinder(0.5, 0.5, beamSpan, steelBlue, 8);
+  chord.rotation.z = Math.PI / 2;
+  chord.position.set(0, y, z);
+  if (x !== 0) chord.position.z = z;
+  beamGroup.add(chord);
+});
+
+// Top chord beams
+[[-trussWidth / 2, deckHeight + trussDepth],
+ [trussWidth / 2, deckHeight + trussDepth]].forEach(([z, y]) => {
+  const chord = createCylinder(0.5, 0.5, beamSpan, steelBlue, 8);
+  chord.rotation.z = Math.PI / 2;
+  chord.position.set(0, y, z);
+  beamGroup.add(chord);
+});
+
+// Vertical and diagonal truss members along the span
+const trussSpacing = 6;
+const nSections = Math.floor(beamSpan / trussSpacing);
+for (let i = -nSections / 2; i <= nSections / 2; i++) {
+  const x = i * trussSpacing;
+
+  // Verticals on both sides
+  [-trussWidth / 2, trussWidth / 2].forEach(z => {
+    const vert = createCylinder(0.3, 0.3, trussDepth, steelDark, 6);
+    vert.position.set(x, deckHeight + trussDepth / 2, z);
+    beamGroup.add(vert);
+  });
+
+  // Cross beam bottom
+  const crossBottom = createCylinder(0.35, 0.35, trussWidth, steelDark, 6);
+  crossBottom.rotation.x = Math.PI / 2;
+  crossBottom.position.set(x, deckHeight, 0);
+  beamGroup.add(crossBottom);
+
+  // Cross beam top
+  const crossTop = createCylinder(0.3, 0.3, trussWidth, steelDark, 6);
+  crossTop.rotation.x = Math.PI / 2;
+  crossTop.position.set(x, deckHeight + trussDepth, 0);
+  beamGroup.add(crossTop);
+
+  // Diagonals on sides
+  if (i < nSections / 2) {
+    [-trussWidth / 2, trussWidth / 2].forEach(z => {
+      const diagLen = Math.sqrt(trussSpacing * trussSpacing + trussDepth * trussDepth);
+      const diag = createCylinder(0.2, 0.2, diagLen, steelDark, 6);
+      const angle = Math.atan2(trussDepth, trussSpacing);
+      diag.position.set(x + trussSpacing / 2, deckHeight + trussDepth / 2, z);
+      diag.rotation.z = (i % 2 === 0) ? angle : -angle;
+      beamGroup.add(diag);
+    });
+  }
+}
+
+// Walkway deck (the high-level pedestrian walkway)
+const walkway = createBeam(beamSpan, 0.5, trussWidth + 2, steelDark);
+walkway.position.set(0, deckHeight - 0.25, 0);
+walkway.receiveShadow = true;
+beamGroup.add(walkway);
+
+// Walkway railings
+[-trussWidth / 2 - 0.5, trussWidth / 2 + 0.5].forEach(z => {
+  const railing = createCylinder(0.15, 0.15, beamSpan, redPaint, 6);
+  railing.rotation.z = Math.PI / 2;
+  railing.position.set(0, deckHeight + 1.2, z);
+  beamGroup.add(railing);
+
+  for (let i = -nSections / 2; i <= nSections / 2; i++) {
+    const post = createCylinder(0.1, 0.1, 1.2, steelDark, 6);
+    post.position.set(i * trussSpacing, deckHeight + 0.6, z);
+    beamGroup.add(post);
+  }
+});
+
+bridge.add(beamGroup);
+
+// --- GONDOLA / CAR ---
+const gondolaGroup = new THREE.Group();
+
+// Gondola platform
+const platWidth = 18;
+const platDepth = 10;
+const platform = createBeam(platWidth, 0.6, platDepth, gondolaFloor);
+platform.receiveShadow = true;
+gondolaGroup.add(platform);
+
+// Gondola walls/sides (low walls)
+const wallHeight = 2;
+// Front and back walls
+[-platDepth / 2, platDepth / 2].forEach(z => {
+  const wall = createBeam(platWidth, wallHeight, 0.3, gondolaMat);
+  wall.position.set(0, wallHeight / 2 + 0.3, z);
+  gondolaGroup.add(wall);
+});
+// Side walls
+[-platWidth / 2, platWidth / 2].forEach(x => {
+  const wall = createBeam(0.3, wallHeight, platDepth, gondolaMat);
+  wall.position.set(x, wallHeight / 2 + 0.3, 0);
+  gondolaGroup.add(wall);
+});
+
+// Railing posts and top rail
+for (let x = -platWidth / 2; x <= platWidth / 2; x += 3) {
+  [-platDepth / 2, platDepth / 2].forEach(z => {
+    const post = createCylinder(0.08, 0.08, 1.5, steelDark, 6);
+    post.position.set(x, wallHeight + 1.05, z);
+    gondolaGroup.add(post);
+  });
+}
+
+// Gondola overhead frame (connects to cables)
+const frameHeight = 4;
+[[-platWidth / 2 + 1, -platDepth / 2 + 1],
+ [platWidth / 2 - 1, -platDepth / 2 + 1],
+ [-platWidth / 2 + 1, platDepth / 2 - 1],
+ [platWidth / 2 - 1, platDepth / 2 - 1]].forEach(([fx, fz]) => {
+  const strut = createCylinder(0.3, 0.3, frameHeight, steelBlue);
+  strut.position.set(fx, wallHeight + frameHeight / 2 + 0.3, fz);
+  gondolaGroup.add(strut);
+});
+
+// Top frame beams
+const topFrameY = wallHeight + frameHeight + 0.3;
+const topBeamLong = createCylinder(0.3, 0.3, platWidth - 2, steelBlue, 6);
+topBeamLong.rotation.z = Math.PI / 2;
+topBeamLong.position.set(0, topFrameY, -platDepth / 2 + 1);
+gondolaGroup.add(topBeamLong);
+
+const topBeamLong2 = createCylinder(0.3, 0.3, platWidth - 2, steelBlue, 6);
+topBeamLong2.rotation.z = Math.PI / 2;
+topBeamLong2.position.set(0, topFrameY, platDepth / 2 - 1);
+gondolaGroup.add(topBeamLong2);
+
+const topBeamCross1 = createCylinder(0.3, 0.3, platDepth - 2, steelBlue, 6);
+topBeamCross1.rotation.x = Math.PI / 2;
+topBeamCross1.position.set(-platWidth / 2 + 1, topFrameY, 0);
+gondolaGroup.add(topBeamCross1);
+
+const topBeamCross2 = createCylinder(0.3, 0.3, platDepth - 2, steelBlue, 6);
+topBeamCross2.rotation.x = Math.PI / 2;
+topBeamCross2.position.set(platWidth / 2 - 1, topFrameY, 0);
+gondolaGroup.add(topBeamCross2);
+
+gondolaGroup.position.set(0, 2, 0);
+bridge.add(gondolaGroup);
+
+// --- SUSPENSION CABLES from gondola to high-level beam ---
+const cableGroup = new THREE.Group();
+const cableAttachPoints = [
+  [-platWidth / 2 + 1, -platDepth / 2 + 1],
+  [platWidth / 2 - 1, -platDepth / 2 + 1],
+  [-platWidth / 2 + 1, platDepth / 2 - 1],
+  [platWidth / 2 - 1, platDepth / 2 - 1]
+];
+
+function updateCables(gondolaX) {
+  cableGroup.clear();
+  const cableTopY = deckHeight - 0.5;
+  const cableBottomY = topFrameY + 2;
+
+  cableAttachPoints.forEach(([cx, cz]) => {
+    const cableLen = cableTopY - cableBottomY;
+    const cable = createCylinder(0.12, 0.12, cableLen, cableMat, 6);
+    cable.position.set(gondolaX + cx, cableBottomY + cableLen / 2, cz);
+    cableGroup.add(cable);
+  });
+
+  // Additional stabilizing cables
+  [-platWidth / 2 + 1, platWidth / 2 - 1].forEach(cx => {
+    const cable = createCylinder(0.08, 0.08, deckHeight - topFrameY - 2, cableMat, 4);
+    cable.position.set(gondolaX + cx, (cableTopY + cableBottomY) / 2, 0);
+    cableGroup.add(cable);
+  });
+}
+
+updateCables(0);
+bridge.add(cableGroup);
+
+// --- APPROACH RAMPS ---
+[-1, 1].forEach(side => {
+  const rampLen = 40;
+  const rampGroup = new THREE.Group();
+  const towerX = side * (halfSpan / 2 + 20);
+
+  // Ramp structure on approach side
+  for (let i = 0; i < 6; i++) {
+    const x = towerX + side * (15 + i * 5);
+    const h = Math.max(2, 8 - i * 1.2);
+    const support = createBeam(1.5, h, 8, concreteMat);
+    support.position.set(x, h / 2 - 4, 0);
+    rampGroup.add(support);
+  }
+
+  // Road surface leading to bridge
+  const road = createBeam(rampLen, 0.5, 10, concreteMat);
+  road.position.set(towerX + side * 30, -3.5, 0);
+  road.receiveShadow = true;
+  rampGroup.add(road);
+
+  bridge.add(rampGroup);
+});
+
+// --- WATER / RIVER ---
+const waterGeo = new THREE.PlaneGeometry(800, 400, 64, 64);
+const waterMat = new THREE.MeshStandardMaterial({
+  color: 0x1a4a6a,
+  metalness: 0.3,
+  roughness: 0.4,
+  transparent: true,
+  opacity: 0.85,
+});
+const water = new THREE.Mesh(waterGeo, waterMat);
+water.rotation.x = -Math.PI / 2;
+water.position.y = -8;
+water.receiveShadow = true;
+scene.add(water);
+
+// --- GROUND / BANKS ---
+[-1, 1].forEach(side => {
+  const bankGeo = new THREE.PlaneGeometry(300, 400);
+  const bankMat = new THREE.MeshStandardMaterial({
+    color: 0x4a6a3a, roughness: 0.95
+  });
+  const bank = new THREE.Mesh(bankGeo, bankMat);
+  bank.rotation.x = -Math.PI / 2;
+  bank.position.set(side * 250, -6, 0);
+  bank.receiveShadow = true;
+  scene.add(bank);
+});
+
+// --- DISTANT BUILDINGS (skyline hints) ---
+for (let i = 0; i < 20; i++) {
+  const bw = 5 + Math.random() * 15;
+  const bh = 8 + Math.random() * 30;
+  const bd = 5 + Math.random() * 15;
+  const bx = -200 + Math.random() * 400;
+  const bz = -150 - Math.random() * 80;
+  const building = createBeam(bw, bh, bd, new THREE.MeshStandardMaterial({
+    color: new THREE.Color().setHSL(0.6, 0.05, 0.15 + Math.random() * 0.15),
+    roughness: 0.9
+  }));
+  building.position.set(bx, bh / 2 - 6, bz);
+  scene.add(building);
+}
+
+// --- ANIMATION ---
+let gondolaTime = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Animate gondola traversing
+  gondolaTime += 0.003;
+  const gondolaX = Math.sin(gondolaTime) * (halfSpan / 2);
+  gondolaGroup.position.x = gondolaX;
+  updateCables(gondolaX);
+
+  // Gentle water animation
+  const positions = waterGeo.attributes.position;
+  const time = Date.now() * 0.001;
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i);
+    const z = positions.getZ(i);
+    positions.setY(i, Math.sin(x * 0.05 + time) * 0.3 + Math.cos(z * 0.08 + time * 0.7) * 0.2);
+  }
+  positions.needsUpdate = true;
+  waterGeo.computeVertexNormals();
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
