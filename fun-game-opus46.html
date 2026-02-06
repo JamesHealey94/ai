@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Bubble Pop Frenzy</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0b0e2e;
+      touch-action: none;
+      height: 100dvh;
+      width: 100vw;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #ui-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .ui-box {
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      border-radius: 14px;
+      padding: 8px 16px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.4;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+
+    .ui-box span {
+      color: #ffd166;
+    }
+
+    #combo-display {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 52px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(255, 100, 200, 0.8), 0 0 40px rgba(255, 100, 200, 0.4);
+      z-index: 20;
+      pointer-events: none;
+      transition: transform 0.15s ease-out, opacity 0.3s;
+      opacity: 0;
+    }
+
+    #combo-display.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    #start-screen, #game-over-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(11, 14, 46, 0.92);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      gap: 20px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    #game-over-screen {
+      display: none;
+    }
+
+    .screen-title {
+      font-size: 42px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #f72585, #ffd166, #06d6a0, #118ab2);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 3s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .screen-sub {
+      color: #a0a4c8;
+      font-size: 16px;
+      max-width: 300px;
+      line-height: 1.5;
+    }
+
+    .screen-sub strong {
+      color: #ffd166;
+    }
+
+    .btn {
+      padding: 16px 48px;
+      font-size: 20px;
+      font-weight: 800;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #f72585, #7209b7);
+      color: #fff;
+      box-shadow: 0 6px 30px rgba(247, 37, 133, 0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+      pointer-events: auto;
+      letter-spacing: 1px;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px 15px rgba(247, 37, 133, 0.5);
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 24px;
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .stat-row div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #a0a4c8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: #ffd166;
+    }
+
+    #lives-display {
+      display: flex;
+      gap: 4px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="ui-overlay">
+    <div class="ui-box">
+      🏆 <span id="score">0</span>
+    </div>
+    <div class="ui-box">
+      <div id="lives-display">❤️❤️❤️❤️❤️</div>
+    </div>
+  </div>
+
+  <div id="combo-display"></div>
+
+  <div id="start-screen">
+    <div class="screen-title">Bubble Pop Frenzy</div>
+    <p class="screen-sub">
+      Tap the rising bubbles before they escape!<br />
+      <strong>Golden bubbles</strong> are worth bonus points.<br />
+      <strong>Black bubbles</strong> are bombs — don't tap them! 💣
+    </p>
+    <button class="btn" id="start-btn">PLAY</button>
+  </div>
+
+  <div id="game-over-screen">
+    <div class="screen-title">Game Over</div>
+    <div class="stat-row">
+      <div>
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="final-score">0</div>
+      </div>
+      <div>
+        <div class="stat-label">Best</div>
+        <div class="stat-value" id="best-score">0</div>
+      </div>
+      <div>
+        <div class="stat-label">Popped</div>
+        <div class="stat-value" id="total-popped">0</div>
+      </div>
+    </div>
+    <button class="btn" id="restart-btn">PLAY AGAIN</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    let W, H;
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    const COLORS = [
+      "#f72585", "#b5179e", "#7209b7", "#560bad",
+      "#480ca8", "#3a0ca3", "#3f37c9", "#4361ee",
+      "#4895ef", "#4cc9f0", "#06d6a0", "#ffd166",
+      "#ef476f", "#118ab2",
+    ];
+
+    let bubbles = [];
+    let particles = [];
+    let score = 0;
+    let lives = 5;
+    let combo = 0;
+    let comboTimer = 0;
+    let totalPopped = 0;
+    let bestScore = parseInt(localStorage.getItem("bubbleBest") || "0");
+    let gameRunning = false;
+    let spawnTimer = 0;
+    let difficulty = 1;
+    let elapsed = 0;
+    let lastTime = 0;
+    let stars = [];
+
+    for (let i = 0; i < 80; i++) {
+      stars.push({
+        x: Math.random() * 2000,
+        y: Math.random() * 2000,
+        r: Math.random() * 1.5 + 0.3,
+        a: Math.random() * 0.6 + 0.2,
+        twinkle: Math.random() * Math.PI * 2,
+      });
+    }
+
+    function spawnBubble() {
+      const isBomb = Math.random() < 0.08 + difficulty * 0.005;
+      const isGold = !isBomb && Math.random() < 0.1;
+      const r = Math.random() * 18 + 22 - difficulty * 0.5;
+      bubbles.push({
+        x: Math.random() * (W - r * 2) + r,
+        y: H + r,
+        r: Math.max(r, 16),
+        speed: (Math.random() * 0.8 + 0.6 + difficulty * 0.12),
+        wobblePhase: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 2 + 1,
+        wobbleAmp: Math.random() * 20 + 10,
+        color: isBomb ? "#1a1a2e" : isGold ? "#ffd166" : COLORS[Math.floor(Math.random() * COLORS.length)],
+        isBomb,
+        isGold,
+        opacity: 1,
+        scale: 0.3,
+        popping: false,
+      });
+    }
+
+    function spawnParticles(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 1.5;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: Math.random() * 4 + 2,
+          color,
+          life: 1,
+          decay: Math.random() * 0.025 + 0.02,
+        });
+      }
+    }
+
+    function showCombo(text) {
+      const el = document.getElementById("combo-display");
+      el.textContent = text;
+      el.classList.remove("show");
+      void el.offsetWidth;
+      el.classList.add("show");
+      clearTimeout(comboTimer);
+      comboTimer = setTimeout(() => el.classList.remove("show"), 600);
+    }
+
+    function updateLivesDisplay() {
+      const el = document.getElementById("lives-display");
+      el.textContent = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 5 - lives));
+    }
+
+    function handleTap(px, py) {
+      if (!gameRunning) return;
+      let hit = false;
+      for (let i = bubbles.length - 1; i >= 0; i--) {
+        const b = bubbles[i];
+        if (b.popping) continue;
+        const dx = px - b.x;
+        const dy = py - b.y;
+        if (dx * dx + dy * dy < (b.r + 10) * (b.r + 10)) {
+          if (b.isBomb) {
+            lives -= 2;
+            combo = 0;
+            spawnParticles(b.x, b.y, "#ff0044", 25);
+            showCombo("💣 −2");
+            if (navigator.vibrate) navigator.vibrate(150);
+          } else {
+            combo++;
+            let pts = b.isGold ? 25 : 10;
+            if (combo >= 10) pts *= 3;
+            else if (combo >= 5) pts *= 2;
+            score += pts;
+            totalPopped++;
+            document.getElementById("score").textContent = score;
+            spawnParticles(b.x, b.y, b.color, b.isGold ? 20 : 12);
+            if (combo === 5) showCombo("🔥 x2!");
+            else if (combo === 10) showCombo("⚡ x3!");
+            else if (combo > 0 && combo % 25 === 0) showCombo("🌟 " + combo + " COMBO!");
+          }
+          b.popping = true;
+          updateLivesDisplay();
+          hit = true;
+          break;
+        }
+      }
+      if (!hit) {
+        combo = 0;
+      }
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      handleTap(e.clientX, e.clientY);
+    });
+
+    function startGame() {
+      bubbles = [];
+      particles = [];
+      score = 0;
+      lives = 5;
+      combo = 0;
+      totalPopped = 0;
+      difficulty = 1;
+      elapsed = 0;
+      spawnTimer = 0;
+      gameRunning = true;
+      document.getElementById("score").textContent = "0";
+      updateLivesDisplay();
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("game-over-screen").style.display = "none";
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      gameRunning = false;
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bubbleBest", bestScore);
+      }
+      document.getElementById("final-score").textContent = score;
+      document.getElementById("best-score").textContent = bestScore;
+      document.getElementById("total-popped").textContent = totalPopped;
+      document.getElementById("game-over-screen").style.display = "flex";
+    }
+
+    function loop(now) {
+      if (!gameRunning) return;
+      const dt = Math.min((now - lastTime) / 16.667, 3);
+      lastTime = now;
+      elapsed += dt;
+      difficulty = 1 + elapsed / 600;
+
+      spawnTimer -= dt;
+      if (spawnTimer <= 0) {
+        spawnBubble();
+        spawnTimer = Math.max(8, 30 - difficulty * 2.5) + Math.random() * 15;
+      }
+
+      ctx.clearRect(0, 0, W, H);
+
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, "#0b0e2e");
+      grad.addColorStop(0.5, "#1a1040");
+      grad.addColorStop(1, "#2d1b69");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      for (const s of stars) {
+        s.twinkle += 0.02 * dt;
+        const a = s.a * (0.6 + 0.4 * Math.sin(s.twinkle));
+        ctx.beginPath();
+        ctx.arc(s.x % W, s.y % H, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        ctx.fill();
+      }
+
+      for (let i = bubbles.length - 1; i >= 0; i--) {
+        const b = bubbles[i];
+        if (b.popping) {
+          b.scale -= 0.08 * dt;
+          b.opacity -= 0.1 * dt;
+          if (b.scale <= 0 || b.opacity <= 0) {
+            bubbles.splice(i, 1);
+            continue;
+          }
+        } else {
+          b.y -= b.speed * dt;
+          b.wobblePhase += b.wobbleSpeed * 0.02 * dt;
+          b.scale = Math.min(b.scale + 0.05 * dt, 1);
+
+          if (b.y < -b.r * 2) {
+            if (!b.isBomb) {
+              lives--;
+              combo = 0;
+              updateLivesDisplay();
+            }
+            bubbles.splice(i, 1);
+            if (lives <= 0) { endGame(); return; }
+            continue;
+          }
+        }
+
+        const drawX = b.x + Math.sin(b.wobblePhase) * b.wobbleAmp;
+        const drawR = b.r * b.scale;
+
+        ctx.save();
+        ctx.globalAlpha = b.opacity;
+        ctx.beginPath();
+        ctx.arc(drawX, b.y, drawR, 0, Math.PI * 2);
+
+        if (b.isBomb) {
+          ctx.fillStyle = "#1a1a2e";
+          ctx.fill();
+          ctx.strokeStyle = "#ff0044";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+          ctx.fillStyle = "#ff0044";
+          ctx.font = `${drawR * 0.9}px serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("💣", drawX, b.y);
+        } else {
+          const bubGrad = ctx.createRadialGradient(
+            drawX - drawR * 0.3, b.y - drawR * 0.3, drawR * 0.1,
+            drawX, b.y, drawR
+          );
+          bubGrad.addColorStop(0, "rgba(255,255,255,0.5)");
+          bubGrad.addColorStop(0.4, b.color);
+          bubGrad.addColorStop(1, b.color + "88");
+          ctx.fillStyle = bubGrad;
+          ctx.fill();
+
+          if (b.isGold) {
+            ctx.strokeStyle = "rgba(255,255,255,0.6)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = "#000";
+            ctx.font = `bold ${drawR * 0.7}px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("★", drawX, b.y);
+          }
+
+          ctx.beginPath();
+          ctx.ellipse(
+            drawX - drawR * 0.25,
+            b.y - drawR * 0.3,
+            drawR * 0.22,
+            drawR * 0.12,
+            -0.5, 0, Math.PI * 2
+          );
+          ctx.fillStyle = "rgba(255,255,255,0.45)";
+          ctx.fill();
+        }
+        ctx.restore();
+
+        b.x = b.x;
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vy += 0.08 * dt;
+        p.life -= p.decay * dt;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      if (lives <= 0) { endGame(); return; }
+      requestAnimationFrame(loop);
+    }
+
+    document.getElementById("start-btn").addEventListener("click", startGame);
+    document.getElementById("restart-btn").addEventListener("click", startGame);
+  </script>
+</body>
+</html>
