@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Devs Chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Helvetica Neue", sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 430px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #1c1c1e;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      background: #000;
+      z-index: 10;
+    }
+
+    .header .back {
+      font-size: 24px;
+      color: #007aff;
+      text-decoration: none;
+      margin-right: 4px;
+    }
+
+    .header .avatar-group {
+      position: relative;
+      width: 44px;
+      height: 44px;
+    }
+
+    .header .avatar-group img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .header .online-dot-header {
+      width: 10px;
+      height: 10px;
+      background: #34c759;
+      border-radius: 50%;
+      border: 2px solid #000;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    .header .name {
+      font-size: 17px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .header .actions {
+      display: flex;
+      gap: 20px;
+    }
+
+    .header .actions button {
+      background: none;
+      border: none;
+      color: #007aff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Chat area */
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      max-width: 80%;
+    }
+
+    .message-row.received {
+      align-self: flex-start;
+    }
+
+    .message-row.sent {
+      align-self: flex-end;
+    }
+
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+    }
+
+    .avatar-wrapper img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .avatar-wrapper .online-dot {
+      width: 8px;
+      height: 8px;
+      background: #34c759;
+      border-radius: 50%;
+      border: 2px solid #000;
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+    }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 16px;
+      line-height: 1.35;
+      word-wrap: break-word;
+    }
+
+    .received .bubble {
+      background-color: #1c1c1e;
+      color: #fff;
+      border-bottom-left-radius: 6px;
+    }
+
+    .sent .bubble {
+      background-color: #007aff;
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+
+    .sender-label {
+      font-size: 12px;
+      color: #8e8e93;
+      padding-left: 44px;
+      margin-top: 8px;
+      margin-bottom: 2px;
+    }
+
+    /* Link preview */
+    .link-preview {
+      background: #1c1c1e;
+      border-radius: 14px;
+      overflow: hidden;
+      max-width: 260px;
+    }
+
+    .link-preview .link-url {
+      display: block;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 14px;
+      word-break: break-all;
+      text-decoration: none;
+      background: #007aff;
+      border-radius: 18px 18px 0 0;
+      line-height: 1.35;
+    }
+
+    .link-preview .preview-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .link-preview .preview-title {
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #8e8e93;
+      background: #1c1c1e;
+      border-radius: 0 0 14px 14px;
+    }
+
+    /* Share button */
+    .share-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      align-self: center;
+    }
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      align-self: flex-end;
+    }
+
+    /* Spacer for consecutive messages */
+    .gap {
+      height: 6px;
+    }
+
+    .gap-large {
+      height: 12px;
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-top: 1px solid #1c1c1e;
+      gap: 12px;
+      background: #000;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .bottom-bar .icons-left {
+      display: flex;
+      gap: 10px;
+    }
+
+    .bottom-bar .icons-left button,
+    .bottom-bar .icons-right button {
+      background: none;
+      border: none;
+      color: #007aff;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .bottom-bar input {
+      flex: 1;
+      background: #1c1c1e;
+      border: 1px solid #3a3a3c;
+      border-radius: 20px;
+      padding: 8px 16px;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .bottom-bar input::placeholder {
+      color: #8e8e93;
+    }
+
+    .bottom-bar .icons-right {
+      display: flex;
+      gap: 10px;
+    }
+
+    .home-indicator {
+      width: 134px;
+      height: 5px;
+      background: #fff;
+      border-radius: 3px;
+      margin: 8px auto 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <a href="#" class="back">‹</a>
+    <div class="avatar-group">
+      <img
+        src="https://i.pravatar.cc/88?img=12"
+        alt="Devs"
+      />
+      <div class="online-dot-header"></div>
+    </div>
+    <span class="name">Devs</span>
+    <div class="actions">
+      <button>📞</button>
+      <button>📹</button>
+      <button>ℹ️</button>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat">
+    <!-- Lewis: Wouldn't surprise me -->
+    <div class="message-row received">
+      <div class="avatar-wrapper">
+        <img src="https://i.pravatar.cc/56?img=12" alt="Lewis" />
+        <div class="online-dot"></div>
+      </div>
+      <div class="bubble">Wouldn't surprise me</div>
+    </div>
+
+    <div class="gap-large"></div>
+
+    <!-- Sent: link preview -->
+    <div class="link-row">
+      <button class="share-btn">↗</button>
+      <div class="link-preview">
+        <a
+          class="link-url"
+          href="https://www.designarena.ai"
+          target="_blank"
+        >
+          https://www.designarena.ai/vote/b0cb3987-8a67-4ec8-8a72-c97364d81b45
+        </a>
+        <img
+          class="preview-image"
+          src="https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80"
+          alt="Design Arena Preview"
+        />
+        <div class="preview-title">Design Arena</div>
+      </div>
+    </div>
+
+    <div class="gap"></div>
+
+    <!-- Sent: First time on that design arena -->
+    <div class="message-row sent">
+      <div class="bubble">First time on that design arena. Cool idea</div>
+    </div>
+
+    <div class="gap-large"></div>
+
+    <!-- Lewis: Think Jamie uses that -->
+    <div class="sender-label">Lewis</div>
+    <div class="message-row received">
+      <div class="avatar-wrapper" style="visibility: hidden;">
+        <img src="https://i.pravatar.cc/56?img=12" alt="Lewis" />
+      </div>
+      <div class="bubble">Think Jamie uses that</div>
+    </div>
+
+    <div class="gap"></div>
+
+    <!-- Lewis: Or a similar one -->
+    <div class="message-row received">
+      <div class="avatar-wrapper">
+        <img src="https://i.pravatar.cc/56?img=12" alt="Lewis" />
+        <div class="online-dot"></div>
+      </div>
+      <div class="bubble">Or a similar one</div>
+    </div>
+
+    <div class="gap-large"></div>
+
+    <!-- Sent: Kinda what I was doing -->
+    <div class="message-row sent">
+      <div class="bubble">
+        Kinda what I was doing with my tests yesterday
+      </div>
+    </div>
+
+    <div class="gap-large"></div>
+
+    <!-- Lewis: Apparently 4,6 is pretty good -->
+    <div class="sender-label">Lewis</div>
+    <div class="message-row received">
+      <div class="avatar-wrapper" style="visibility: hidden;">
+        <img src="https://i.pravatar.cc/56?img=12" alt="Lewis" />
+      </div>
+      <div class="bubble">
+        Apparently 4,6 is pretty good at screenshots to code
+      </div>
+    </div>
+
+    <div class="gap"></div>
+
+    <!-- Lewis: Not tried it though -->
+    <div class="message-row received">
+      <div class="avatar-wrapper">
+        <img src="https://i.pravatar.cc/56?img=12" alt="Lewis" />
+        <div class="online-dot"></div>
+      </div>
+      <div class="bubble">Not tried it though</div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="icons-left">
+      <button>＋</button>
+      <button>📷</button>
+      <button>🖼</button>
+      <button>🎙</button>
+    </div>
+    <input type="text" placeholder="Message" />
+    <div class="icons-right">
+      <button>😊</button>
+      <button>👍</button>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</body>
+</html>
