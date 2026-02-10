@@ -580,8 +580,9 @@
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999;padding:8px 16px;background:#1a5f7a;color:#fff;text-decoration:none;font-weight:bold;" onfocus="this.style.left='0';this.style.width='auto';this.style.height='auto';" onblur="this.style.left='-9999px';this.style.width='1px';this.style.height='1px';">Skip to main content</a>
   <!-- Top Bar -->
-  <div class="top-bar">
+  <div class="top-bar" role="complementary" aria-label="Contact and account links">
     <div class="container">
       <span>📞 Call us: 0800 123 4567</span>
       <div>
@@ -593,37 +594,38 @@
   </div>
 
   <!-- Header -->
-  <header>
+  <header role="banner">
     <div class="container">
       <div class="header-main">
-        <a href="#" class="logo">Electro<span>Pro</span></a>
+        <a href="#" class="logo" aria-label="ElectroPro home">Electro<span>Pro</span></a>
         
-        <div class="search-bar">
-          <input type="text" placeholder="Search by product, code or brand...">
-          <button>Search</button>
+        <div class="search-bar" role="search">
+          <label for="site-search" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Search products</label>
+          <input type="text" id="site-search" placeholder="Search by product, code or brand...">
+          <button type="submit">Search</button>
         </div>
         
         <div class="header-actions">
-          <a href="#">
-            <span class="icon">📍</span>
+          <a href="#" aria-label="Find branches">
+            <span class="icon" aria-hidden="true">📍</span>
             Branches
           </a>
-          <a href="#">
-            <span class="icon">👤</span>
+          <a href="#" aria-label="Your account">
+            <span class="icon" aria-hidden="true">👤</span>
             Account
           </a>
-          <a href="#">
-            <span class="icon">🛒</span>
-            <span class="cart-count">3</span>
+          <a href="#" aria-label="Shopping basket, 3 items">
+            <span class="icon" aria-hidden="true">🛒</span>
+            <span class="cart-count" aria-hidden="true">3</span>
             Basket
           </a>
         </div>
       </div>
     </div>
     
-    <nav>
+    <nav aria-label="Main navigation">
       <div class="container">
-        <ul>
+        <ul role="menubar">
           <li><a href="#">Cables & Wiring</a></li>
           <li><a href="#">Lighting</a></li>
           <li><a href="#">Switches & Sockets</a></li>
@@ -638,11 +640,12 @@
   </header>
 
   <!-- Hero Section -->
-  <section class="hero">
+  <main id="main-content">
+  <section class="hero" aria-labelledby="hero-heading">
     <div class="container">
       <div class="hero-content">
         <div>
-          <h1>Your Trusted Electrical Wholesaler</h1>
+          <h1 id="hero-heading">Your Trusted Electrical Wholesaler</h1>
           <p>Over 30,000 products in stock with next-day delivery. Quality brands, competitive prices, and expert support for trade professionals.</p>
           <a href="#" class="btn">Shop Now</a>
           <a href="#" class="btn btn-outline">Open Trade Account</a>
@@ -657,25 +660,25 @@
   </section>
 
   <!-- Features -->
-  <section class="features">
+  <section class="features" aria-label="Our benefits">
     <div class="container" style="display: contents;">
       <div class="feature">
-        <div class="icon">🚚</div>
+        <div class="icon" aria-hidden="true">🚚</div>
         <h3>Next Day Delivery</h3>
         <p>Order by 8pm for next day</p>
       </div>
       <div class="feature">
-        <div class="icon">🏪</div>
+        <div class="icon" aria-hidden="true">🏪</div>
         <h3>300+ Branches</h3>
         <p>Click & collect available</p>
       </div>
       <div class="feature">
-        <div class="icon">💳</div>
+        <div class="icon" aria-hidden="true">💳</div>
         <h3>Trade Credit</h3>
         <p>30-day payment terms</p>
       </div>
       <div class="feature">
-        <div class="icon">🎧</div>
+        <div class="icon" aria-hidden="true">🎧</div>
         <h3>Expert Support</h3>
         <p>Technical help when you need it</p>
       </div>
@@ -683,44 +686,44 @@
   </section>
 
   <!-- Categories -->
-  <section class="section">
+  <section class="section" aria-labelledby="categories-heading">
     <div class="container">
       <div class="section-title">
-        <h2>Shop by Category</h2>
+        <h2 id="categories-heading">Shop by Category</h2>
         <p>Browse our extensive range of electrical products</p>
       </div>
       
       <div class="categories-grid">
         <a href="#" class="category-card">
-          <div class="icon">🔌</div>
+          <div class="icon" aria-hidden="true">🔌</div>
           <h3>Cables & Wiring</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">💡</div>
+          <div class="icon" aria-hidden="true">💡</div>
           <h3>Lighting</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">🔘</div>
+          <div class="icon" aria-hidden="true">🔘</div>
           <h3>Switches & Sockets</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">📦</div>
+          <div class="icon" aria-hidden="true">📦</div>
           <h3>Consumer Units</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">🔧</div>
+          <div class="icon" aria-hidden="true">🔧</div>
           <h3>Tools</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">🌡️</div>
+          <div class="icon" aria-hidden="true">🌡️</div>
           <h3>Heating</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">🏠</div>
+          <div class="icon" aria-hidden="true">🏠</div>
           <h3>Smart Home</h3>
         </a>
         <a href="#" class="category-card">
-          <div class="icon">🔋</div>
+          <div class="icon" aria-hidden="true">🔋</div>
           <h3>EV Charging</h3>
         </a>
       </div>
@@ -728,16 +731,16 @@
   </section>
 
   <!-- Featured Products -->
-  <section class="section" style="background: var(--light);">
+  <section class="section" style="background: var(--light);" aria-labelledby="products-heading">
     <div class="container">
       <div class="section-title">
-        <h2>Featured Products</h2>
+        <h2 id="products-heading">Featured Products</h2>
         <p>Popular items from leading brands</p>
       </div>
       
       <div class="products-grid">
-        <div class="product-card">
-          <div class="product-image">📦</div>
+        <article class="product-card">
+          <div class="product-image" aria-hidden="true">📦</div>
           <div class="product-info">
             <span class="product-brand">BrandName</span>
             <h3 class="product-name"><a href="#">18th Edition Consumer Unit 10 Way</a></h3>
@@ -747,13 +750,13 @@
                 <div class="price">£89.99</div>
                 <div class="price-ex">£74.99 ex VAT</div>
               </div>
-              <button class="add-to-cart">Add</button>
+              <button class="add-to-cart" aria-label="Add 18th Edition Consumer Unit to basket">Add</button>
             </div>
           </div>
-        </div>
+        </article>
         
-        <div class="product-card">
-          <div class="product-image">💡</div>
+        <article class="product-card">
+          <div class="product-image" aria-hidden="true">💡</div>
           <div class="product-info">
             <span class="product-brand">BrandName</span>
             <h3 class="product-name"><a href="#">LED Downlight 5W IP65 Dimmable</a></h3>
@@ -763,13 +766,13 @@
                 <div class="price">£8.49</div>
                 <div class="price-ex">£7.08 ex VAT</div>
               </div>
-              <button class="add-to-cart">Add</button>
+              <button class="add-to-cart" aria-label="Add LED Downlight to basket">Add</button>
             </div>
           </div>
-        </div>
+        </article>
         
-        <div class="product-card">
-          <div class="product-image">🔌</div>
+        <article class="product-card">
+          <div class="product-image" aria-hidden="true">🔌</div>
           <div class="product-info">
             <span class="product-brand">BrandName</span>
             <h3 class="product-name"><a href="#">Twin & Earth Cable 6242Y 2.5mm 100m</a></h3>
@@ -779,13 +782,13 @@
                 <div class="price">£79.99</div>
                 <div class="price-ex">£66.66 ex VAT</div>
               </div>
-              <button class="add-to-cart">Add</button>
+              <button class="add-to-cart" aria-label="Add Twin & Earth Cable to basket">Add</button>
             </div>
           </div>
-        </div>
+        </article>
         
-        <div class="product-card">
-          <div class="product-image">🔧</div>
+        <article class="product-card">
+          <div class="product-image" aria-hidden="true">🔧</div>
           <div class="product-info">
             <span class="product-brand">BrandName</span>
             <h3 class="product-name"><a href="#">VDE Electricians Screwdriver Set 7pc</a></h3>
@@ -795,25 +798,26 @@
                 <div class="price">£34.99</div>
                 <div class="price-ex">£29.16 ex VAT</div>
               </div>
-              <button class="add-to-cart">Add</button>
+              <button class="add-to-cart" aria-label="Add VDE Screwdriver Set to basket">Add</button>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </div>
   </section>
 
   <!-- Branch Finder -->
-  <section class="branch-finder">
+  <section class="branch-finder" aria-labelledby="branch-heading">
     <div class="container">
       <div class="branch-content">
         <div>
-          <h2>Find Your Local Branch</h2>
+          <h2 id="branch-heading">Find Your Local Branch</h2>
           <p>With over 300 branches nationwide, there's always an ElectroPro near you. Collect your order in as little as 30 minutes.</p>
-          <div class="branch-search">
-            <input type="text" placeholder="Enter postcode...">
-            <button>Find Branch</button>
-          </div>
+          <form class="branch-search" role="search" aria-label="Branch search">
+            <label for="branch-search-input" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Enter postcode</label>
+            <input type="text" id="branch-search-input" placeholder="Enter postcode...">
+            <button type="submit">Find Branch</button>
+          </form>
         </div>
         <div class="map-placeholder">
           🗺️ Map would be displayed here
@@ -823,19 +827,21 @@
   </section>
 
   <!-- Newsletter -->
-  <section class="newsletter">
+  <section class="newsletter" aria-labelledby="newsletter-heading">
     <div class="container">
-      <h3>Stay Updated</h3>
+      <h3 id="newsletter-heading">Stay Updated</h3>
       <p>Subscribe to receive exclusive offers and product updates</p>
       <form class="newsletter-form">
-        <input type="email" placeholder="Enter your email address">
+        <label for="newsletter-email" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Email address</label>
+        <input type="email" id="newsletter-email" placeholder="Enter your email address" required>
         <button type="submit">Subscribe</button>
       </form>
     </div>
   </section>
+  </main>
 
   <!-- Footer -->
-  <footer>
+  <footer role="contentinfo">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-col">

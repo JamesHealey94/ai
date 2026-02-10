@@ -24,11 +24,14 @@
 </style>
 </head>
 <body>
-<div id="info">
+<header id="info" role="banner">
   <h1>Middlesbrough Transporter Bridge</h1>
   <span>Opened 1911 &mdash; One of only a few operational transporter bridges in the world</span>
-</div>
-<div id="controls">Click &amp; drag to rotate &bull; Scroll to zoom &bull; Right-click to pan</div>
+</header>
+<footer id="controls" role="contentinfo" aria-label="3D model controls">
+  <p>Click and drag to rotate &bull; Scroll to zoom &bull; Right-click to pan</p>
+  <p class="visually-hidden">This is an interactive 3D model of the Middlesbrough Transporter Bridge. Use mouse or touch to explore.</p>
+</footer>
 
 <script type="importmap">
 {
@@ -69,6 +72,8 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
+renderer.domElement.setAttribute('role', 'img');
+renderer.domElement.setAttribute('aria-label', '3D model of Middlesbrough Transporter Bridge. Interactive visualization showing the bridge structure over the River Tees.');
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);

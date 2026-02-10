@@ -45,14 +45,16 @@
 </head>
 <body>
 
-<div id="blocker">
-  <h1>⛏ Minecraft</h1>
-  <p>Click to play — WASD move, Space jump, Mouse look</p>
-  <p>Left click: break block · Right click: place block · 1-9: select block · E: toggle fly</p>
+<div id="blocker" role="dialog" aria-labelledby="game-title" aria-describedby="game-controls">
+  <h1 id="game-title"><span aria-hidden="true">⛏</span> Minecraft</h1>
+  <div id="game-controls">
+    <p>Click to play — WASD move, Space jump, Mouse look</p>
+    <p>Left click: break block · Right click: place block · 1-9: select block · E: toggle fly</p>
+  </div>
 </div>
-<div id="crosshair">+</div>
-<div id="hotbar"></div>
-<div id="debug"></div>
+<div id="crosshair" aria-hidden="true">+</div>
+<div id="hotbar" role="toolbar" aria-label="Block selection hotbar"></div>
+<div id="debug" role="status" aria-live="polite"></div>
 
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js" } }

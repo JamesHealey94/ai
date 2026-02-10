@@ -176,43 +176,43 @@
   </style>
 </head>
 <body>
-  <canvas id="game"></canvas>
+  <canvas id="game" role="img" aria-label="Bubble Pop Frenzy game canvas">Your browser does not support the canvas element. This game requires canvas support.</canvas>
 
-  <div id="ui-overlay">
+  <div id="ui-overlay" role="status" aria-live="polite">
     <div class="ui-box">
-      🏆 <span id="score">0</span>
+      <span aria-hidden="true">🏆</span> <span id="score" aria-label="Score">0</span>
     </div>
     <div class="ui-box">
-      <div id="lives-display">❤️❤️❤️❤️❤️</div>
+      <div id="lives-display" aria-label="Lives remaining: 5">❤️❤️❤️❤️❤️</div>
     </div>
   </div>
 
-  <div id="combo-display"></div>
+  <div id="combo-display" role="alert" aria-live="assertive"></div>
 
-  <div id="start-screen">
-    <div class="screen-title">Bubble Pop Frenzy</div>
-    <p class="screen-sub">
+  <div id="start-screen" role="dialog" aria-labelledby="game-title" aria-describedby="game-desc">
+    <h1 class="screen-title" id="game-title">Bubble Pop Frenzy</h1>
+    <p class="screen-sub" id="game-desc">
       Tap the rising bubbles before they escape!<br />
       <strong>Golden bubbles</strong> are worth bonus points.<br />
-      <strong>Black bubbles</strong> are bombs — don't tap them! 💣
+      <strong>Black bubbles</strong> are bombs — don't tap them! <span aria-hidden="true">💣</span>
     </p>
     <button class="btn" id="start-btn">PLAY</button>
   </div>
 
-  <div id="game-over-screen">
-    <div class="screen-title">Game Over</div>
-    <div class="stat-row">
+  <div id="game-over-screen" role="dialog" aria-labelledby="gameover-title" aria-describedby="gameover-stats">
+    <h2 class="screen-title" id="gameover-title">Game Over</h2>
+    <div class="stat-row" id="gameover-stats">
       <div>
-        <div class="stat-label">Score</div>
-        <div class="stat-value" id="final-score">0</div>
+        <div class="stat-label" id="score-label">Score</div>
+        <div class="stat-value" id="final-score" aria-labelledby="score-label">0</div>
       </div>
       <div>
-        <div class="stat-label">Best</div>
-        <div class="stat-value" id="best-score">0</div>
+        <div class="stat-label" id="best-label">Best</div>
+        <div class="stat-value" id="best-score" aria-labelledby="best-label">0</div>
       </div>
       <div>
-        <div class="stat-label">Popped</div>
-        <div class="stat-value" id="total-popped">0</div>
+        <div class="stat-label" id="popped-label">Popped</div>
+        <div class="stat-value" id="total-popped" aria-labelledby="popped-label">0</div>
       </div>
     </div>
     <button class="btn" id="restart-btn">PLAY AGAIN</button>
@@ -312,6 +312,7 @@
     function updateLivesDisplay() {
       const el = document.getElementById("lives-display");
       el.textContent = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 5 - lives));
+      el.setAttribute("aria-label", `Lives remaining: ${Math.max(0, lives)}`);
     }
 
     function handleTap(px, py) {

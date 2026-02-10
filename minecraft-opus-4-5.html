@@ -106,21 +106,23 @@
   </style>
 </head>
 <body>
-  <div id="crosshair"></div>
-  <div id="hotbar"></div>
-  <div id="info">
+  <div id="crosshair" aria-hidden="true"></div>
+  <div id="hotbar" role="toolbar" aria-label="Block selection hotbar"></div>
+  <div id="info" role="status" aria-live="polite">
     <div id="fps">FPS: 0</div>
     <div id="pos">Position: 0, 0, 0</div>
   </div>
-  <div id="instructions">
-    <h1>🎮 Minecraft Clone</h1>
-    <p><span class="key">W A S D</span> - Move</p>
-    <p><span class="key">SPACE</span> - Jump</p>
-    <p><span class="key">SHIFT</span> - Sprint</p>
-    <p><span class="key">Mouse</span> - Look around</p>
-    <p><span class="key">Left Click</span> - Break block</p>
-    <p><span class="key">Right Click</span> - Place block</p>
-    <p><span class="key">1-9</span> or <span class="key">Scroll</span> - Select block</p>
+  <div id="instructions" role="dialog" aria-labelledby="game-title" aria-describedby="game-controls">
+    <h1 id="game-title"><span aria-hidden="true">🎮</span> Minecraft Clone</h1>
+    <div id="game-controls">
+      <p><kbd class="key">W A S D</kbd> - Move</p>
+      <p><kbd class="key">SPACE</kbd> - Jump</p>
+      <p><kbd class="key">SHIFT</kbd> - Sprint</p>
+      <p><kbd class="key">Mouse</kbd> - Look around</p>
+      <p><kbd class="key">Left Click</kbd> - Break block</p>
+      <p><kbd class="key">Right Click</kbd> - Place block</p>
+      <p><kbd class="key">1-9</kbd> or <kbd class="key">Scroll</kbd> - Select block</p>
+    </div>
     <button onclick="startGame()">Click to Play</button>
   </div>
   

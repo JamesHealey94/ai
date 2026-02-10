@@ -297,8 +297,8 @@
 </head>
 <body>
   <!-- Header -->
-  <div class="header">
-    <a href="#" class="back">‹</a>
+  <header class="header" role="banner">
+    <a href="#" class="back" aria-label="Go back">‹</a>
     <div class="avatar-group">
       <img
         src="https://i.pravatar.cc/88?img=12"
@@ -308,14 +308,14 @@
     </div>
     <span class="name">Devs</span>
     <div class="actions">
-      <button>📞</button>
-      <button>📹</button>
-      <button>ℹ️</button>
+      <button aria-label="Voice call">📞</button>
+      <button aria-label="Video call">📹</button>
+      <button aria-label="Chat information">ℹ️</button>
     </div>
-  </div>
+  </header>
 
   <!-- Chat -->
-  <div class="chat">
+  <main class="chat" role="main" aria-label="Chat messages">
     <!-- Lewis: Wouldn't surprise me -->
     <div class="message-row received">
       <div class="avatar-wrapper">
@@ -329,7 +329,7 @@
 
     <!-- Sent: link preview -->
     <div class="link-row">
-      <button class="share-btn">↗</button>
+      <button class="share-btn" aria-label="Share link">↗</button>
       <div class="link-preview">
         <a
           class="link-url"
@@ -408,22 +408,22 @@
       </div>
       <div class="bubble">Not tried it though</div>
     </div>
-  </div>
-
+  </main>
   <!-- Bottom bar -->
-  <div class="bottom-bar">
+  <footer class="bottom-bar" role="contentinfo">
     <div class="icons-left">
-      <button>＋</button>
-      <button>📷</button>
-      <button>🖼</button>
-      <button>🎙</button>
+      <button aria-label="Add attachment">＋</button>
+      <button aria-label="Take photo">📷</button>
+      <button aria-label="Send image">🖼</button>
+      <button aria-label="Record voice message">🎙</button>
     </div>
-    <input type="text" placeholder="Message" />
+    <label for="message-input" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Type a message</label>
+    <input type="text" id="message-input" placeholder="Message" />
     <div class="icons-right">
-      <button>😊</button>
-      <button>👍</button>
+      <button aria-label="Add emoji">😊</button>
+      <button aria-label="Send like">👍</button>
     </div>
-  </div>
+  </footer>
 
   <div class="home-indicator"></div>
 </body>

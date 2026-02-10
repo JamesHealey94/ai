@@ -1257,8 +1257,9 @@
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999;padding:8px 16px;background:#003087;color:#fff;text-decoration:none;font-weight:bold;" onfocus="this.style.left='0';this.style.width='auto';this.style.height='auto';" onblur="this.style.left='-9999px';this.style.width='1px';this.style.height='1px';">Skip to main content</a>
   <!-- TOP BAR -->
-  <div class="top-bar">
+  <div class="top-bar" role="complementary" aria-label="Contact and account links">
     <div class="container">
       <div class="top-links">
         <a href="#branch">
@@ -1288,23 +1289,24 @@
   </div>
 
   <!-- HEADER -->
-  <header class="header">
+  <header class="header" role="banner">
     <div class="container">
-      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-      <a href="#" class="logo">
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu" aria-expanded="false">☰</button>
+      <a href="#" class="logo" aria-label="CEF home">
         CEF
         <span>City Electrical Factors</span>
       </a>
-      <div class="search-bar">
+      <div class="search-bar" role="search">
+        <label for="searchInput" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Search products</label>
         <input
           type="text"
           placeholder="Search products, brands or codes..."
           id="searchInput"
         />
-        <button id="searchBtn">Search</button>
+        <button id="searchBtn" type="submit">Search</button>
       </div>
       <div class="header-actions">
-        <button class="header-btn" id="loginBtn">
+        <button class="header-btn" id="loginBtn" aria-label="Sign in to your account">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -1318,7 +1320,7 @@
           </svg>
           Account
         </button>
-        <button class="header-btn" id="cartBtn">
+        <button class="header-btn" id="cartBtn" aria-label="Shopping basket">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -1336,7 +1338,7 @@
                  2 2-.9 2-2-.9-2-2-2z"
             />
           </svg>
-          <span class="cart-count" id="cartCount">0</span>
+          <span class="cart-count" id="cartCount" aria-live="polite">0</span>
           Basket
         </button>
       </div>
@@ -1344,7 +1346,7 @@
   </header>
 
   <!-- NAV -->
-  <nav class="main-nav">
+  <nav class="main-nav" aria-label="Main navigation">
     <div class="container">
       <ul class="nav-list" id="navList">
         <li><a href="#" class="active">Home</a></li>
@@ -1362,10 +1364,11 @@
   </nav>
 
   <!-- HERO -->
-  <section class="hero">
+  <main id="main-content">
+  <section class="hero" aria-labelledby="hero-heading">
     <div class="container">
       <div class="hero-content">
-        <h1>Your Trusted <span>Electrical</span> Wholesaler</h1>
+        <h1 id="hero-heading">Your Trusted <span>Electrical</span> Wholesaler</h1>
         <p>
           Over 30,000 products in stock from leading brands. Available for
           collection at 400+ branches or delivery to your door.
@@ -1382,32 +1385,32 @@
   </section>
 
   <!-- INFO STRIP -->
-  <div class="info-strip">
+  <section class="info-strip" aria-label="Our benefits">
     <div class="container">
       <div class="info-grid">
         <div class="info-card">
-          <div class="info-icon">🚚</div>
+          <div class="info-icon" aria-hidden="true">🚚</div>
           <div>
             <h4>Free Delivery</h4>
             <p>On orders over £50 (ex. VAT)</p>
           </div>
         </div>
         <div class="info-card">
-          <div class="info-icon">🏪</div>
+          <div class="info-icon" aria-hidden="true">🏪</div>
           <div>
             <h4>Click & Collect</h4>
             <p>Ready in 1 hour at your local branch</p>
           </div>
         </div>
         <div class="info-card">
-          <div class="info-icon">💳</div>
+          <div class="info-icon" aria-hidden="true">💳</div>
           <div>
             <h4>Trade Accounts</h4>
             <p>Apply now for trade pricing</p>
           </div>
         </div>
         <div class="info-card">
-          <div class="info-icon">↩️</div>
+          <div class="info-icon" aria-hidden="true">↩️</div>
           <div>
             <h4>Easy Returns</h4>
             <p>30-day hassle-free returns</p>
@@ -1415,13 +1418,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- CATEGORIES -->
-  <section class="section" id="categories">
+  <section class="section" id="categories" aria-labelledby="categories-heading">
     <div class="container">
       <div class="section-header">
-        <h2>Shop by Category</h2>
+        <h2 id="categories-heading">Shop by Category</h2>
         <a href="#">View All Categories →</a>
       </div>
       <div class="cat-grid">
@@ -1520,10 +1523,10 @@
   </section>
 
   <!-- POPULAR PRODUCTS -->
-  <section class="section" id="products" style="background: var(--cef-gray)">
+  <section class="section" id="products" style="background: var(--cef-gray)" aria-labelledby="products-heading">
     <div class="container">
       <div class="section-header">
-        <h2>Popular Products</h2>
+        <h2 id="products-heading">Popular Products</h2>
         <a href="#">View All Products →</a>
       </div>
       <div class="product-grid" id="productGrid">
@@ -1533,10 +1536,10 @@
   </section>
 
   <!-- BRANDS -->
-  <section class="section brands-section">
+  <section class="section brands-section" aria-labelledby="brands-heading">
     <div class="container">
       <div class="section-header">
-        <h2>Top Brands</h2>
+        <h2 id="brands-heading">Top Brands</h2>
         <a href="#">All Brands →</a>
       </div>
       <div class="brands-grid">
@@ -1559,10 +1562,10 @@
   </section>
 
   <!-- BRANCH FINDER -->
-  <section class="section branch-section" id="branch">
+  <section class="section branch-section" id="branch" aria-labelledby="branch-heading">
     <div class="container">
       <div class="section-header">
-        <h2>Find Your Nearest Branch</h2>
+        <h2 id="branch-heading">Find Your Nearest Branch</h2>
       </div>
       <div class="branch-content">
         <div class="branch-form">
@@ -1571,14 +1574,15 @@
             Open early for the trade, with expert counter staff ready to
             help.
           </p>
-          <div class="branch-search">
+          <form class="branch-search" role="search" aria-label="Branch search" onsubmit="event.preventDefault(); searchBranch()">
+            <label for="branchInput" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Enter postcode or town</label>
             <input
               type="text"
               placeholder="Enter postcode or town..."
               id="branchInput"
             />
-            <button onclick="searchBranch()">Find</button>
-          </div>
+            <button type="submit">Find</button>
+          </form>
           <div class="branch-stats">
             <div class="branch-stat">
               <h3>400+</h3>
@@ -1660,23 +1664,25 @@
     </div>
   </section>
 
+  </main>
   <!-- NEWSLETTER -->
-  <div class="newsletter">
+  <section class="newsletter" aria-labelledby="newsletter-heading">
     <div class="container">
-      <h3>📧 Stay Updated</h3>
+      <h3 id="newsletter-heading"><span aria-hidden="true">📧</span> Stay Updated</h3>
       <p>
         Get exclusive offers, new product alerts and industry news straight
         to your inbox.
       </p>
       <form class="newsletter-form" onsubmit="event.preventDefault(); showToast('Subscribed successfully!')">
-        <input type="email" placeholder="Enter your email address" required />
+        <label for="newsletter-email" class="visually-hidden" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Email address</label>
+        <input type="email" id="newsletter-email" placeholder="Enter your email address" required />
         <button type="submit">Subscribe</button>
       </form>
     </div>
-  </div>
+  </section>
 
   <!-- FOOTER -->
-  <footer class="footer">
+  <footer class="footer" role="contentinfo">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-col">
@@ -1761,25 +1767,25 @@
   </footer>
 
   <!-- BACK TO TOP -->
-  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0})">↑</button>
+  <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0})" aria-label="Back to top">↑</button>
 
   <!-- LOGIN MODAL -->
-  <div class="modal-overlay" id="loginModal">
+  <div class="modal-overlay" id="loginModal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-desc" aria-modal="true">
     <div class="modal">
-      <button class="modal-close" onclick="closeModal()">×</button>
-      <h2>Sign In</h2>
-      <p class="subtitle">Access your trade account and order history</p>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close dialog">×</button>
+      <h2 id="modal-title">Sign In</h2>
+      <p class="subtitle" id="modal-desc">Access your trade account and order history</p>
       <form onsubmit="event.preventDefault(); closeModal(); showToast('Signed in successfully!')">
         <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" placeholder="you@company.co.uk" required />
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" placeholder="you@company.co.uk" required />
         </div>
         <div class="form-group">
-          <label>Password</label>
-          <input type="password" placeholder="Enter your password" required />
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="Enter your password" required />
         </div>
         <div class="form-footer">
-          <label><input type="checkbox" /> Remember me</label>
+          <label><input type="checkbox" id="remember-me" /> <span>Remember me</span></label>
           <a href="#">Forgot password?</a>
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In</button>
@@ -1792,7 +1798,7 @@
   </div>
 
   <!-- TOAST CONTAINER -->
-  <div class="toast-container" id="toastContainer"></div>
+  <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
 
   <script>
     // ── Product Data ──

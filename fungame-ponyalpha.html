@@ -271,12 +271,12 @@
 </head>
 <body>
   <div id="gameContainer">
-    <div id="scoreBoard">Score: <span id="score">0</span></div>
-    <div id="timer">Time: <span id="timeLeft">30</span>s</div>
+    <div id="scoreBoard" role="status" aria-live="polite">Score: <span id="score">0</span></div>
+    <div id="timer" role="timer" aria-live="off" aria-label="Time remaining">Time: <span id="timeLeft">30</span>s</div>
 
-    <div id="startScreen">
-      <h1>Bubble Pop Frenzy</h1>
-      <p class="subtitle">Pop as many bubbles as you can!</p>
+    <div id="startScreen" role="dialog" aria-labelledby="start-title" aria-describedby="start-desc">
+      <h1 id="start-title">Bubble Pop Frenzy</h1>
+      <p class="subtitle" id="start-desc">Pop as many bubbles as you can!</p>
       <p class="instructions">
         Tap bubbles to pop them! Golden bubbles give bonus points. Build combos
         for extra score!
@@ -284,21 +284,21 @@
       <button class="btn" onclick="startGame()">Play!</button>
     </div>
 
-    <div id="gameOverScreen">
-      <h1>Game Over!</h1>
-      <div class="finalScore" id="finalScore">0</div>
-      <div class="stats">
+    <div id="gameOverScreen" role="dialog" aria-labelledby="gameover-title" aria-describedby="gameover-stats">
+      <h1 id="gameover-title">Game Over!</h1>
+      <div class="finalScore" id="finalScore" aria-label="Final score">0</div>
+      <div class="stats" id="gameover-stats">
         <div class="stat">
-          <div class="statLabel">Popped</div>
-          <div class="statValue" id="totalPopped">0</div>
+          <div class="statLabel" id="popped-label">Popped</div>
+          <div class="statValue" id="totalPopped" aria-labelledby="popped-label">0</div>
         </div>
         <div class="stat">
-          <div class="statLabel">Best Combo</div>
-          <div class="statValue" id="bestCombo">0</div>
+          <div class="statLabel" id="combo-label">Best Combo</div>
+          <div class="statValue" id="bestCombo" aria-labelledby="combo-label">0</div>
         </div>
         <div class="stat">
-          <div class="statLabel">Accuracy</div>
-          <div class="statValue" id="accuracy">0%</div>
+          <div class="statLabel" id="accuracy-label">Accuracy</div>
+          <div class="statValue" id="accuracy" aria-labelledby="accuracy-label">0%</div>
         </div>
       </div>
       <button class="btn" onclick="startGame()">Play Again!</button>
