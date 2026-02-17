@@ -1,10 +1,10 @@
 <!-- Created with AI: https://t3.chat/share/6fh5i9opdv -->
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CEF - City Electrical Factors</title>
+  <title>CEF - City Electrical Factors | Electrical Wholesaler</title>
   <style>
     * {
       margin: 0;
@@ -13,7 +13,7 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       font-size: 14px;
       color: #333;
       background: #f5f5f5;
@@ -26,13 +26,16 @@
 
     /* ── TOP BAR ── */
     .top-bar {
-      background: #1a1a2e;
+      background: #1a1a1a;
       color: #ccc;
       font-size: 12px;
       padding: 6px 0;
     }
 
-    .top-bar .container {
+    .top-bar .inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -41,56 +44,70 @@
     .top-bar a {
       color: #ccc;
       margin-left: 16px;
-      font-size: 12px;
+      transition: color 0.2s;
     }
 
     .top-bar a:hover {
       color: #fff;
     }
 
+    .top-bar-left span {
+      margin-right: 8px;
+    }
+
     /* ── HEADER ── */
     header {
       background: #e30613;
       padding: 12px 0;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    header .container {
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       gap: 16px;
     }
 
+    /* Logo */
     .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       flex-shrink: 0;
     }
 
     .logo-box {
       background: #fff;
-      color: #e30613;
-      font-weight: 900;
-      font-size: 26px;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+    }
+
+    .logo-box .cef {
+      font-size: 28px;
+      font-weight: 900;
+      color: #e30613;
       letter-spacing: -1px;
     }
 
-    .logo-text {
-      color: #fff;
-      font-size: 11px;
-      line-height: 1.4;
-      font-weight: 600;
-      text-transform: uppercase;
+    .logo-box .tagline {
+      font-size: 8px;
+      color: #555;
       letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
+    /* Search */
     .search-bar {
       flex: 1;
       display: flex;
-      max-width: 560px;
+      max-width: 640px;
     }
 
     .search-bar input {
@@ -103,72 +120,80 @@
     }
 
     .search-bar button {
-      background: #c00;
+      background: #333;
       color: #fff;
       border: none;
       padding: 10px 18px;
       border-radius: 0 4px 4px 0;
       cursor: pointer;
       font-size: 16px;
+      transition: background 0.2s;
     }
 
     .search-bar button:hover {
-      background: #a00;
+      background: #111;
     }
 
+    /* Header actions */
     .header-actions {
       display: flex;
-      gap: 20px;
+      gap: 6px;
       margin-left: auto;
     }
 
-    .header-action {
+    .header-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      color: #fff;
-      font-size: 11px;
-      cursor: pointer;
-      gap: 4px;
+      gap: 2px;
+      transition: background 0.2s;
+      white-space: nowrap;
     }
 
-    .header-action svg {
-      width: 22px;
-      height: 22px;
-      fill: #fff;
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
 
-    .header-action:hover {
-      opacity: 0.8;
+    .header-btn .icon {
+      font-size: 18px;
     }
 
-    .cart-badge {
-      position: relative;
-    }
-
-    .cart-badge span {
-      position: absolute;
-      top: -6px;
-      right: -8px;
+    .header-btn.basket {
       background: #fff;
       color: #e30613;
-      font-size: 10px;
-      font-weight: 700;
+      font-weight: bold;
+      border-color: #fff;
+    }
+
+    .basket-count {
+      background: #e30613;
+      color: #fff;
       border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      display: flex;
+      font-size: 10px;
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      margin-left: 4px;
     }
 
     /* ── NAV ── */
     nav {
       background: #222;
-      border-bottom: 3px solid #e30613;
     }
 
-    nav .container {
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
       display: flex;
       align-items: stretch;
     }
@@ -177,30 +202,102 @@
       color: #fff;
       padding: 12px 16px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: bold;
       cursor: pointer;
-      white-space: nowrap;
       display: flex;
       align-items: center;
       gap: 4px;
-      transition: background 0.15s;
+      transition: background 0.2s;
+      position: relative;
+      white-space: nowrap;
     }
 
-    .nav-item:hover,
+    .nav-item:hover {
+      background: #e30613;
+    }
+
     .nav-item.active {
       background: #e30613;
     }
 
-    .nav-item .arrow {
-      font-size: 9px;
-      margin-top: 1px;
+    .nav-item .chevron {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* Mega menu */
+    .mega-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      border-top: 3px solid #e30613;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      z-index: 200;
+      padding: 24px;
+      width: 700px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .nav-item:hover .mega-menu {
+      display: grid;
+    }
+
+    .mega-menu a {
+      display: block;
+      padding: 6px 8px;
+      color: #333;
+      font-size: 13px;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+
+    .mega-menu a:hover {
+      background: #f5f5f5;
+      color: #e30613;
+    }
+
+    .mega-menu-title {
+      font-weight: bold;
+      color: #e30613;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 8px 4px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 4px;
+    }
+
+    /* ── BREADCRUMB ── */
+    .breadcrumb {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 8px 0;
+      font-size: 12px;
+      color: #888;
+    }
+
+    .breadcrumb .inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .breadcrumb a {
+      color: #e30613;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
     }
 
     /* ── HERO BANNER ── */
     .hero {
-      background: linear-gradient(135deg, #e30613 0%, #a00010 100%);
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: #fff;
-      padding: 48px 0;
+      padding: 60px 16px;
       position: relative;
       overflow: hidden;
     }
@@ -208,26 +305,17 @@
     .hero::before {
       content: "";
       position: absolute;
-      right: -80px;
-      top: -80px;
-      width: 420px;
-      height: 420px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 50%;
+      top: -50%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(227, 6, 19, 0.2), transparent 70%);
+      pointer-events: none;
     }
 
-    .hero::after {
-      content: "";
-      position: absolute;
-      right: 120px;
-      bottom: -120px;
-      width: 300px;
-      height: 300px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 50%;
-    }
-
-    .hero .container {
+    .hero-inner {
+      max-width: 1280px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -235,35 +323,38 @@
     }
 
     .hero-content {
-      max-width: 520px;
-      z-index: 1;
+      max-width: 560px;
     }
 
     .hero-badge {
-      background: #fff;
-      color: #e30613;
-      font-weight: 700;
+      background: #e30613;
+      color: #fff;
       font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       padding: 4px 10px;
-      border-radius: 12px;
+      border-radius: 3px;
       display: inline-block;
       margin-bottom: 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .hero h1 {
-      font-size: 38px;
+      font-size: 40px;
       font-weight: 900;
       line-height: 1.1;
       margin-bottom: 16px;
     }
 
+    .hero h1 span {
+      color: #e30613;
+    }
+
     .hero p {
-      font-size: 15px;
-      opacity: 0.9;
-      margin-bottom: 28px;
+      font-size: 16px;
+      color: #bbb;
       line-height: 1.6;
+      margin-bottom: 28px;
     }
 
     .hero-btns {
@@ -273,20 +364,22 @@
     }
 
     .btn-primary {
-      background: #fff;
-      color: #e30613;
+      background: #e30613;
+      color: #fff;
       padding: 12px 28px;
       border-radius: 4px;
-      font-weight: 700;
+      font-weight: bold;
       font-size: 14px;
+      border: 2px solid #e30613;
       cursor: pointer;
-      border: none;
-      transition: transform 0.1s, box-shadow 0.1s;
+      transition: all 0.2s;
+      display: inline-block;
     }
 
     .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+      background: #c00510;
+      border-color: #c00510;
+      color: #fff;
     }
 
     .btn-outline {
@@ -294,11 +387,12 @@
       color: #fff;
       padding: 12px 28px;
       border-radius: 4px;
-      font-weight: 700;
+      font-weight: bold;
       font-size: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
       cursor: pointer;
-      border: 2px solid rgba(255, 255, 255, 0.7);
-      transition: border-color 0.15s, background 0.15s;
+      transition: all 0.2s;
+      display: inline-block;
     }
 
     .btn-outline:hover {
@@ -308,494 +402,538 @@
 
     .hero-stats {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-      z-index: 1;
-      flex-shrink: 0;
+      gap: 32px;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .stat-card {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 8px;
-      padding: 16px 24px;
-      text-align: center;
-      min-width: 140px;
-    }
-
-    .stat-card .num {
+    .hero-stat .num {
       font-size: 28px;
       font-weight: 900;
+      color: #e30613;
     }
 
-    .stat-card .label {
-      font-size: 11px;
-      opacity: 0.85;
-      margin-top: 2px;
-    }
-
-    /* ── PROMO STRIP ── */
-    .promo-strip {
-      background: #1a1a2e;
-      color: #fff;
-      padding: 10px 0;
-    }
-
-    .promo-strip .container {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .promo-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .hero-stat .label {
       font-size: 12px;
-    }
-
-    .promo-item svg {
-      width: 18px;
-      height: 18px;
-      fill: #e30613;
-      flex-shrink: 0;
-    }
-
-    .promo-item strong {
-      color: #fff;
-    }
-
-    .promo-item span {
       color: #aaa;
     }
 
-    /* ── SECTION TITLE ── */
-    .section-title {
-      font-size: 22px;
-      font-weight: 800;
-      color: #222;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 3px solid #e30613;
-      display: inline-block;
+    .hero-image {
+      flex-shrink: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      max-width: 380px;
     }
 
-    /* ── CATEGORY GRID ── */
-    .categories {
-      padding: 40px 0;
+    .hero-product-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      width: 110px;
+    }
+
+    .hero-product-card .emoji {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .hero-product-card span {
+      font-size: 11px;
+      color: #ccc;
+    }
+
+    /* ── USP BAR ── */
+    .usp-bar {
       background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 16px 0;
     }
 
-    .categories .container > p {
-      color: #666;
-      margin-top: -12px;
-      margin-bottom: 24px;
-      font-size: 13px;
-    }
-
-    .cat-grid {
+    .usp-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
     }
 
-    .cat-card {
-      background: #f9f9f9;
-      border: 1px solid #e8e8e8;
-      border-radius: 8px;
-      padding: 20px 14px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-    }
-
-    .cat-card:hover {
-      border-color: #e30613;
-      box-shadow: 0 4px 14px rgba(227, 6, 19, 0.12);
-      transform: translateY(-2px);
-    }
-
-    .cat-icon {
-      font-size: 34px;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .cat-card h3 {
-      font-size: 12px;
-      font-weight: 700;
-      color: #333;
-      line-height: 1.3;
-    }
-
-    .cat-card p {
-      font-size: 11px;
-      color: #999;
-      margin-top: 4px;
-    }
-
-    /* ── FEATURED PRODUCTS ── */
-    .featured {
-      padding: 40px 0;
-      background: #f5f5f5;
-    }
-
-    .featured .container > .section-header {
+    .usp-item {
       display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .usp-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .usp-text strong {
+      display: block;
+      font-size: 13px;
+      color: #222;
+    }
+
+    .usp-text span {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      max-width: 1280px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-end;
       margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #222;
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .section-title::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 22px;
+      background: #e30613;
+      border-radius: 2px;
     }
 
     .view-all {
       color: #e30613;
       font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: gap 0.2s;
     }
 
     .view-all:hover {
-      text-decoration: underline;
+      gap: 8px;
     }
 
+    /* ── CATEGORY GRID ── */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    .category-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 20px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: block;
+    }
+
+    .category-card:hover {
+      border-color: #e30613;
+      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .category-card .cat-icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .category-card .cat-name {
+      font-size: 12px;
+      font-weight: bold;
+      color: #333;
+      line-height: 1.3;
+    }
+
+    .category-card .cat-count {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* ── PRODUCT GRID ── */
     .product-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
     }
 
     .product-card {
       background: #fff;
-      border: 1px solid #e8e8e8;
+      border: 1px solid #e5e5e5;
       border-radius: 8px;
       overflow: hidden;
       cursor: pointer;
-      transition: box-shadow 0.15s, transform 0.1s;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
     }
 
     .product-card:hover {
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      border-color: #ccc;
       transform: translateY(-2px);
     }
 
     .product-img {
-      background: #f0f0f0;
-      height: 150px;
+      background: #f9f9f9;
+      height: 180px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      font-size: 60px;
+      border-bottom: 1px solid #f0f0f0;
       position: relative;
     }
 
     .product-badge {
       position: absolute;
-      top: 8px;
-      left: 8px;
+      top: 10px;
+      left: 10px;
       background: #e30613;
       color: #fff;
       font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
+      font-weight: bold;
+      padding: 2px 8px;
       border-radius: 3px;
-      text-transform: uppercase;
     }
 
     .product-badge.new {
-      background: #007bff;
+      background: #00a651;
     }
 
-    .product-badge.sale {
-      background: #e30613;
-    }
-
-    .product-info {
-      padding: 12px;
+    .product-body {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .product-brand {
-      font-size: 10px;
+      font-size: 11px;
       color: #999;
       text-transform: uppercase;
-      font-weight: 600;
       letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .product-name {
       font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin: 4px 0;
-      line-height: 1.3;
+      font-weight: bold;
+      color: #222;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      flex: 1;
     }
 
     .product-code {
-      font-size: 10px;
-      color: #bbb;
-      margin-bottom: 8px;
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    .product-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
     }
 
     .product-price {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .price-main {
       font-size: 18px;
-      font-weight: 800;
+      font-weight: 900;
       color: #e30613;
     }
 
-    .price-old {
+    .product-price .ex-vat {
+      font-size: 10px;
+      color: #aaa;
+      font-weight: normal;
+      display: block;
+    }
+
+    .product-old-price {
       font-size: 12px;
       color: #aaa;
       text-decoration: line-through;
+      display: block;
     }
 
-    .price-vat {
-      font-size: 10px;
-      color: #aaa;
-    }
-
-    .add-to-cart {
-      width: 100%;
+    .add-to-basket {
       background: #e30613;
       color: #fff;
       border: none;
-      padding: 8px;
-      margin-top: 10px;
       border-radius: 4px;
+      padding: 8px 14px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: bold;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.2s;
+      white-space: nowrap;
     }
 
-    .add-to-cart:hover {
-      background: #c00;
+    .add-to-basket:hover {
+      background: #c00510;
     }
 
-    /* ── BANNERS ── */
-    .banners {
-      padding: 40px 0;
-      background: #fff;
-    }
-
-    .banner-grid {
+    /* ── PROMO BANNERS ── */
+    .promo-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 2fr 1fr;
       gap: 16px;
     }
 
-    .banner-card {
-      border-radius: 8px;
-      padding: 32px 28px;
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      min-height: 180px;
+    .promo-card {
+      border-radius: 10px;
+      padding: 32px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: space-between;
+      min-height: 200px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .banner-card.blue {
-      background: linear-gradient(135deg, #1a3a6b 0%, #0d2147 100%);
-    }
-
-    .banner-card.dark {
-      background: linear-gradient(135deg, #2a2a2a 0%, #111 100%);
-    }
-
-    .banner-card::before {
-      content: "";
-      position: absolute;
-      right: -40px;
-      top: -40px;
-      width: 200px;
-      height: 200px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 50%;
-    }
-
-    .banner-card .tag {
-      background: #e30613;
+    .promo-card.red {
+      background: linear-gradient(135deg, #e30613, #9b0000);
       color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 3px;
-      display: inline-block;
-      margin-bottom: 10px;
+    }
+
+    .promo-card.dark {
+      background: linear-gradient(135deg, #1a1a1a, #333);
+      color: #fff;
+    }
+
+    .promo-card.blue {
+      background: linear-gradient(135deg, #003580, #0066cc);
+      color: #fff;
+    }
+
+    .promo-card .promo-eyebrow {
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .banner-card h3 {
-      color: #fff;
-      font-size: 20px;
-      font-weight: 800;
+      letter-spacing: 1px;
+      opacity: 0.8;
       margin-bottom: 8px;
-      line-height: 1.2;
     }
 
-    .banner-card p {
-      color: rgba(255, 255, 255, 0.75);
+    .promo-card h2 {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .promo-card p {
       font-size: 13px;
-      margin-bottom: 16px;
+      opacity: 0.85;
+      margin-bottom: 20px;
+    }
+
+    .promo-card .promo-emoji {
+      position: absolute;
+      right: 24px;
+      bottom: 16px;
+      font-size: 72px;
+      opacity: 0.3;
     }
 
     .btn-white {
       background: #fff;
-      color: #222;
-      padding: 9px 20px;
+      color: #e30613;
+      padding: 10px 22px;
       border-radius: 4px;
-      font-weight: 700;
+      font-weight: bold;
       font-size: 13px;
-      cursor: pointer;
-      border: none;
       display: inline-block;
-      transition: opacity 0.15s;
+      transition: all 0.2s;
+      align-self: flex-start;
     }
 
     .btn-white:hover {
-      opacity: 0.9;
+      background: #f0f0f0;
+    }
+
+    .btn-white.dark {
+      color: #333;
+    }
+
+    .promo-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     /* ── BRANDS ── */
-    .brands {
-      padding: 40px 0;
-      background: #f5f5f5;
-    }
-
-    .brand-logos {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .brand-logo {
+    .brands-strip {
       background: #fff;
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
-      padding: 14px 22px;
-      font-weight: 800;
-      font-size: 14px;
-      color: #555;
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
-      min-width: 110px;
-      text-align: center;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 24px;
     }
 
-    .brand-logo:hover {
+    .brands-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      align-items: center;
+    }
+
+    .brand-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      height: 60px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .brand-item:hover {
       border-color: #e30613;
-      color: #e30613;
-      box-shadow: 0 2px 10px rgba(227, 6, 19, 0.1);
+    }
+
+    .brand-item span {
+      font-size: 13px;
+      font-weight: 900;
+      color: #555;
+      text-align: center;
+      line-height: 1.2;
     }
 
     /* ── INFO BOXES ── */
-    .info-boxes {
-      padding: 40px 0;
-      background: #fff;
-    }
-
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
     }
 
-    .info-box {
-      border: 1px solid #e8e8e8;
+    .info-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
       border-radius: 8px;
-      padding: 24px 20px;
-      text-align: center;
+      padding: 24px;
     }
 
-    .info-box .icon {
-      font-size: 36px;
-      margin-bottom: 12px;
-      display: block;
-    }
-
-    .info-box h4 {
+    .info-card h3 {
       font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-weight: bold;
+      margin-bottom: 12px;
       color: #222;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .info-box p {
-      font-size: 12px;
-      color: #777;
-      line-height: 1.6;
+    .info-card p,
+    .info-card li {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .info-card ul {
+      padding-left: 18px;
+    }
+
+    .info-card .cta-link {
+      color: #e30613;
+      font-size: 13px;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
     }
 
     /* ── FOOTER ── */
     footer {
-      background: #1a1a2e;
+      background: #1a1a1a;
       color: #ccc;
-      padding: 48px 0 0;
+      margin-top: 48px;
+      padding-top: 48px;
     }
 
-    .footer-grid {
+    .footer-top {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
       gap: 32px;
-      margin-bottom: 40px;
     }
 
     .footer-brand .logo-box {
-      font-size: 20px;
-      padding: 3px 8px;
-      display: inline-block;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
+      display: inline-flex;
     }
 
     .footer-brand p {
-      font-size: 12px;
+      font-size: 13px;
       line-height: 1.7;
-      color: #888;
-      max-width: 260px;
+      color: #999;
+      margin-bottom: 16px;
     }
 
     .footer-social {
       display: flex;
       gap: 10px;
-      margin-top: 16px;
     }
 
     .social-btn {
-      width: 34px;
-      height: 34px;
-      background: #2a2a4a;
+      width: 36px;
+      height: 36px;
+      background: #333;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 16px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.2s;
     }
 
     .social-btn:hover {
       background: #e30613;
     }
 
-    .footer-col h5 {
+    .footer-col h4 {
       color: #fff;
       font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 16px;
+      font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e30613;
+      display: inline-block;
     }
 
     .footer-col ul {
@@ -807,521 +945,883 @@
     }
 
     .footer-col ul li a {
-      color: #888;
-      font-size: 12px;
-      transition: color 0.15s;
+      color: #999;
+      font-size: 13px;
+      transition: color 0.2s;
     }
 
     .footer-col ul li a:hover {
-      color: #e30613;
+      color: #fff;
     }
 
-    .footer-bottom {
-      border-top: 1px solid #2a2a4a;
-      padding: 16px 0;
+    .footer-middle {
+      background: #111;
+      padding: 24px 16px;
+    }
+
+    .footer-middle-inner {
+      max-width: 1280px;
+      margin: 0 auto;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      gap: 16px;
       flex-wrap: wrap;
-      gap: 8px;
     }
 
-    .footer-bottom p {
-      font-size: 11px;
-      color: #555;
+    .newsletter-form {
+      display: flex;
+      gap: 0;
+    }
+
+    .newsletter-form input {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px 0 0 4px;
+      font-size: 13px;
+      width: 260px;
+      outline: none;
+    }
+
+    .newsletter-form button {
+      background: #e30613;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 0 4px 4px 0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .newsletter-form button:hover {
+      background: #c00510;
     }
 
     .payment-icons {
       display: flex;
       gap: 8px;
+      align-items: center;
     }
 
     .payment-icon {
-      background: #2a2a4a;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #aaa;
+      font-weight: bold;
+    }
+
+    .footer-bottom {
+      background: #0d0d0d;
+      padding: 16px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .footer-bottom a {
       color: #888;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 8px;
+      margin: 0 8px;
+      transition: color 0.2s;
+    }
+
+    .footer-bottom a:hover {
+      color: #ccc;
+    }
+
+    /* ── BRANCH FINDER ── */
+    .branch-banner {
+      background: linear-gradient(135deg, #222, #444);
+      color: #fff;
+      padding: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .branch-banner h2 {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .branch-banner p {
+      color: #bbb;
+      font-size: 14px;
+    }
+
+    .branch-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .branch-form input {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 220px;
+      outline: none;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
       border-radius: 4px;
     }
 
-    /* ── CONTAINER ── */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
-      .footer-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .hero .container {
-        flex-direction: column;
-      }
-
-      .hero-stats {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .header-actions {
-        gap: 12px;
-      }
-
-      nav .nav-item {
-        padding: 10px 10px;
-        font-size: 12px;
-      }
-
-      .hero h1 {
-        font-size: 26px;
-      }
-
-      .banner-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .footer-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .logo-text {
-        display: none;
-      }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #e30613;
     }
   </style>
 </head>
 <body>
+
   <!-- TOP BAR -->
   <div class="top-bar">
-    <div class="container">
-      <span>🔴 Over 400 branches nationwide &mdash; Find your nearest branch</span>
+    <div class="inner">
+      <div class="top-bar-left">
+        <span>📞 0800 838 282</span>
+        <span>|</span>
+        <span>Mon–Fri 7:30am–5:30pm</span>
+      </div>
       <div>
-        <a href="#">Track Order</a>
-        <a href="#">Branch Finder</a>
+        <a href="#">Find a Branch</a>
         <a href="#">Trade Account</a>
+        <a href="#">CEF Connect</a>
         <a href="#">Help &amp; FAQs</a>
+        <a href="#">Sign In</a>
       </div>
     </div>
   </div>
 
   <!-- HEADER -->
   <header>
-    <div class="container">
-      <!-- Logo -->
-      <a href="#" class="logo">
-        <div class="logo-box">CEF</div>
-        <div class="logo-text">
-          City Electrical<br />Factors
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <div class="logo-box">
+          <span class="cef">CEF</span>
+          <span class="tagline">City Electrical Factors</span>
         </div>
       </a>
 
-      <!-- Search -->
       <div class="search-bar">
-        <input type="text" placeholder="Search by product name, brand or code..." />
-        <button>&#128269;</button>
+        <input type="text" placeholder="Search by product, brand or part number..." />
+        <button>🔍</button>
       </div>
 
-      <!-- Actions -->
       <div class="header-actions">
-        <div class="header-action">
-          <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-          <span>Sign In</span>
-        </div>
-        <div class="header-action">
-          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-          <span>Wishlist</span>
-        </div>
-        <div class="header-action cart-badge">
-          <div style="position:relative">
-            <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.9 18 9 18h12v-2H9.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0023.42 5H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-            <span>3</span>
-          </div>
+        <button class="header-btn">
+          <span class="icon">📍</span>
+          <span>Branch</span>
+        </button>
+        <button class="header-btn">
+          <span class="icon">👤</span>
+          <span>Account</span>
+        </button>
+        <button class="header-btn">
+          <span class="icon">❤️</span>
+          <span>Saved</span>
+        </button>
+        <button class="header-btn basket">
+          <span style="display:flex;align-items:center">
+            <span class="icon">🛒</span>
+            <span class="basket-count">0</span>
+          </span>
           <span>Basket</span>
-        </div>
+        </button>
       </div>
     </div>
   </header>
 
   <!-- NAV -->
   <nav>
-    <div class="container">
-      <div class="nav-item active">&#9776; All Categories</div>
-      <div class="nav-item">Cable &amp; Wiring <span class="arrow">&#9660;</span></div>
-      <div class="nav-item">Lighting <span class="arrow">&#9660;</span></div>
-      <div class="nav-item">Consumer Units <span class="arrow">&#9660;</span></div>
-      <div class="nav-item">Tools &amp; Test <span class="arrow">&#9660;</span></div>
-      <div class="nav-item">Accessories <span class="arrow">&#9660;</span></div>
-      <div class="nav-item">EV Charging <span class="arrow">&#9660;</span></div>
-      <div class="nav-item">Renewables <span class="arrow">&#9660;</span></div>
-      <div class="nav-item" style="margin-left:auto; background:#e30613;">&#128197; Offers</div>
+    <div class="nav-inner">
+      <div class="nav-item active">
+        ☰ All Categories <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item" style="position:relative">
+        Cable &amp; Wiring <span class="chevron">▾</span>
+        <div class="mega-menu">
+          <div>
+            <div class="mega-menu-title">Cable Types</div>
+            <a href="#">Armoured Cable (SWA)</a>
+            <a href="#">Twin &amp; Earth</a>
+            <a href="#">Flex Cable</a>
+            <a href="#">Single Core</a>
+            <a href="#">Fire Resistant</a>
+          </div>
+          <div>
+            <div class="mega-menu-title">Cable Management</div>
+            <a href="#">Cable Trunking</a>
+            <a href="#">Cable Tray</a>
+            <a href="#">Conduit</a>
+            <a href="#">Cable Ties</a>
+            <a href="#">Glands &amp; Fittings</a>
+          </div>
+          <div>
+            <div class="mega-menu-title">Accessories</div>
+            <a href="#">Junction Boxes</a>
+            <a href="#">Terminal Blocks</a>
+            <a href="#">Cable Reels</a>
+            <a href="#">Drum Stands</a>
+            <a href="#">Cable Markers</a>
+          </div>
+        </div>
+      </div>
+      <div class="nav-item">
+        Lighting <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item">
+        Distribution &amp; Protection <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item">
+        Wiring Accessories <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item">
+        Tools &amp; Test <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item">
+        EV Charging <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item">
+        Renewables <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item">
+        Data &amp; Security <span class="chevron">▾</span>
+      </div>
+      <div class="nav-item" style="margin-left:auto;background:#e30613">
+        🔥 Deals
+      </div>
     </div>
   </nav>
 
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb">
+    <div class="inner">
+      <a href="#">Home</a>
+    </div>
+  </div>
+
   <!-- HERO -->
-  <section class="hero">
-    <div class="container">
+  <div class="hero">
+    <div class="hero-inner">
       <div class="hero-content">
-        <div class="hero-badge">🔥 January Trade Deals</div>
-        <h1>Your Electrical Wholesaler &amp; Trade Partner</h1>
+        <span class="hero-badge">⚡ Trusted Electrical Wholesaler</span>
+        <h1>The UK's Leading<br /><span>Electrical</span> Wholesale Supplier</h1>
         <p>
-          Supplying electrical contractors and trade professionals since 1951.
-          Over 35,000 products in stock, available online and at 400+ branches.
+          Over 100,000 products from top brands, available online and in 380+
+          branches nationwide. Next day delivery available on thousands of
+          products.
         </p>
         <div class="hero-btns">
-          <button class="btn-primary">Shop Now</button>
-          <button class="btn-outline">Find a Branch</button>
+          <a class="btn-primary" href="#">Shop Now</a>
+          <a class="btn-outline" href="#">Find Your Branch</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="num">380+</div>
+            <div class="label">UK Branches</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num">100k+</div>
+            <div class="label">Products</div>
+          </div>
+          <div class="hero-stat">
+            <div class="num">50+</div>
+            <div class="label">Years Trading</div>
+          </div>
         </div>
       </div>
-      <div class="hero-stats">
-        <div class="stat-card">
-          <div class="num">400+</div>
-          <div class="label">UK Branches</div>
+      <div class="hero-image">
+        <div class="hero-product-card">
+          <span class="emoji">💡</span>
+          <span>LED Lighting</span>
         </div>
-        <div class="stat-card">
-          <div class="num">35k+</div>
-          <div class="label">Products</div>
+        <div class="hero-product-card">
+          <span class="emoji">🔌</span>
+          <span>Distribution</span>
         </div>
-        <div class="stat-card">
-          <div class="num">70+</div>
-          <div class="label">Years Trading</div>
+        <div class="hero-product-card">
+          <span class="emoji">🔋</span>
+          <span>EV Charging</span>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PROMO STRIP -->
-  <div class="promo-strip">
-    <div class="container">
-      <div class="promo-item">
-        <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-        <div><strong>Free Delivery</strong> <span>on orders over £75 ex VAT</span></div>
-      </div>
-      <div class="promo-item">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-        <div><strong>Next Day Delivery</strong> <span>order before 6pm</span></div>
-      </div>
-      <div class="promo-item">
-        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-        <div><strong>Trade Account</strong> <span>apply for credit today</span></div>
-      </div>
-      <div class="promo-item">
-        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
-        <div><strong>400+ Branches</strong> <span>Click &amp; collect available</span></div>
+        <div class="hero-product-card">
+          <span class="emoji">🛠️</span>
+          <span>Tools &amp; Test</span>
+        </div>
+        <div class="hero-product-card">
+          <span class="emoji">☀️</span>
+          <span>Solar &amp; PV</span>
+        </div>
+        <div class="hero-product-card">
+          <span class="emoji">🔒</span>
+          <span>Security</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- CATEGORIES -->
-  <section class="categories">
-    <div class="container">
-      <h2 class="section-title">Shop by Category</h2>
-      <p>Browse our complete range of electrical wholesale products</p>
-      <div class="cat-grid">
-        <div class="cat-card">
-          <span class="cat-icon">🔌</span>
-          <h3>Cable &amp; Wiring</h3>
-          <p>4,200+ products</p>
+  <!-- USP BAR -->
+  <div class="usp-bar">
+    <div class="usp-inner">
+      <div class="usp-item">
+        <span class="usp-icon">🚚</span>
+        <div class="usp-text">
+          <strong>Next Day Delivery</strong>
+          <span>On thousands of products</span>
         </div>
-        <div class="cat-card">
-          <span class="cat-icon">💡</span>
-          <h3>Lighting</h3>
-          <p>3,800+ products</p>
+      </div>
+      <div class="usp-item">
+        <span class="usp-icon">📍</span>
+        <div class="usp-text">
+          <strong>380+ Local Branches</strong>
+          <span>Click &amp; collect available</span>
         </div>
-        <div class="cat-card">
-          <span class="cat-icon">⚡</span>
-          <h3>Consumer Units</h3>
-          <p>650+ products</p>
+      </div>
+      <div class="usp-item">
+        <span class="usp-icon">💳</span>
+        <div class="usp-text">
+          <strong>Trade Accounts</strong>
+          <span>Credit terms available</span>
         </div>
-        <div class="cat-card">
-          <span class="cat-icon">🔧</span>
-          <h3>Tools &amp; Test</h3>
-          <p>1,900+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">🔒</span>
-          <h3>Containment</h3>
-          <p>2,100+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">🏠</span>
-          <h3>Wiring Accessories</h3>
-          <p>3,200+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">🚗</span>
-          <h3>EV Charging</h3>
-          <p>320+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">☀️</span>
-          <h3>Solar &amp; Renewables</h3>
-          <p>180+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">📡</span>
-          <h3>Data &amp; Comms</h3>
-          <p>1,450+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">🛡️</span>
-          <h3>Security &amp; Fire</h3>
-          <p>890+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">🌡️</span>
-          <h3>Heating &amp; Ventilation</h3>
-          <p>760+ products</p>
-        </div>
-        <div class="cat-card">
-          <span class="cat-icon">🧰</span>
-          <h3>PPE &amp; Safety</h3>
-          <p>540+ products</p>
+      </div>
+      <div class="usp-item">
+        <span class="usp-icon">🏆</span>
+        <div class="usp-text">
+          <strong>Top Brands</strong>
+          <span>Genuine products guaranteed</span>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+
+  <!-- PRODUCT CATEGORIES -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Shop by Category</h2>
+      <a class="view-all" href="#">View All Categories →</a>
+    </div>
+    <div class="category-grid">
+      <a class="category-card" href="#">
+        <span class="cat-icon">💡</span>
+        <div class="cat-name">Lighting &amp; LEDs</div>
+        <div class="cat-count">12,400+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🔌</span>
+        <div class="cat-name">Cable &amp; Wiring</div>
+        <div class="cat-count">8,200+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">⚡</span>
+        <div class="cat-name">Distribution &amp; Protection</div>
+        <div class="cat-count">6,800+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🔋</span>
+        <div class="cat-name">EV Charging</div>
+        <div class="cat-count">1,500+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🛠️</span>
+        <div class="cat-name">Tools &amp; Test Equipment</div>
+        <div class="cat-count">5,600+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🔒</span>
+        <div class="cat-name">Security &amp; CCTV</div>
+        <div class="cat-count">3,200+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🌡️</span>
+        <div class="cat-name">Heating &amp; Ventilation</div>
+        <div class="cat-count">4,100+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">☀️</span>
+        <div class="cat-name">Solar &amp; Renewables</div>
+        <div class="cat-count">2,900+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🖥️</span>
+        <div class="cat-name">Data &amp; Networking</div>
+        <div class="cat-count">3,700+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🔧</span>
+        <div class="cat-name">Wiring Accessories</div>
+        <div class="cat-count">7,300+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">🚿</span>
+        <div class="cat-name">Bathroom &amp; Outdoor</div>
+        <div class="cat-count">2,200+ products</div>
+      </a>
+      <a class="category-card" href="#">
+        <span class="cat-icon">📦</span>
+        <div class="cat-name">Cable Management</div>
+        <div class="cat-count">4,500+ products</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PROMO BANNERS -->
+  <div class="section">
+    <div class="promo-grid">
+      <div class="promo-card red">
+        <div>
+          <div class="promo-eyebrow">Limited Time Offer</div>
+          <h2>Up to 30% Off<br />LED Lighting</h2>
+          <p>
+            Shop our extensive range of commercial and domestic LED lighting
+            solutions at unbeatable trade prices.
+          </p>
+          <a class="btn-white" href="#">Shop LED Deals</a>
+        </div>
+        <span class="promo-emoji">💡</span>
+      </div>
+      <div class="promo-side">
+        <div class="promo-card dark">
+          <div>
+            <div class="promo-eyebrow">New Range</div>
+            <h2>EV Charging Solutions</h2>
+            <p>Zappi, Ohme, Easee &amp; more</p>
+            <a class="btn-white" href="#">Explore Range</a>
+          </div>
+          <span class="promo-emoji" style="font-size:48px">🔋</span>
+        </div>
+        <div class="promo-card blue">
+          <div>
+            <div class="promo-eyebrow">Open a Trade Account</div>
+            <h2>30 Day Credit Terms</h2>
+            <p>Exclusive pricing for trade customers</p>
+            <a class="btn-white btn-white.dark" href="#">Apply Now</a>
+          </div>
+          <span class="promo-emoji" style="font-size:48px">💳</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FEATURED PRODUCTS -->
-  <section class="featured">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">Featured Products</h2>
-        <a href="#" class="view-all">View all products &rarr;</a>
-      </div>
-      <div class="product-grid">
-        <!-- Product 1 -->
-        <div class="product-card">
-          <div class="product-img">
-            🔌
-            <span class="product-badge sale">SALE</span>
-          </div>
-          <div class="product-info">
-            <div class="product-brand">Hager</div>
-            <div class="product-name">10-Way Dual RCD Consumer Unit 100A</div>
-            <div class="product-code">HAG-VML210X</div>
-            <div class="product-price">
-              <span class="price-main">£89.95</span>
-              <span class="price-old">£114.50</span>
-            </div>
-            <div class="price-vat">+ VAT</div>
-            <button class="add-to-cart">Add to Basket</button>
-          </div>
-        </div>
-        <!-- Product 2 -->
-        <div class="product-card">
-          <div class="product-img">
-            💡
-            <span class="product-badge new">NEW</span>
-          </div>
-          <div class="product-info">
-            <div class="product-brand">Aurora</div>
-            <div class="product-name">LED Downlight IP65 6W 4000K White</div>
-            <div class="product-code">AUR-EN-DL6WW</div>
-            <div class="product-price">
-              <span class="price-main">£4.95</span>
-            </div>
-            <div class="price-vat">+ VAT</div>
-            <button class="add-to-cart">Add to Basket</button>
-          </div>
-        </div>
-        <!-- Product 3 -->
-        <div class="product-card">
-          <div class="product-img">🔧</div>
-          <div class="product-info">
-            <div class="product-brand">Fluke</div>
-            <div class="product-name">1664 FC Multifunction Installation Tester</div>
-            <div class="product-code">FLU-1664FC</div>
-            <div class="product-price">
-              <span class="price-main">£649.00</span>
-            </div>
-            <div class="price-vat">+ VAT</div>
-            <button class="add-to-cart">Add to Basket</button>
-          </div>
-        </div>
-        <!-- Product 4 -->
-        <div class="product-card">
-          <div class="product-img">
-            🔌
-            <span class="product-badge sale">SALE</span>
-          </div>
-          <div class="product-info">
-            <div class="product-brand">Nexans</div>
-            <div class="product-name">6242Y Twin &amp; Earth Cable 2.5mm 100m Grey</div>
-            <div class="product-code">NEX-6242Y25100</div>
-            <div class="product-price">
-              <span class="price-main">£54.99</span>
-              <span class="price-old">£69.00</span>
-            </div>
-            <div class="price-vat">+ VAT</div>
-            <button class="add-to-cart">Add to Basket</button>
-          </div>
-        </div>
-        <!-- Product 5 -->
-        <div class="product-card">
-          <div class="product-img">🚗</div>
-          <div class="product-info">
-            <div class="product-brand">Zappi</div>
-            <div class="product-name">7kW EV Charger Type 2 Untethered</div>
-            <div class="product-code">ZAP-ZAPPI2</div>
-            <div class="product-price">
-              <span class="price-main">£699.00</span>
-            </div>
-            <div class="price-vat">+ VAT</div>
-            <button class="add-to-cart">Add to Basket</button>
-          </div>
-        </div>
-      </div>
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Featured Products</h2>
+      <a class="view-all" href="#">View All →</a>
     </div>
-  </section>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="product-img">
+          💡
+          <span class="product-badge">SALE</span>
+        </div>
+        <div class="product-body">
+          <div class="product-brand">Philips</div>
+          <div class="product-name">
+            CorePro LEDBulb 8.5W E27 Warm White 806lm
+          </div>
+          <div class="product-code">Code: PHI-CPRO-E27-WW</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-old-price">£2.89</span>
+              <span class="product-price">
+                £1.99
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
+        </div>
+      </div>
 
-  <!-- PROMOTIONAL BANNERS -->
-  <section class="banners">
-    <div class="container">
-      <h2 class="section-title">Special Offers</h2>
-      <div class="banner-grid">
-        <div class="banner-card blue">
-          <span class="tag">Trade Exclusive</span>
-          <h3>Open a Trade Account &amp; Save More</h3>
-          <p>Get preferential pricing, 30-day credit terms, and exclusive trade-only promotions.</p>
-          <button class="btn-white">Apply Now</button>
+      <div class="product-card">
+        <div class="product-img">
+          🔌
+          <span class="product-badge new">NEW</span>
         </div>
-        <div class="banner-card dark">
-          <span class="tag">Limited Time</span>
-          <h3>Up to 30% Off Lighting</h3>
-          <p>Big savings across LED downlights, emergency lighting, and commercial luminaires.</p>
-          <button class="btn-white">Shop Lighting</button>
+        <div class="product-body">
+          <div class="product-brand">Hager</div>
+          <div class="product-name">
+            10 Way Dual RCD Consumer Unit 100A Main Switch
+          </div>
+          <div class="product-code">Code: HAG-VML910D</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-price">
+                £89.50
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- BRANDS -->
-  <section class="brands">
-    <div class="container">
-      <h2 class="section-title">Our Leading Brands</h2>
-      <div class="brand-logos">
-        <div class="brand-logo">Hager</div>
-        <div class="brand-logo">Schneider</div>
-        <div class="brand-logo">Fluke</div>
-        <div class="brand-logo">Aurora</div>
-        <div class="brand-logo">Nexans</div>
-        <div class="brand-logo">Knightsbridge</div>
-        <div class="brand-logo">Wylex</div>
-        <div class="brand-logo">Clipsal</div>
-        <div class="brand-logo">Crabtree</div>
-        <div class="brand-logo">MK Electric</div>
-        <div class="brand-logo">Legrand</div>
-        <div class="brand-logo">Megger</div>
-        <div class="brand-logo">Wago</div>
-        <div class="brand-logo">Gewiss</div>
+      <div class="product-card">
+        <div class="product-img">
+          🛠️
+        </div>
+        <div class="product-body">
+          <div class="product-brand">Fluke</div>
+          <div class="product-name">
+            117 Electricians True RMS Multimeter with Non-Contact Voltage
+          </div>
+          <div class="product-code">Code: FLU-117</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-price">
+                £189.00
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- INFO BOXES -->
-  <section class="info-boxes">
-    <div class="container">
-      <h2 class="section-title">Why Choose CEF?</h2>
-      <div class="info-grid">
-        <div class="info-box">
-          <span class="icon">🏪</span>
-          <h4>400+ UK Branches</h4>
-          <p>With branches across England, Scotland, Wales and Northern Ireland, there's always a CEF near you.</p>
+      <div class="product-card">
+        <div class="product-img">
+          ⚡
+          <span class="product-badge">SALE</span>
         </div>
-        <div class="info-box">
-          <span class="icon">📦</span>
-          <h4>35,000+ Products</h4>
-          <p>Huge in-stock range of electrical wholesale products, available for immediate collection or delivery.</p>
+        <div class="product-body">
+          <div class="product-brand">Crabtree</div>
+          <div class="product-name">
+            13A Switched Socket Outlet Double Pole White
+          </div>
+          <div class="product-code">Code: CRA-4800/SP</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-old-price">£3.40</span>
+              <span class="product-price">
+                £2.75
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
         </div>
-        <div class="info-box">
-          <span class="icon">💳</span>
-          <h4>Trade Credit Available</h4>
-          <p>Apply for a trade account and benefit from 30-day credit terms and exclusive pricing.</p>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">🔋</div>
+        <div class="product-body">
+          <div class="product-brand">Zappi</div>
+          <div class="product-name">
+            myenergi Zappi 2 7kW EV Charger Type 2 Smart Charging
+          </div>
+          <div class="product-code">Code: MYE-ZAPPI2-7</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-price">
+                £699.00
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
         </div>
-        <div class="info-box">
-          <span class="icon">🚚</span>
-          <h4>Next Day Delivery</h4>
-          <p>Order online before 6pm for next working day delivery direct to your site or home.</p>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">
+          ☀️
+          <span class="product-badge new">NEW</span>
+        </div>
+        <div class="product-body">
+          <div class="product-brand">SolarEdge</div>
+          <div class="product-name">
+            SE3000H Home Hub Single Phase Inverter 3kW
+          </div>
+          <div class="product-code">Code: SOL-SE3000H-RW000BNN4</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-price">
+                £549.00
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">🔒</div>
+        <div class="product-body">
+          <div class="product-brand">Hikvision</div>
+          <div class="product-name">
+            DS-2CD2143G2-I 4MP AcuSense Fixed Dome Network Camera
+          </div>
+          <div class="product-code">Code: HIK-DS-2CD2143G2</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-price">
+                £89.99
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-img">
+          🌡️
+          <span class="product-badge">SALE</span>
+        </div>
+        <div class="product-body">
+          <div class="product-brand">Drayton</div>
+          <div class="product-name">
+            Wiser Smart Thermostat Kit 2 — Boiler &amp; TRV Pack
+          </div>
+          <div class="product-code">Code: DRA-WISERKIT2</div>
+          <div class="product-footer">
+            <div>
+              <span class="product-old-price">£199.00</span>
+              <span class="product-price">
+                £169.00
+                <span class="ex-vat">ex. VAT</span>
+              </span>
+            </div>
+            <button class="add-to-basket">+ Basket</button>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+
+  <!-- BRANCH FINDER -->
+  <div class="section">
+    <div class="branch-banner">
+      <div>
+        <h2>📍 Find Your Local CEF Branch</h2>
+        <p>
+          With over 380 branches nationwide, there's always a CEF near you.
+          Click &amp; collect available.
+        </p>
+      </div>
+      <div class="branch-form">
+        <input type="text" placeholder="Enter town, city or postcode..." />
+        <a class="btn-primary" href="#">Find Branch</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP BRANDS -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">Top Brands</h2>
+      <a class="view-all" href="#">All Brands →</a>
+    </div>
+    <div class="brands-strip">
+      <div class="brands-grid">
+        <div class="brand-item"><span>Philips</span></div>
+        <div class="brand-item"><span>Hager</span></div>
+        <div class="brand-item"><span>Crabtree</span></div>
+        <div class="brand-item"><span>Fluke</span></div>
+        <div class="brand-item"><span>Schneider Electric</span></div>
+        <div class="brand-item"><span>Legrand</span></div>
+        <div class="brand-item"><span>Osram</span></div>
+        <div class="brand-item"><span>ABB</span></div>
+        <div class="brand-item"><span>Hikvision</span></div>
+        <div class="brand-item"><span>SolarEdge</span></div>
+        <div class="brand-item"><span>Drayton</span></div>
+        <div class="brand-item"><span>Niko</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO CARDS -->
+  <div class="section">
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>🚚 Delivery Information</h3>
+        <ul>
+          <li>Next day delivery on in-stock items</li>
+          <li>Order before 6pm for next working day</li>
+          <li>Free delivery on orders over £50+VAT</li>
+          <li>Saturday delivery available</li>
+          <li>Track your order in real-time</li>
+        </ul>
+        <a class="cta-link" href="#">Learn more →</a>
+      </div>
+      <div class="info-card">
+        <h3>💳 Trade Accounts</h3>
+        <p>
+          Open a trade account and enjoy exclusive benefits including 30-day
+          credit terms, dedicated account managers, volume discounts and
+          priority access to new products.
+        </p>
+        <a class="cta-link" href="#">Apply for a Trade Account →</a>
+      </div>
+      <div class="info-card">
+        <h3>📱 CEF Connect App</h3>
+        <p>
+          Manage your account, track orders, access invoices and browse our
+          full product range from anywhere. Available on iOS and Android.
+        </p>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <a
+            href="#"
+            style="
+              background: #000;
+              color: #fff;
+              padding: 8px 14px;
+              border-radius: 6px;
+              font-size: 12px;
+              font-weight: bold;
+            "
+          >
+            🍎 App Store
+          </a>
+          <a
+            href="#"
+            style="
+              background: #000;
+              color: #fff;
+              padding: 8px 14px;
+              border-radius: 6px;
+              font-size: 12px;
+              font-weight: bold;
+            "
+          >
+            🤖 Google Play
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer>
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="logo-box">CEF</div>
-          <p>
-            City Electrical Factors Ltd is the UK's leading electrical
-            wholesaler, supplying trade professionals and contractors since
-            1951. Registered in England &amp; Wales No. 622765.
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo-box">
+          <span class="cef">CEF</span>
+          <span class="tagline">City Electrical Factors</span>
+        </div>
+        <p>
+          City Electrical Factors Ltd — the UK's leading electrical
+          wholesaler. Serving trade professionals since 1951 with over
+          100,000 products across 380+ branches.
+        </p>
+        <div class="footer-social">
+          <div class="social-btn">𝕏</div>
+          <div class="social-btn">f</div>
+          <div class="social-btn">in</div>
+          <div class="social-btn">▶</div>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="#">Lighting</a></li>
+          <li><a href="#">Cable &amp; Wiring</a></li>
+          <li><a href="#">Distribution</a></li>
+          <li><a href="#">EV Charging</a></li>
+          <li><a href="#">Tools &amp; Test</a></li>
+          <li><a href="#">Solar &amp; PV</a></li>
+          <li><a href="#">Security</a></li>
+          <li><a href="#">Smart Home</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">Trade Accounts</a></li>
+          <li><a href="#">Click &amp; Collect</a></li>
+          <li><a href="#">Next Day Delivery</a></li>
+          <li><a href="#">CEF Connect App</a></li>
+          <li><a href="#">Technical Support</a></li>
+          <li><a href="#">Volume Discounts</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About CEF</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">News &amp; Blog</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Supplier Portal</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Returns Policy</a></li>
+          <li><a href="#">Track My Order</a></li>
+          <li><a href="#">Product Recalls</a></li>
+          <li><a href="#">Safety Data Sheets</a></li>
+          <li><a href="#">Find a Branch</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="footer-middle">
+      <div class="footer-middle-inner">
+        <div>
+          <strong style="color: #fff; font-size: 14px">
+            📧 Stay up to date with CEF
+          </strong>
+          <p style="font-size: 12px; color: #888; margin-top: 2px">
+            Receive exclusive offers, new products &amp; industry news
           </p>
-          <div class="footer-social">
-            <div class="social-btn">f</div>
-            <div class="social-btn">in</div>
-            <div class="social-btn">🐦</div>
-            <div class="social-btn">▶</div>
+        </div>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Enter your email address..." />
+          <button>Subscribe</button>
+        </div>
+        <div>
+          <p style="font-size: 11px; color: #888; margin-bottom: 8px">
+            We accept:
+          </p>
+          <div class="payment-icons">
+            <span class="payment-icon">VISA</span>
+            <span class="payment-icon">MC</span>
+            <span class="payment-icon">AMEX</span>
+            <span class="payment-icon">BACS</span>
+            <span class="payment-icon">Credit</span>
           </div>
         </div>
-        <div class="footer-col">
-          <h5>Products</h5>
-          <ul>
-            <li><a href="#">Cable &amp; Wiring</a></li>
-            <li><a href="#">Lighting</a></li>
-            <li><a href="#">Consumer Units</a></li>
-            <li><a href="#">Wiring Accessories</a></li>
-            <li><a href="#">Tools &amp; Test</a></li>
-            <li><a href="#">EV Charging</a></li>
-            <li><a href="#">Solar &amp; Renewables</a></li>
-            <li><a href="#">View all categories</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h5>Customer Services</h5>
-          <ul>
-            <li><a href="#">Track your order</a></li>
-            <li><a href="#">Returns policy</a></li>
-            <li><a href="#">Delivery information</a></li>
-            <li><a href="#">Trade accounts</a></li>
-            <li><a href="#">Branch finder</a></li>
-            <li><a href="#">Help &amp; FAQs</a></li>
-            <li><a href="#">Contact us</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h5>Company</h5>
-          <ul>
-            <li><a href="#">About CEF</a></li>
-            <li><a href="#">Careers</a></li>
-            <li><a href="#">News &amp; Blog</a></li>
-            <li><a href="#">Technical support</a></li>
-            <li><a href="#">Privacy policy</a></li>
-            <li><a href="#">Terms &amp; conditions</a></li>
-            <li><a href="#">Cookie settings</a></li>
-          </ul>
-        </div>
       </div>
-      <div class="footer-bottom">
-        <p>
-          &copy; 2025 City Electrical Factors Ltd. All rights reserved.
-          VAT No. GB 238 5553 45
-        </p>
-        <div class="payment-icons">
-          <span class="payment-icon">VISA</span>
-          <span class="payment-icon">MC</span>
-          <span class="payment-icon">AMEX</span>
-          <span class="payment-icon">PayPal</span>
-        </div>
-      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <p>
+        © 2026 City Electrical Factors Ltd. All rights reserved. Company
+        Reg: 00596704 | VAT: GB 213 2461 26
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">Accessibility</a>
+        <a href="#">Modern Slavery Statement</a>
+      </p>
     </div>
   </footer>
 </body>
