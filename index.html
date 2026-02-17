@@ -5,94 +5,227 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Model Test Pages</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { margin-bottom: 0.5rem; }
-    .subtitle { color: #6b7280; font-size: 0.95rem; margin-bottom: 1.5rem; }
-    .experiment { margin: 1rem 0; padding: 1rem; background: #f3f4f6; border-radius: 8px; }
-    .experiment h2 { margin: 0 0 0.5rem 0; font-size: 1.2rem; }
-    .experiment a { color: #2563eb; text-decoration: none; font-weight: 500; }
-    .experiment a:hover { text-decoration: underline; }
-    .prompt { margin: 0.5rem 0; padding: 0.75rem; background: #fff; border-left: 3px solid #2563eb; font-style: italic; color: #374151; }
-    .chat-link { margin-top: 0.5rem; font-size: 0.9rem; color: #6b7280; }
+    body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { margin-bottom: 0.75rem; }
+    .controls { margin-bottom: 1rem; }
+    .filter-input {
+      width: 100%;
+      max-width: 500px;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .table-wrapper { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; background: #fff; }
+    th, td { text-align: left; vertical-align: top; padding: 0.75rem; border-bottom: 1px solid #f3f4f6; font-size: 0.92rem; }
+    thead th { background: #f9fafb; color: #111827; position: sticky; top: 0; z-index: 1; }
+    tbody tr:hover { background: #f9fafb; }
+    a { color: #2563eb; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
     .chat-link a { color: #059669; }
-    .date { margin-top: 0.5rem; font-size: 0.85rem; color: #9ca3af; }
+    .sort-btn {
+      border: none;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .sort-btn::after { content: "↕"; color: #9ca3af; font-size: 0.8rem; }
+    .sort-btn[data-sort='asc']::after { content: "▲"; color: #2563eb; }
+    .sort-btn[data-sort='desc']::after { content: "▼"; color: #2563eb; }
+    .muted { color: #6b7280; }
   </style>
 </head>
 <body>
   <h1>AI Model Test Pages</h1>
-  
 
-  <div class="experiment">
-    <h2><a href="cef-sonnet-4.5.html">Claude Sonnet 4.5 - CEF Website Recreation</a></h2>
-    <div class="prompt">Prompt: "Recreate the CEF.co.uk website in a single HTML page"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/7mvqp4x6tj" target="_blank">https://t3.chat/share/7mvqp4x6tj</a></div>
-    <div class="date">Created: 17th February 2026</div>
+  <div class="controls">
+    <input
+      id="tableFilter"
+      class="filter-input"
+      type="text"
+      placeholder="Filter by model, project, or prompt..."
+      aria-label="Filter experiments"
+    />
   </div>
 
-  <div class="experiment">
-    <h2><a href="cef-sonnet-4.6-medium-reasoning.html">Claude Sonnet 4.6 (Medium Reasoning) - CEF Website Recreation</a></h2>
-    <div class="prompt">Prompt: "Recreate the CEF.co.uk website in a single HTML page"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/6fh5i9opdv" target="_blank">https://t3.chat/share/6fh5i9opdv</a></div>
-    <div class="date">Created: 17th February 2026</div>
+  <div class="table-wrapper">
+    <table id="experimentsTable">
+      <thead>
+        <tr>
+          <th><button class="sort-btn" data-column="model" data-sort="none" type="button">Model</button></th>
+          <th>Version</th>
+          <th><button class="sort-btn" data-column="project" data-sort="none" type="button">Project/Prompt Type</button></th>
+          <th>Prompt</th>
+          <th><button class="sort-btn" data-column="created" data-sort="none" type="button">Created Date</button></th>
+          <th>Page Link</th>
+          <th>Chat Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-model="Claude Sonnet" data-project="CEF Website Recreation" data-prompt="Recreate the CEF.co.uk website in a single HTML page" data-created="2026-02-17">
+          <td>Claude Sonnet</td>
+          <td>4.5</td>
+          <td>CEF Website Recreation</td>
+          <td>Recreate the CEF.co.uk website in a single HTML page</td>
+          <td data-date="2026-02-17">17th February 2026</td>
+          <td><a href="cef-sonnet-4.5.html">cef-sonnet-4.5.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/7mvqp4x6tj" target="_blank" rel="noopener noreferrer">https://t3.chat/share/7mvqp4x6tj</a></td>
+        </tr>
+        <tr data-model="Claude Sonnet" data-project="CEF Website Recreation" data-prompt="Recreate the CEF.co.uk website in a single HTML page" data-created="2026-02-17">
+          <td>Claude Sonnet</td>
+          <td>4.6 (Medium Reasoning)</td>
+          <td>CEF Website Recreation</td>
+          <td>Recreate the CEF.co.uk website in a single HTML page</td>
+          <td data-date="2026-02-17">17th February 2026</td>
+          <td><a href="cef-sonnet-4.6-medium-reasoning.html">cef-sonnet-4.6-medium-reasoning.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/6fh5i9opdv" target="_blank" rel="noopener noreferrer">https://t3.chat/share/6fh5i9opdv</a></td>
+        </tr>
+        <tr data-model="Claude Sonnet" data-project="CEF Website Recreation" data-prompt="Recreate the CEF.co.uk website in a single HTML page" data-created="2026-02-17">
+          <td>Claude Sonnet</td>
+          <td>4.6</td>
+          <td>CEF Website Recreation</td>
+          <td>Recreate the CEF.co.uk website in a single HTML page</td>
+          <td data-date="2026-02-17">17th February 2026</td>
+          <td><a href="cef-sonnet-4.6.html">cef-sonnet-4.6.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/djrvepyncc" target="_blank" rel="noopener noreferrer">https://t3.chat/share/djrvepyncc</a></td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="CEF Website Recreation" data-prompt="Recreate the CEF.co.uk website" data-created="2026-02-05">
+          <td>Claude Opus</td>
+          <td>4.5</td>
+          <td>CEF Website Recreation</td>
+          <td>Recreate the CEF.co.uk website</td>
+          <td data-date="2026-02-05">5th February 2026</td>
+          <td><a href="cef-opus-4.5.html">cef-opus-4.5.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/t9lsvyu3zb" target="_blank" rel="noopener noreferrer">https://t3.chat/share/t9lsvyu3zb</a></td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="CEF Website Recreation" data-prompt="Recreate the CEF.co.uk website" data-created="2026-02-05">
+          <td>Claude Opus</td>
+          <td>4.6</td>
+          <td>CEF Website Recreation</td>
+          <td>Recreate the CEF.co.uk website</td>
+          <td data-date="2026-02-05">5th February 2026</td>
+          <td><a href="cef-opus-4.6.html">cef-opus-4.6.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/p9o8h3l2d2" target="_blank" rel="noopener noreferrer">https://t3.chat/share/p9o8h3l2d2</a></td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="Minecraft Clone" data-prompt="Recreate Minecraft in a single HTML page" data-created="2026-02-06">
+          <td>Claude Opus</td>
+          <td>4.5</td>
+          <td>Minecraft Clone</td>
+          <td>Recreate Minecraft in a single HTML page</td>
+          <td data-date="2026-02-06">6th February 2026</td>
+          <td><a href="minecraft-opus-4.5.html">minecraft-opus-4.5.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/swfd2jynoz" target="_blank" rel="noopener noreferrer">https://t3.chat/share/swfd2jynoz</a></td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="Minecraft Clone" data-prompt="Recreate Minecraft in a single HTML page" data-created="2026-02-06">
+          <td>Claude Opus</td>
+          <td>4.6</td>
+          <td>Minecraft Clone</td>
+          <td>Recreate Minecraft in a single HTML page</td>
+          <td data-date="2026-02-06">6th February 2026</td>
+          <td><a href="minecraft-opus-4.6.html">minecraft-opus-4.6.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/sy76flcet0" target="_blank" rel="noopener noreferrer">https://t3.chat/share/sy76flcet0</a></td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="Fun Game" data-prompt="Create a html file with a fun game to play on mobile" data-created="2026-02-06">
+          <td>Claude Opus</td>
+          <td>4.6</td>
+          <td>Fun Game</td>
+          <td>Create a html file with a fun game to play on mobile</td>
+          <td data-date="2026-02-06">6th February 2026</td>
+          <td><a href="fun-game-opus-4.6.html">fun-game-opus-4.6.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/tuhale5co4" target="_blank" rel="noopener noreferrer">https://t3.chat/share/tuhale5co4</a></td>
+        </tr>
+        <tr data-model="Pony" data-project="Fun Game" data-prompt="Create a html file with a fun game to play on mobile" data-created="">
+          <td>Pony</td>
+          <td>Alpha</td>
+          <td>Fun Game</td>
+          <td>Create a html file with a fun game to play on mobile</td>
+          <td data-date="" class="muted">—</td>
+          <td><a href="fun-game-pony-alpha.html">fun-game-pony-alpha.html</a></td>
+          <td class="muted">—</td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="Transporter Bridge 3D Model" data-prompt="Create a single html file which has 3D model of the Transporter bridge in Middlesbrough" data-created="2026-02-05">
+          <td>Claude Opus</td>
+          <td>4.6</td>
+          <td>Transporter Bridge 3D Model</td>
+          <td>Create a single html file which has 3D model of the Transporter bridge in Middlesbrough</td>
+          <td data-date="2026-02-05">5th February 2026</td>
+          <td><a href="transporter-bridge-opus-4.6.html">transporter-bridge-opus-4.6.html</a></td>
+          <td class="chat-link"><a href="https://t3.chat/share/qfi9eusl2v" target="_blank" rel="noopener noreferrer">https://t3.chat/share/qfi9eusl2v</a></td>
+        </tr>
+        <tr data-model="Claude Opus" data-project="Developer Chat UI" data-prompt="Developer chat messaging interface" data-created="">
+          <td>Claude Opus</td>
+          <td>4.6</td>
+          <td>Developer Chat UI</td>
+          <td>Developer chat messaging interface</td>
+          <td data-date="" class="muted">—</td>
+          <td><a href="devs-chat-opus-4.6.html">devs-chat-opus-4.6.html</a></td>
+          <td class="muted">—</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
-  <div class="experiment">
-    <h2><a href="cef-sonnet-4.6.html">Claude Sonnet 4.6 - CEF Website Recreation</a></h2>
-    <div class="prompt">Prompt: "Recreate the CEF.co.uk website in a single HTML page"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/djrvepyncc" target="_blank">https://t3.chat/share/djrvepyncc</a></div>
-    <div class="date">Created: 17th February 2026</div>
-  </div>
+  <script>
+    const filterInput = document.getElementById('tableFilter');
+    const table = document.getElementById('experimentsTable');
+    const tbody = table.querySelector('tbody');
+    const sortButtons = table.querySelectorAll('.sort-btn');
 
-  <div class="experiment">
-    <h2><a href="cef-opus-4.5.html">Claude Opus 4.5 - CEF Website Recreation</a></h2>
-    <div class="prompt">Prompt: "Recreate the CEF.co.uk website"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/t9lsvyu3zb" target="_blank">https://t3.chat/share/t9lsvyu3zb</a></div>
-    <div class="date">Created: 5th February 2026</div>
-  </div>
+    filterInput.addEventListener('input', () => {
+      const search = filterInput.value.trim().toLowerCase();
+      const rows = tbody.querySelectorAll('tr');
 
-  <div class="experiment">
-    <h2><a href="cef-opus-4.6.html">Claude Opus 4.6 - CEF Website Recreation</a></h2>
-    <div class="prompt">Prompt: "Recreate the CEF.co.uk website"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/p9o8h3l2d2" target="_blank">https://t3.chat/share/p9o8h3l2d2</a></div>
-    <div class="date">Created: 5th February 2026</div>
-  </div>
+      rows.forEach((row) => {
+        const haystack = [
+          row.dataset.model || '',
+          row.dataset.project || '',
+          row.dataset.prompt || ''
+        ].join(' ').toLowerCase();
 
-  <div class="experiment">
-    <h2><a href="minecraft-opus-4.5.html">Claude Opus 4.5 - Minecraft Clone</a></h2>
-    <div class="prompt">Prompt: "Recreate Minecraft in a single HTML page"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/swfd2jynoz" target="_blank">https://t3.chat/share/swfd2jynoz</a></div>
-    <div class="date">Created: 6th February 2026</div>
-  </div>
+        row.style.display = haystack.includes(search) ? '' : 'none';
+      });
+    });
 
-  <div class="experiment">
-    <h2><a href="minecraft-opus-4.6.html">Claude Opus 4.6 - Minecraft Clone</a></h2>
-    <div class="prompt">Prompt: "Recreate Minecraft in a single HTML page"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/sy76flcet0" target="_blank">https://t3.chat/share/sy76flcet0</a></div>
-    <div class="date">Created: 6th February 2026</div>
-  </div>
+    sortButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const column = button.dataset.column;
+        const current = button.dataset.sort;
+        const nextSort = current === 'asc' ? 'desc' : 'asc';
 
-  <div class="experiment">
-    <h2><a href="fun-game-opus-4.6.html">Claude Opus 4.6 - Fun Game</a></h2>
-    <div class="prompt">Prompt: "Create a html file with a fun game to play on mobile"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/tuhale5co4" target="_blank">https://t3.chat/share/tuhale5co4</a></div>
-    <div class="date">Created: 6th February 2026</div>
-  </div>
+        sortButtons.forEach((btn) => {
+          btn.dataset.sort = btn === button ? nextSort : 'none';
+        });
 
-  <div class="experiment">
-    <h2><a href="fun-game-pony-alpha.html">Pony Alpha - Fun Game</a></h2>
-    <div class="prompt">Prompt: "Create a html file with a fun game to play on mobile"</div>
-  </div>
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((a, b) => {
+          let aValue = '';
+          let bValue = '';
 
-  <div class="experiment">
-    <h2><a href="transporter-bridge-opus-4.6.html">Claude Opus 4.6 - Transporter Bridge 3D Model</a></h2>
-    <div class="prompt">Prompt: "Create a single html file which has 3D model of the Transporter bridge in Middlesbrough"</div>
-    <div class="chat-link">Chat: <a href="https://t3.chat/share/qfi9eusl2v" target="_blank">https://t3.chat/share/qfi9eusl2v</a></div>
-    <div class="date">Created: 5th February 2026</div>
-  </div>
+          if (column === 'model') {
+            aValue = `${a.dataset.model || ''} ${a.cells[1].textContent || ''}`.trim().toLowerCase();
+            bValue = `${b.dataset.model || ''} ${b.cells[1].textContent || ''}`.trim().toLowerCase();
+          } else if (column === 'project') {
+            aValue = (a.dataset.project || '').toLowerCase();
+            bValue = (b.dataset.project || '').toLowerCase();
+          } else if (column === 'created') {
+            aValue = a.cells[4].dataset.date || '';
+            bValue = b.cells[4].dataset.date || '';
+          }
 
-  <div class="experiment">
-    <h2><a href="devs-chat-opus-4.6.html">Claude Opus 4.6 - Developer Chat UI</a></h2>
-    <div class="prompt">Prompt: Developer chat messaging interface</div>
-  </div>
+          if (aValue === bValue) return 0;
+          if (nextSort === 'asc') return aValue > bValue ? 1 : -1;
+          return aValue < bValue ? 1 : -1;
+        });
+
+        rows.forEach((row) => tbody.appendChild(row));
+      });
+    });
+  </script>
 </body>
 </html>
