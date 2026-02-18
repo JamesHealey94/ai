@@ -5,25 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Model Test Pages</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+    :root {
+      --bg: #fff;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --input-border: #d1d5db;
+      --table-bg: #fff;
+      --th-bg: #f9fafb;
+      --row-hover: #f9fafb;
+      --link: #2563eb;
+      --link-chat: #059669;
+      --sort-arrow: #9ca3af;
+    }
+    [data-theme="dark"] {
+      --bg: #111827;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: #374151;
+      --border-light: #1f2937;
+      --input-border: #4b5563;
+      --table-bg: #1f2937;
+      --th-bg: #1f2937;
+      --row-hover: #374151;
+      --link: #60a5fa;
+      --link-chat: #34d399;
+      --sort-arrow: #6b7280;
+    }
+    body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; background: var(--bg); color: var(--text); }
     h1 { margin-bottom: 0.75rem; }
+    .header { display: flex; align-items: center; justify-content: space-between; }
     .controls { margin-bottom: 1rem; }
     .filter-input {
       width: 100%;
       max-width: 500px;
       padding: 0.6rem 0.75rem;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--input-border);
       border-radius: 8px;
       font-size: 0.95rem;
+      background: var(--table-bg);
+      color: var(--text);
     }
-    .table-wrapper { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 10px; }
-    table { width: 100%; border-collapse: collapse; min-width: 900px; background: #fff; }
-    th, td { text-align: left; vertical-align: top; padding: 0.75rem; border-bottom: 1px solid #f3f4f6; font-size: 0.92rem; }
-    thead th { background: #f9fafb; color: #111827; position: sticky; top: 0; z-index: 1; }
-    tbody tr:hover { background: #f9fafb; }
-    a { color: #2563eb; text-decoration: none; font-weight: 500; }
+    .theme-toggle {
+      border: 1px solid var(--input-border);
+      background: var(--table-bg);
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+    .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; background: var(--table-bg); }
+    th, td { text-align: left; vertical-align: top; padding: 0.75rem; border-bottom: 1px solid var(--border-light); font-size: 0.92rem; }
+    thead th { background: var(--th-bg); color: var(--text); position: sticky; top: 0; z-index: 1; }
+    tbody tr:hover { background: var(--row-hover); }
+    a { color: var(--link); text-decoration: none; font-weight: 500; }
     a:hover { text-decoration: underline; }
-    .chat-link a { color: #059669; }
+    .chat-link a { color: var(--link-chat); }
     .sort-btn {
       border: none;
       background: transparent;
@@ -35,14 +76,17 @@
       align-items: center;
       gap: 0.25rem;
     }
-    .sort-btn::after { content: "↕"; color: #9ca3af; font-size: 0.8rem; }
-    .sort-btn[data-sort='asc']::after { content: "▲"; color: #2563eb; }
-    .sort-btn[data-sort='desc']::after { content: "▼"; color: #2563eb; }
-    .muted { color: #6b7280; }
+    .sort-btn::after { content: "↕"; color: var(--sort-arrow); font-size: 0.8rem; }
+    .sort-btn[data-sort='asc']::after { content: "▲"; color: var(--link); }
+    .sort-btn[data-sort='desc']::after { content: "▼"; color: var(--link); }
+    .muted { color: var(--text-muted); }
   </style>
 </head>
 <body>
-  <h1>AI Model Test Pages</h1>
+  <div class="header">
+    <h1>AI Model Test Pages</h1>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">🌙</button>
+  </div>
 
   <div class="controls">
     <input
@@ -160,6 +204,34 @@
   </div>
 
   <script>
+    /* Theme handling */
+    const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = (theme) => {
+      document.documentElement.dataset.theme = theme;
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+
+    const stored = localStorage.getItem('theme');
+    if (stored) {
+      applyTheme(stored);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      applyTheme('dark');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+
+    /* Table filtering & sorting */
     const filterInput = document.getElementById('tableFilter');
     const table = document.getElementById('experimentsTable');
     const tbody = table.querySelector('tbody');
