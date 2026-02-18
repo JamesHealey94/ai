@@ -214,7 +214,8 @@
       themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
       localStorage.setItem('theme', theme);
     };
-    setTheme(localStorage.getItem('theme') === 'dark' ? 'dark' : 'light');
+    const storedTheme = localStorage.getItem('theme');
+    setTheme(['light', 'dark'].includes(storedTheme) ? storedTheme : 'light');
     themeToggle.addEventListener('click', () => {
       setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
     });
