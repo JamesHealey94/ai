@@ -29,7 +29,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: flex-start;
     padding: 6px;
     pointer-events: none;
@@ -40,10 +40,14 @@
     background: rgba(0,0,0,0.8);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 10px;
-    padding: 6px 10px;
+    padding: 6px 12px;
     font-size: 12px;
     line-height: 1.5;
     backdrop-filter: blur(4px);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .stat-label { color: #aaa; }
   .stat-val { font-weight: bold; }
@@ -198,29 +202,6 @@
   }
   .start-btn:active { background: #f39c12; }
 
-  /* Fuel warning banner */
-  #fuel-warning {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(180, 0, 0, 0.85);
-    border: 2px solid #ff4444;
-    border-radius: 14px;
-    padding: 14px 24px;
-    color: #fff;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    z-index: 15;
-    pointer-events: none;
-    animation: fuel-pulse 0.8s ease-in-out infinite alternate;
-  }
-  @keyframes fuel-pulse {
-    from { opacity: 0.8; scale: 1; }
-    to   { opacity: 1;   scale: 1.04; }
-  }
 </style>
 </head>
 <body>
@@ -229,19 +210,14 @@
 
   <!-- HUD -->
   <div id="hud">
-    <div class="hud-box" id="hud-left">
-      <div><span class="stat-label">$</span> <span class="stat-val money-color" id="hud-money">0</span></div>
-      <div><span class="stat-label">Fuel:</span> <span class="stat-val fuel-color" id="hud-fuel">100</span></div>
-    </div>
-    <div class="hud-box" id="hud-right">
-      <div><span class="stat-label">Depth:</span> <span class="stat-val depth-color" id="hud-depth">0</span><span class="stat-label">m</span></div>
-      <div><span class="stat-label">Cargo:</span> <span class="stat-val cargo-color" id="hud-cargo">0/5</span></div>
-      <div><span class="stat-label">Hull:</span> <span class="stat-val hull-color" id="hud-hull">100%</span></div>
+    <div class="hud-box">
+      <div><span class="stat-val money-color" id="hud-money">$0</span></div>
+      <div><span class="stat-val fuel-color" id="hud-fuel">⛽ 100/100</span></div>
+      <div><span class="stat-val depth-color" id="hud-depth">↓ 0m</span></div>
+      <div><span class="stat-val cargo-color" id="hud-cargo">📦 0/5</span></div>
+      <div><span class="stat-val hull-color" id="hud-hull">🛡 100%</span></div>
     </div>
   </div>
-
-  <!-- Fuel warning banner -->
-  <div id="fuel-warning">⚠️ OUT OF FUEL ⚠️<br><span id="fuel-countdown" style="font-size:13px"></span></div>
 
   <!-- D-Pad -->
   <div id="dpad">
@@ -312,8 +288,7 @@
   const DRILL_TIME = 12; // frames to drill a block
   const FUEL_MOVE = 0.06;
   const FUEL_DRILL = 0.12;
-  const FUEL_TIMEOUT_FRAMES = 180; // ~3 seconds at 60fps
-  const NUDGE_DISTANCE = TILE / 4; // pixels to nudge when stuck flying up
+  const NUDGE_DISTANCE = TILE / 2; // pixels to nudge when stuck flying up
 
   // === Mineral definitions ===
   const MINERALS = [
@@ -602,11 +577,14 @@
         const drillCol = state.input.left
           ? Math.floor((p.x - 1) / TILE)
           : Math.floor((p.x + p.w) / TILE);
-        const topRow = Math.floor(p.y / TILE);
-        const bottomRow = Math.floor((p.y + p.h - 1) / TILE);
+        // Snap player Y to nearest grid to ensure consistent drill targeting
+        const snappedY = Math.round(p.y / TILE) * TILE;
+        const topRow = Math.floor(snappedY / TILE);
+        const bottomRow = Math.floor((snappedY + p.h - 1) / TILE);
         for (let r = topRow; r <= bottomRow; r++) {
           const target = getTile(drillCol, r);
           if (target.type === 'dirt') {
+            p.y = snappedY; // align to grid for clean drilling
             p.drilling = { tx: drillCol, ty: r, progress: 0 };
             break;
           }
@@ -622,15 +600,30 @@
       p.y = ny;
     } else if (p.vy < 0) {
       // Flying upward collision - try nudging left/right to clear the obstruction
-      const nudge = NUDGE_DISTANCE;
-      if (!collidesAt(p.x - nudge, ny, p.w, p.h)) {
-        p.x -= nudge;
-        p.y = ny;
-      } else if (!collidesAt(p.x + nudge, ny, p.w, p.h)) {
-        p.x += nudge;
-        p.y = ny;
-      } else {
-        p.vy = 0;
+      let resolved = false;
+      for (let nudge = 1; nudge <= NUDGE_DISTANCE; nudge++) {
+        if (!collidesAt(p.x - nudge, ny, p.w, p.h)) {
+          p.x -= nudge;
+          p.y = ny;
+          resolved = true;
+          break;
+        }
+        if (!collidesAt(p.x + nudge, ny, p.w, p.h)) {
+          p.x += nudge;
+          p.y = ny;
+          resolved = true;
+          break;
+        }
+      }
+      if (!resolved) {
+        // Try snapping X to nearest tile boundary
+        const snappedX = Math.round(p.x / TILE) * TILE;
+        if (!collidesAt(snappedX, ny, p.w, p.h)) {
+          p.x = snappedX;
+          p.y = ny;
+        } else {
+          p.vy = 0;
+        }
       }
     } else {
       if (p.vy > 0) {
@@ -650,7 +643,7 @@
         }
         // Fall damage
         if (p.vy > 5) {
-          const dmg = (p.vy - 5) * 8;
+          const dmg = (p.vy - 5) * 4;
           p.hull -= dmg;
           addMessage('-' + Math.round(dmg) + ' hull', '#ff4444');
         }
@@ -664,7 +657,7 @@
 
     // Heat damage at extreme depth
     if (depthM > 150) {
-      const heatDmg = (depthM - 150) * 0.003 * (1 - p.heatResist);
+      const heatDmg = (depthM - 150) * 0.002 * (1 - p.heatResist);
       if (heatDmg > 0) p.hull -= heatDmg;
     }
 
@@ -677,29 +670,12 @@
     // If on surface, refuel automatically
     if (depthM <= 0) {
       p.fuel = p.maxFuel;
-      state.fuelTimer = 0;
-      state.fuelWarning = false;
     }
 
-    // Fuel check - show warning and game over countdown when out of fuel underground
-    const fuelWarningEl = document.getElementById('fuel-warning');
+    // Fuel check - game over immediately when out of fuel underground
     if (p.fuel <= 0 && depthM > 0) {
-      if (!state.fuelWarning) {
-        state.fuelWarning = true;
-        state.fuelTimer = FUEL_TIMEOUT_FRAMES;
-        addMessage('Out of fuel!', '#ff4444');
-      }
-      state.fuelTimer--;
-      const secsLeft = Math.ceil(state.fuelTimer / 60);
-      document.getElementById('fuel-countdown').textContent = 'Game over in ' + secsLeft + 's...';
-      if (state.fuelTimer <= 0) {
-        fuelWarningEl.style.display = 'none';
-        gameOver('Ran out of fuel!');
-        return;
-      }
-      fuelWarningEl.style.display = 'block';
-    } else {
-      fuelWarningEl.style.display = 'none';
+      gameOver('Ran out of fuel!');
+      return;
     }
   }
 
@@ -944,13 +920,13 @@
   // === HUD update ===
   function updateHUD() {
     const p = state.player;
-    document.getElementById('hud-money').textContent = p.money;
-    document.getElementById('hud-fuel').textContent = Math.ceil(p.fuel) + '/' + p.maxFuel;
+    document.getElementById('hud-money').textContent = '$' + p.money;
+    document.getElementById('hud-fuel').textContent = '⛽ ' + Math.ceil(p.fuel) + '/' + p.maxFuel;
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
-    document.getElementById('hud-depth').textContent = depthM;
+    document.getElementById('hud-depth').textContent = '↓ ' + depthM + 'm';
     const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
-    document.getElementById('hud-cargo').textContent = cargoWeight + '/' + p.maxCargo;
-    document.getElementById('hud-hull').textContent = Math.ceil(p.hull) + '%';
+    document.getElementById('hud-cargo').textContent = '📦 ' + cargoWeight + '/' + p.maxCargo;
+    document.getElementById('hud-hull').textContent = '🛡 ' + Math.ceil(p.hull) + '%';
 
     // Hull color warning
     const hullEl = document.getElementById('hud-hull');
