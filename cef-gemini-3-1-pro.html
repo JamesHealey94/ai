@@ -1,0 +1,490 @@
+<!-- Created with AI: https://gemini.google.com/share/5a0bb660926f -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEF - City Electrical Factors | Electrical Wholesaler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom CEF Red */
+        :root {
+            --cef-red: #d3111b;
+        }
+        .bg-cef-red { background-color: var(--cef-red); }
+        .text-cef-red { color: var(--cef-red); }
+        .border-cef-red { border-color: var(--cef-red); }
+        .hover-bg-cef-red-dark:hover { background-color: #a80d15; }
+        
+        /* Hide scrollbar for category slider on mobile */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Toast notification animation */
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-enter {
+            animation: slideInUp 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <!-- Top Bar -->
+    <div class="bg-gray-100 border-b border-gray-200 hidden md:block">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center text-xs text-gray-600">
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-cef-red transition">Over 400 branches nationwide</a>
+                <a href="#" class="hover:text-cef-red transition">Free delivery on orders over £50</a>
+            </div>
+            <div class="flex space-x-4">
+                <a href="#" class="hover:text-cef-red transition">Help & Advice</a>
+                <a href="#" class="hover:text-cef-red transition">Careers</a>
+                <a href="#" class="hover:text-cef-red transition">Contact Us</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-white sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex flex-wrap md:flex-nowrap items-center justify-between gap-4">
+                
+                <!-- Logo & Mobile Menu Toggle -->
+                <div class="flex items-center justify-between w-full md:w-auto">
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-700 mr-4">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <!-- Logo -->
+                    <a href="#" class="flex-shrink-0 bg-cef-red text-white font-bold text-3xl tracking-tight px-3 py-1 pb-2 leading-none flex items-center justify-center rounded-sm">
+                        CEF
+                    </a>
+                    <div class="md:hidden flex space-x-4 ml-auto">
+                        <a href="#" class="text-gray-700 relative">
+                            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                            <span class="cart-count absolute -top-2 -right-2 bg-cef-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="w-full md:flex-1 md:max-w-3xl order-3 md:order-2">
+                    <div class="relative flex w-full h-11">
+                        <input type="text" placeholder="Search by keyword, part number or barcode..." 
+                            class="w-full border-2 border-r-0 border-gray-300 rounded-l focus:outline-none focus:border-cef-red px-4 text-sm transition-colors">
+                        <button class="bg-cef-red hover-bg-cef-red-dark text-white px-6 rounded-r flex items-center justify-center transition-colors">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="hidden md:flex items-center space-x-6 order-2 md:order-3 ml-4">
+                    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-cef-red transition group">
+                        <i data-lucide="map-pin" class="w-6 h-6 mb-1 text-gray-500 group-hover:text-cef-red"></i>
+                        <span class="text-xs font-semibold">Stores</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-cef-red transition group">
+                        <i data-lucide="user" class="w-6 h-6 mb-1 text-gray-500 group-hover:text-cef-red"></i>
+                        <span class="text-xs font-semibold">Sign In</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-cef-red transition group relative">
+                        <div class="relative">
+                            <i data-lucide="shopping-cart" class="w-6 h-6 mb-1 text-gray-500 group-hover:text-cef-red"></i>
+                            <span class="cart-count absolute -top-1 -right-2 bg-cef-red text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                        </div>
+                        <span class="text-xs font-semibold">Basket</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Categories -->
+        <nav class="bg-gray-800 text-white hidden md:block">
+            <div class="max-w-7xl mx-auto px-4">
+                <ul class="flex items-center space-x-1 overflow-x-auto no-scrollbar text-sm font-medium">
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Cable & Accessories</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Lighting</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Wiring Accessories</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Heating & Ventilation</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Fire, Security & Bell</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Tools, Test & Fixings</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red">Renewables</a></li>
+                    <li><a href="#" class="block py-3 px-3 hover:bg-gray-700 transition whitespace-nowrap border-b-2 border-transparent hover:border-cef-red text-red-400 font-bold">Offers</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pb-12">
+        
+        <!-- Hero Section -->
+        <div class="max-w-7xl mx-auto px-4 mt-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Main Banner -->
+                <div class="md:col-span-2 relative bg-gray-900 rounded-lg overflow-hidden h-64 md:h-80 flex items-center">
+                    <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&q=80&w=1200" alt="Electrician Banner" class="absolute inset-0 w-full h-full object-cover opacity-50">
+                    <div class="relative z-10 p-8 md:p-12 text-white">
+                        <span class="bg-cef-red px-3 py-1 text-sm font-bold rounded uppercase tracking-wider mb-4 inline-block">Trade Event</span>
+                        <h1 class="text-3xl md:text-5xl font-bold mb-4 leading-tight">The ultimate <br>tool upgrade.</h1>
+                        <p class="text-lg mb-6 max-w-md">Discover the latest power tools and accessories for professionals.</p>
+                        <a href="#" class="bg-white text-gray-900 px-6 py-3 font-bold rounded hover:bg-gray-100 transition inline-block">Shop Now</a>
+                    </div>
+                </div>
+                <!-- Side Banners -->
+                <div class="flex flex-col gap-4">
+                    <a href="#" class="bg-blue-900 rounded-lg overflow-hidden relative h-32 md:h-auto flex-1 group">
+                        <img src="https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&q=80&w=600" alt="Cable" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-500">
+                        <div class="relative z-10 p-6 flex flex-col justify-center h-full">
+                            <h3 class="text-white text-xl font-bold mb-1">Cable Deals</h3>
+                            <p class="text-blue-100 text-sm">Stock up on essentials</p>
+                        </div>
+                    </a>
+                    <a href="#" class="bg-green-900 rounded-lg overflow-hidden relative h-32 md:h-auto flex-1 group">
+                        <img src="https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&q=80&w=600" alt="EV Charging" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-500">
+                        <div class="relative z-10 p-6 flex flex-col justify-center h-full">
+                            <h3 class="text-white text-xl font-bold mb-1">EV Chargers</h3>
+                            <p class="text-green-100 text-sm">Explore new ranges</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- USPs -->
+        <div class="max-w-7xl mx-auto px-4 mt-8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 md:p-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center divide-x divide-gray-100">
+                <div class="px-2 flex flex-col items-center">
+                    <i data-lucide="truck" class="text-cef-red w-8 h-8 mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-800">Free Next Day Delivery</h4>
+                    <p class="text-xs text-gray-500 mt-1 hidden md:block">On orders over £50 ex VAT</p>
+                </div>
+                <div class="px-2 flex flex-col items-center">
+                    <i data-lucide="package-check" class="text-cef-red w-8 h-8 mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-800">Click & Collect</h4>
+                    <p class="text-xs text-gray-500 mt-1 hidden md:block">From over 400 branches</p>
+                </div>
+                <div class="px-2 flex flex-col items-center">
+                    <i data-lucide="shield-check" class="text-cef-red w-8 h-8 mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-800">Trade Support</h4>
+                    <p class="text-xs text-gray-500 mt-1 hidden md:block">Expert advice available</p>
+                </div>
+                <div class="px-2 flex flex-col items-center">
+                    <i data-lucide="refresh-cw" class="text-cef-red w-8 h-8 mb-2"></i>
+                    <h4 class="font-bold text-sm text-gray-800">Easy Returns</h4>
+                    <p class="text-xs text-gray-500 mt-1 hidden md:block">30 days return policy</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Categories -->
+        <div class="max-w-7xl mx-auto px-4 mt-12">
+            <div class="flex justify-between items-end mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Shop by Category</h2>
+                <a href="#" class="text-sm font-semibold text-cef-red hover:underline">View All</a>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Category 1 -->
+                <a href="#" class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-md transition group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition">
+                        <i data-lucide="zap" class="w-8 h-8 text-gray-600 group-hover:text-cef-red"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Cables</span>
+                </a>
+                <!-- Category 2 -->
+                <a href="#" class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-md transition group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition">
+                        <i data-lucide="lightbulb" class="w-8 h-8 text-gray-600 group-hover:text-cef-red"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Lighting</span>
+                </a>
+                <!-- Category 3 -->
+                <a href="#" class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-md transition group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition">
+                        <i data-lucide="toggle-right" class="w-8 h-8 text-gray-600 group-hover:text-cef-red"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Switches & Sockets</span>
+                </a>
+                <!-- Category 4 -->
+                <a href="#" class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-md transition group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition">
+                        <i data-lucide="flame" class="w-8 h-8 text-gray-600 group-hover:text-cef-red"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Heating</span>
+                </a>
+                <!-- Category 5 -->
+                <a href="#" class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-md transition group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition">
+                        <i data-lucide="shield-alert" class="w-8 h-8 text-gray-600 group-hover:text-cef-red"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Security & Fire</span>
+                </a>
+                <!-- Category 6 -->
+                <a href="#" class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center text-center hover:shadow-md transition group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition">
+                        <i data-lucide="hammer" class="w-8 h-8 text-gray-600 group-hover:text-cef-red"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800">Tools</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Featured Products -->
+        <div class="max-w-7xl mx-auto px-4 mt-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Trending Products</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Product 1 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col relative hover:shadow-lg transition">
+                    <div class="absolute top-2 left-2 bg-red-100 text-cef-red text-[10px] font-bold px-2 py-1 rounded">PROMO</div>
+                    <div class="h-40 w-full flex items-center justify-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1544724569-5f546fd6f2b6?auto=format&fit=crop&q=80&w=400" alt="Cable" class="h-full object-contain">
+                    </div>
+                    <div class="text-xs text-gray-500 mb-1">Part No. 6242Y 2.5MM</div>
+                    <h3 class="font-semibold text-gray-800 text-sm mb-3 flex-1 hover:text-cef-red cursor-pointer">2.5mm² Twin & Earth PVC Cable - 50m Drum</h3>
+                    
+                    <div class="mb-4">
+                        <div class="flex items-baseline space-x-1">
+                            <span class="text-xl font-bold text-gray-900">£34.95</span>
+                            <span class="text-xs text-gray-500 font-medium">ex. VAT</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-0.5">£41.94 inc. VAT</div>
+                    </div>
+                    
+                    <button onclick="addToBasket('2.5mm² Twin & Earth PVC Cable')" class="w-full bg-gray-800 hover:bg-cef-red text-white font-semibold py-2.5 rounded text-sm transition flex items-center justify-center">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i> Add to Basket
+                    </button>
+                </div>
+
+                <!-- Product 2 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col relative hover:shadow-lg transition">
+                    <div class="h-40 w-full flex items-center justify-center mb-4">
+                        <i data-lucide="lightbulb" class="w-24 h-24 text-gray-300"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-1">Part No. LEDFRD7</div>
+                    <h3 class="font-semibold text-gray-800 text-sm mb-3 flex-1 hover:text-cef-red cursor-pointer">7W Fire Rated LED Downlight Dimmable IP65</h3>
+                    
+                    <div class="mb-4">
+                        <div class="flex items-baseline space-x-1">
+                            <span class="text-xl font-bold text-gray-900">£12.50</span>
+                            <span class="text-xs text-gray-500 font-medium">ex. VAT</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-0.5">£15.00 inc. VAT</div>
+                    </div>
+                    
+                    <button onclick="addToBasket('7W Fire Rated LED Downlight')" class="w-full bg-gray-800 hover:bg-cef-red text-white font-semibold py-2.5 rounded text-sm transition flex items-center justify-center">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i> Add to Basket
+                    </button>
+                </div>
+
+                <!-- Product 3 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col relative hover:shadow-lg transition">
+                    <div class="h-40 w-full flex items-center justify-center mb-4">
+                        <i data-lucide="plug" class="w-24 h-24 text-gray-300"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-1">Part No. 221-413</div>
+                    <h3 class="font-semibold text-gray-800 text-sm mb-3 flex-1 hover:text-cef-red cursor-pointer">WAGO 221 Series 3-Way Lever Connector (Box of 50)</h3>
+                    
+                    <div class="mb-4">
+                        <div class="flex items-baseline space-x-1">
+                            <span class="text-xl font-bold text-gray-900">£14.20</span>
+                            <span class="text-xs text-gray-500 font-medium">ex. VAT</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-0.5">£17.04 inc. VAT</div>
+                    </div>
+                    
+                    <button onclick="addToBasket('WAGO 3-Way Connector (Box 50)')" class="w-full bg-gray-800 hover:bg-cef-red text-white font-semibold py-2.5 rounded text-sm transition flex items-center justify-center">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i> Add to Basket
+                    </button>
+                </div>
+
+                <!-- Product 4 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 flex flex-col relative hover:shadow-lg transition">
+                    <div class="absolute top-2 left-2 bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded">BEST SELLER</div>
+                    <div class="h-40 w-full flex items-center justify-center mb-4">
+                        <i data-lucide="hammer" class="w-24 h-24 text-gray-300"></i>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-1">Part No. DCD796P2</div>
+                    <h3 class="font-semibold text-gray-800 text-sm mb-3 flex-1 hover:text-cef-red cursor-pointer">DeWalt 18V XR Brushless Combi Drill (2x 5Ah Batteries)</h3>
+                    
+                    <div class="mb-4">
+                        <div class="flex items-baseline space-x-1">
+                            <span class="text-xl font-bold text-gray-900">£189.00</span>
+                            <span class="text-xs text-gray-500 font-medium">ex. VAT</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-0.5">£226.80 inc. VAT</div>
+                    </div>
+                    
+                    <button onclick="addToBasket('DeWalt 18V Brushless Combi Drill')" class="w-full bg-gray-800 hover:bg-cef-red text-white font-semibold py-2.5 rounded text-sm transition flex items-center justify-center">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i> Add to Basket
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="max-w-7xl mx-auto px-4 mt-16">
+            <div class="bg-gray-100 rounded-lg p-8 md:p-12 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="flex-1">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Open a Trade Account today</h2>
+                    <p class="text-gray-600 mb-6 max-w-2xl">Get access to exclusive trade pricing, manage your invoices online, and utilize credit terms designed to support your electrical business.</p>
+                    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                        <button class="bg-cef-red hover-bg-cef-red-dark text-white font-bold py-3 px-8 rounded transition">Apply for Credit</button>
+                        <button class="bg-white border-2 border-gray-300 hover:border-cef-red text-gray-800 font-bold py-3 px-8 rounded transition">Register for Web Only</button>
+                    </div>
+                </div>
+                <div class="hidden lg:block w-48 h-48 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-200">
+                    <i data-lucide="briefcase" class="w-20 h-20 text-cef-red"></i>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                
+                <!-- Col 1 -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Customer Service</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition">Store Locator</a></li>
+                        <li><a href="#" class="hover:text-white transition">Delivery Information</a></li>
+                        <li><a href="#" class="hover:text-white transition">Returns Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 2 -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">About CEF</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition">Sustainability</a></li>
+                        <li><a href="#" class="hover:text-white transition">Modern Slavery Statement</a></li>
+                        <li><a href="#" class="hover:text-white transition">Press Center</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3 -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Account</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">Sign In / Register</a></li>
+                        <li><a href="#" class="hover:text-white transition">My Account</a></li>
+                        <li><a href="#" class="hover:text-white transition">Order History</a></li>
+                        <li><a href="#" class="hover:text-white transition">Apply for Trade Account</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 4 -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Newsletter</h4>
+                    <p class="text-sm text-gray-400 mb-4">Subscribe to receive the latest news, offers and product information.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email address" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-l text-sm focus:outline-none focus:border-cef-red text-white">
+                        <button class="bg-cef-red hover-bg-cef-red-dark px-4 py-2 rounded-r transition">
+                            <i data-lucide="mail" class="w-5 h-5 text-white"></i>
+                        </button>
+                    </div>
+                    <div class="mt-6 flex space-x-4">
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-cef-red transition">
+                            <i data-lucide="facebook" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-cef-red transition">
+                            <i data-lucide="twitter" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-cef-red transition">
+                            <i data-lucide="instagram" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-cef-red transition">
+                            <i data-lucide="youtube" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+                <p>&copy; 2026 City Electrical Factors Ltd. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="hover:text-white transition">Terms & Conditions</a>
+                    <a href="#" class="hover:text-white transition">Privacy Policy</a>
+                    <a href="#" class="hover:text-white transition">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Cart functionality
+        let cartItems = 0;
+        
+        function updateCartCounters() {
+            const counters = document.querySelectorAll('.cart-count');
+            counters.forEach(counter => {
+                counter.textContent = cartItems;
+                // Add a little pop animation
+                counter.classList.add('scale-125');
+                setTimeout(() => counter.classList.remove('scale-125'), 200);
+            });
+        }
+
+        function addToBasket(productName) {
+            cartItems++;
+            updateCartCounters();
+            showToast(`Added ${productName} to your basket`);
+        }
+
+        // Toast notification system
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            toast.className = 'bg-gray-900 text-white px-6 py-3 rounded shadow-lg flex items-center space-x-3 toast-enter';
+            toast.innerHTML = `
+                <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+                <span class="text-sm font-medium">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(100%)';
+                toast.style.transition = 'all 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Mobile Menu Dummy Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            showToast("Mobile menu navigation triggered.");
+        });
+    </script>
+</body>
+</html>
