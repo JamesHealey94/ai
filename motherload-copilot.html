@@ -367,6 +367,7 @@
         const cy = Math.floor((p.y + p.h / 2) / TILE);
         let collected = 0;
         let lost = 0;
+        let cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
         for (let dr = -1; dr <= 1; dr++) {
           for (let dc = -1; dc <= 1; dc++) {
             const r = cy + dr, c = cx + dc;
@@ -374,9 +375,9 @@
               const tile = state.world[r][c];
               if (tile.type === 'dirt') {
                 if (tile.mineral && tile.mineral.value > 0) {
-                  const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
                   if (cargoWeight + tile.mineral.weight <= p.maxCargo) {
                     p.cargo.push({ ...tile.mineral });
+                    cargoWeight += tile.mineral.weight;
                     collected++;
                   } else {
                     lost++;
