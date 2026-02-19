@@ -1,1046 +1,1125 @@
-<!-- Created with AI: https://t3.chat/share/sgojv2xe4w -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Stick RPG</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Stick Life RPG</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #111;
+    color: #fff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    height: 100dvh;
+    width: 100vw;
+  }
 
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      overflow: hidden;
-      height: 100dvh;
-      width: 100vw;
-      touch-action: none;
-    }
+  #game-container {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+  }
 
-    #game-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
+  canvas {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+  }
 
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #hud > div { pointer-events: auto; }
+  .hud-box {
+    background: rgba(0,0,0,0.75);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    backdrop-filter: blur(4px);
+  }
+  .stat-label { color: #aaa; }
+  .stat-val { font-weight: bold; }
+  .stat-str { color: #ff6b6b; }
+  .stat-int { color: #6bc5ff; }
+  .stat-cha { color: #ffe66b; }
+  .stat-hp { color: #6bff6b; }
+  .stat-money { color: #6bff6b; }
+  .stat-karma { color: #d68fff; }
+  #day-display {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffd36b;
+  }
 
-    /* HUD */
-    #hud {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 8px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      z-index: 20;
-      pointer-events: none;
-    }
+  /* D-Pad */
+  #dpad {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 20;
+    width: 140px;
+    height: 140px;
+  }
+  .dpad-btn {
+    position: absolute;
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .dpad-btn:active, .dpad-btn.active {
+    background: rgba(255,255,255,0.3);
+  }
+  #dpad-up { top: 0; left: 50%; transform: translateX(-50%); }
+  #dpad-down { bottom: 0; left: 50%; transform: translateX(-50%); }
+  #dpad-left { top: 50%; left: 0; transform: translateY(-50%); }
+  #dpad-right { top: 50%; right: 0; transform: translateY(-50%); }
 
-    .hud-panel {
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 8px 14px;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      pointer-events: auto;
-      line-height: 1.5;
-    }
+  /* Action Button */
+  #action-btn {
+    position: absolute;
+    bottom: 55px;
+    right: 25px;
+    z-index: 20;
+    width: 70px; height: 70px;
+    background: rgba(107, 197, 255, 0.2);
+    border: 2px solid rgba(107, 197, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #6bc5ff;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  #action-btn:active { background: rgba(107, 197, 255, 0.45); }
+  #action-btn.hidden { display: none; }
 
-    .hud-panel .label {
-      color: #aaa;
-      font-weight: 400;
-      font-size: 11px;
-    }
+  /* Sleep Button */
+  #sleep-btn {
+    position: absolute;
+    bottom: 140px;
+    right: 30px;
+    z-index: 20;
+    width: 56px; height: 56px;
+    background: rgba(214, 143, 255, 0.2);
+    border: 2px solid rgba(214, 143, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #d68fff;
+    cursor: pointer;
+  }
+  #sleep-btn:active { background: rgba(214, 143, 255, 0.45); }
 
-    .stat-bar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin: 2px 0;
-    }
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 380px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h2 { margin-bottom: 12px; font-size: 20px; }
+  .modal p { font-size: 14px; color: #ccc; margin-bottom: 8px; line-height: 1.5; }
+  .modal-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: rgba(107,197,255,0.15);
+    border: 1px solid rgba(107,197,255,0.4);
+    border-radius: 10px;
+    color: #6bc5ff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .modal-btn:active { background: rgba(107,197,255,0.35); }
+  .modal-btn.red { background: rgba(255,107,107,0.15); border-color: rgba(255,107,107,0.4); color: #ff6b6b; }
+  .modal-btn.red:active { background: rgba(255,107,107,0.35); }
+  .modal-btn.green { background: rgba(107,255,107,0.15); border-color: rgba(107,255,107,0.4); color: #6bff6b; }
+  .modal-btn.green:active { background: rgba(107,255,107,0.35); }
+  .modal-btn.yellow { background: rgba(255,230,107,0.15); border-color: rgba(255,230,107,0.4); color: #ffe66b; }
+  .modal-btn.yellow:active { background: rgba(255,230,107,0.35); }
+  .modal-btn.purple { background: rgba(214,143,255,0.15); border-color: rgba(214,143,255,0.4); color: #d68fff; }
+  .modal-btn:disabled { opacity: 0.4; pointer-events: none; }
+  .modal-close {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+    color: #aaa;
+  }
 
-    .stat-bar .bar-bg {
-      width: 60px;
-      height: 6px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 3px;
-      overflow: hidden;
-    }
+  /* Toast messages */
+  #toast {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 13px;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    text-align: center;
+    max-width: 85vw;
+  }
+  #toast.show { opacity: 1; }
 
-    .stat-bar .bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.3s ease;
-    }
-
-    .str-fill { background: #e74c3c; }
-    .int-fill { background: #3498db; }
-    .cha-fill { background: #f39c12; }
-
-    /* Mobile controls */
-    #mobile-controls {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 20;
-      display: grid;
-      grid-template-columns: 56px 56px 56px;
-      grid-template-rows: 56px 56px 56px;
-      gap: 4px;
-      opacity: 0.7;
-    }
-
-    .ctrl-btn {
-      width: 56px;
-      height: 56px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 14px;
-      color: white;
-      font-size: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .ctrl-btn:active {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .ctrl-up { grid-column: 2; grid-row: 1; }
-    .ctrl-left { grid-column: 1; grid-row: 2; }
-    .ctrl-right { grid-column: 3; grid-row: 2; }
-    .ctrl-down { grid-column: 2; grid-row: 3; }
-
-    #action-btn {
-      position: fixed;
-      bottom: 40px;
-      right: 20px;
-      z-index: 20;
-      width: 72px;
-      height: 72px;
-      background: rgba(46, 204, 113, 0.7);
-      backdrop-filter: blur(6px);
-      border: 2px solid rgba(46, 204, 113, 0.9);
-      border-radius: 50%;
-      color: white;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      line-height: 1.2;
-    }
-
-    #action-btn:active {
-      background: rgba(46, 204, 113, 0.95);
-    }
-
-    /* Dialog / Menu overlay */
-    #dialog-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      z-index: 50;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #dialog-box {
-      background: #16213e;
-      border: 2px solid #0f3460;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 360px;
-      width: 90%;
-      text-align: center;
-    }
-
-    #dialog-box h2 {
-      font-size: 20px;
-      margin-bottom: 12px;
-      color: #e94560;
-    }
-
-    #dialog-box p {
-      font-size: 14px;
-      margin-bottom: 16px;
-      color: #ccc;
-      line-height: 1.5;
-    }
-
-    .dialog-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .dialog-btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-
-    .dialog-btn:active {
-      transform: scale(0.96);
-    }
-
-    .btn-primary {
-      background: #e94560;
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #0f3460;
-      color: #ccc;
-    }
-
-    .btn-work {
-      background: #2ecc71;
-      color: white;
-    }
-
-    .btn-study {
-      background: #3498db;
-      color: white;
-    }
-
-    .btn-gym {
-      background: #e74c3c;
-      color: white;
-    }
-
-    .btn-charm {
-      background: #f39c12;
-      color: white;
-    }
-
-    .btn-gamble {
-      background: #9b59b6;
-      color: white;
-    }
-
-    .btn-sleep {
-      background: #34495e;
-      color: white;
-    }
-
-    .btn-close {
-      background: rgba(255,255,255,0.1);
-      color: #999;
-    }
-
-    /* Notification toast */
-    #toast {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-20px);
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(10px);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 60;
-      opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      pointer-events: none;
-      text-align: center;
-      max-width: 90%;
-    }
-
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* Day display */
-    #day-display {
-      position: fixed;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 10px;
-      padding: 6px 16px;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    @media (min-width: 768px) {
-      #mobile-controls { display: none; }
-    }
-  </style>
+  /* Intro screen */
+  #intro-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+  }
+  #intro-screen h1 {
+    font-size: 36px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #6bc5ff, #d68fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  #intro-screen p { color: #aaa; margin-bottom: 30px; }
+  #intro-screen .modal-btn { max-width: 260px; margin: 4px auto; }
+  .intro-input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 16px;
+    width: 100%;
+    max-width: 260px;
+    margin-bottom: 20px;
+    text-align: center;
+    outline: none;
+  }
+  .intro-input::placeholder { color: rgba(255,255,255,0.3); }
+  #intro-screen.hidden { display: none; }
+</style>
 </head>
 <body>
-  <div id="game-container">
-    <canvas id="game-canvas"></canvas>
-  </div>
+
+<div id="intro-screen">
+  <h1>Stick Life RPG</h1>
+  <p>Live your stick figure life.</p>
+  <input class="intro-input" id="name-input" placeholder="Enter your name" maxlength="16" value="Stickman" />
+  <button class="modal-btn green" onclick="startNewGame()">New Game</button>
+  <button class="modal-btn purple" id="continue-btn" onclick="continueGame()" disabled>Continue</button>
+</div>
+
+<div id="game-container">
+  <canvas id="canvas"></canvas>
 
   <div id="hud">
-    <div class="hud-panel" id="stats-panel">
-      <div class="stat-bar">
-        <span style="color:#e74c3c">💪</span>
-        <div class="bar-bg"><div class="bar-fill str-fill" id="str-bar" style="width:5%"></div></div>
-        <span id="str-val">5</span>
-      </div>
-      <div class="stat-bar">
-        <span style="color:#3498db">🧠</span>
-        <div class="bar-bg"><div class="bar-fill int-fill" id="int-bar" style="width:5%"></div></div>
-        <span id="int-val">5</span>
-      </div>
-      <div class="stat-bar">
-        <span style="color:#f39c12">✨</span>
-        <div class="bar-bg"><div class="bar-fill cha-fill" id="cha-bar" style="width:5%"></div></div>
-        <span id="cha-val">5</span>
-      </div>
+    <div class="hud-box" id="stats-box">
+      <div><span class="stat-label">STR:</span> <span class="stat-val stat-str" id="h-str">1</span></div>
+      <div><span class="stat-label">INT:</span> <span class="stat-val stat-int" id="h-int">1</span></div>
+      <div><span class="stat-label">CHA:</span> <span class="stat-val stat-cha" id="h-cha">1</span></div>
+      <div><span class="stat-label">HP:</span> <span class="stat-val stat-hp" id="h-hp">100</span></div>
     </div>
-    <div class="hud-panel" id="money-panel">
-      💰 <span id="money-val">$100</span><br/>
-      <span class="label">HP: </span><span id="hp-val">100</span>
+    <div class="hud-box" id="day-display">Day <span id="h-day">1</span><br/><span id="h-time" style="font-size:12px;color:#ccc;">6:00 AM</span></div>
+    <div class="hud-box">
+      <div><span class="stat-label">$</span> <span class="stat-val stat-money" id="h-money">200</span></div>
+      <div><span class="stat-label">Job:</span> <span class="stat-val" id="h-job" style="color:#ffd36b">None</span></div>
+      <div><span class="stat-label">Karma:</span> <span class="stat-val stat-karma" id="h-karma">0</span></div>
     </div>
   </div>
 
-  <div id="day-display">Day <span id="day-val">1</span> &mdash; <span id="time-val">Morning</span></div>
-
-  <div id="mobile-controls">
-    <button class="ctrl-btn ctrl-up" data-dir="up">▲</button>
-    <button class="ctrl-btn ctrl-left" data-dir="left">◀</button>
-    <button class="ctrl-btn ctrl-right" data-dir="right">▶</button>
-    <button class="ctrl-btn ctrl-down" data-dir="down">▼</button>
+  <div id="dpad">
+    <div class="dpad-btn" id="dpad-up">▲</div>
+    <div class="dpad-btn" id="dpad-down">▼</div>
+    <div class="dpad-btn" id="dpad-left">◀</div>
+    <div class="dpad-btn" id="dpad-right">▶</div>
   </div>
 
-  <button id="action-btn">Enter</button>
-
-  <div id="dialog-overlay">
-    <div id="dialog-box">
-      <h2 id="dialog-title">Location</h2>
-      <p id="dialog-text">What would you like to do?</p>
-      <div class="dialog-buttons" id="dialog-buttons"></div>
-    </div>
-  </div>
+  <button id="action-btn" class="hidden">ENTER</button>
+  <button id="sleep-btn" onclick="doSleep()">💤</button>
 
   <div id="toast"></div>
+</div>
 
-  <script>
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
+<!-- Location Modals -->
+<div class="modal-overlay" id="modal-gym">
+  <div class="modal">
+    <h2>💪 Gym</h2>
+    <p>Train your body to become stronger!</p>
+    <button class="modal-btn red" onclick="trainGym()">Work Out <span style="font-size:11px;">(+1-3 STR, $10, 2hrs)</span></button>
+    <button class="modal-btn red" onclick="trainGymHard()">Intense Training <span style="font-size:11px;">(+3-6 STR, $25, 4hrs)</span></button>
+    <button class="modal-btn modal-close" onclick="closeModal('gym')">Leave</button>
+  </div>
+</div>
 
-    let W, H;
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
+<div class="modal-overlay" id="modal-university">
+  <div class="modal">
+    <h2>📚 University</h2>
+    <p>Expand your mind with education.</p>
+    <button class="modal-btn" onclick="studyUni()">Attend Class <span style="font-size:11px;">(+1-3 INT, $15, 2hrs)</span></button>
+    <button class="modal-btn" onclick="studyUniHard()">Study Session <span style="font-size:11px;">(+3-6 INT, $30, 4hrs)</span></button>
+    <button class="modal-btn yellow" onclick="takeExam()">Take Degree Exam <span style="font-size:11px;">(Need 50 INT, $500)</span></button>
+    <button class="modal-btn modal-close" onclick="closeModal('university')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-bar">
+  <div class="modal">
+    <h2>🍺 Bar</h2>
+    <p>Socialize and build your charm.</p>
+    <button class="modal-btn yellow" onclick="barChat()">Chat with People <span style="font-size:11px;">(+1-3 CHA, $8, 2hrs)</span></button>
+    <button class="modal-btn yellow" onclick="barParty()">Throw a Round <span style="font-size:11px;">(+3-6 CHA, $40, 3hrs)</span></button>
+    <button class="modal-btn red" onclick="barFight()">Start a Fight <span style="font-size:11px;">(STR based, risk)</span></button>
+    <button class="modal-btn modal-close" onclick="closeModal('bar')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-work">
+  <div class="modal">
+    <h2>🏢 Employment Office</h2>
+    <p>Find a job or go to work.</p>
+    <div id="job-list"></div>
+    <button class="modal-btn green" id="work-btn" onclick="goToWork()">Go to Work (4hrs)</button>
+    <button class="modal-btn modal-close" onclick="closeModal('work')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-bank">
+  <div class="modal">
+    <h2>🏦 Bank</h2>
+    <p>Savings: $<span id="bank-savings">0</span> <span style="font-size:11px;color:#aaa;">(+5% per day)</span></p>
+    <button class="modal-btn green" onclick="bankDeposit(100)">Deposit $100</button>
+    <button class="modal-btn green" onclick="bankDeposit(500)">Deposit $500</button>
+    <button class="modal-btn" onclick="bankWithdraw(100)">Withdraw $100</button>
+    <button class="modal-btn" onclick="bankWithdraw(500)">Withdraw $500</button>
+    <button class="modal-btn red" onclick="bankRob()">Rob the Bank... <span style="font-size:11px;">(High Risk)</span></button>
+    <button class="modal-btn modal-close" onclick="closeModal('bank')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-store">
+  <div class="modal">
+    <h2>🏪 Store</h2>
+    <p>Buy useful items.</p>
+    <div id="store-items"></div>
+    <button class="modal-btn modal-close" onclick="closeModal('store')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-home">
+  <div class="modal">
+    <h2>🏠 Home</h2>
+    <p id="home-desc">Your humble apartment.</p>
+    <button class="modal-btn purple" onclick="doSleep()">Sleep Until Morning (+HP)</button>
+    <button class="modal-btn green" onclick="saveGame()">Save Game</button>
+    <button class="modal-btn modal-close" onclick="closeModal('home')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-casino">
+  <div class="modal">
+    <h2>🎰 Casino</h2>
+    <p>Feeling lucky?</p>
+    <button class="modal-btn yellow" onclick="gamble(50)">Bet $50</button>
+    <button class="modal-btn yellow" onclick="gamble(200)">Bet $200</button>
+    <button class="modal-btn yellow" onclick="gamble(1000)">Bet $1000</button>
+    <button class="modal-btn modal-close" onclick="closeModal('casino')">Leave</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-hospital">
+  <div class="modal">
+    <h2>🏥 Hospital</h2>
+    <p>Get healed up.</p>
+    <button class="modal-btn green" onclick="heal()">Heal to Full HP ($50)</button>
+    <button class="modal-btn modal-close" onclick="closeModal('hospital')">Leave</button>
+  </div>
+</div>
+
+<script>
+// ============ GAME STATE ============
+const G = {
+  name: 'Stickman',
+  str: 1, int: 1, cha: 1,
+  hp: 100, maxHp: 100,
+  money: 200, bank: 0,
+  karma: 0,
+  day: 1, hour: 6,
+  job: null, hasDegree: false,
+  x: 600, y: 400,
+  facing: 1,
+  walking: false,
+  walkFrame: 0,
+  items: {},
+  homeLevel: 0,
+};
+
+const SPEED = 3.2;
+const WORLD_W = 2400;
+const WORLD_H = 700;
+
+// ============ BUILDINGS ============
+const buildings = [
+  { id:'home',       name:'Home',        x:100,  y:280, w:160, h:160, color:'#3a506b', roofColor:'#5c7a99', icon:'🏠' },
+  { id:'gym',        name:'Gym',         x:350,  y:280, w:180, h:160, color:'#8b0000', roofColor:'#c0392b', icon:'💪' },
+  { id:'university', name:'University',  x:620,  y:250, w:220, h:190, color:'#2c3e50', roofColor:'#34495e', icon:'📚' },
+  { id:'work',       name:'Employment',  x:930,  y:280, w:180, h:160, color:'#2d4a22', roofColor:'#3d6b2e', icon:'🏢' },
+  { id:'bar',        name:'Bar',         x:1200, y:300, w:160, h:140, color:'#4a2545', roofColor:'#6b3a66', icon:'🍺' },
+  { id:'bank',       name:'Bank',        x:1450, y:270, w:190, h:170, color:'#1a3a4a', roofColor:'#2a5a6a', icon:'🏦' },
+  { id:'store',      name:'Store',       x:1730, y:300, w:160, h:140, color:'#4a4a22', roofColor:'#6a6a33', icon:'🏪' },
+  { id:'casino',     name:'Casino',      x:1980, y:280, w:180, h:160, color:'#5c1a5c', roofColor:'#8b2a8b', icon:'🎰' },
+  { id:'hospital',   name:'Hospital',    x:2230, y:290, w:150, h:150, color:'#eee',    roofColor:'#ff4444', icon:'🏥' },
+];
+
+const GROUND_Y = 480;
+const JOBS = [
+  { id:'mcdonalds',  name:'Fast Food Worker', pay:25,  reqStr:0,  reqInt:0,  reqCha:0  },
+  { id:'janitor',    name:'Janitor',          pay:40,  reqStr:5,  reqInt:0,  reqCha:0  },
+  { id:'clerk',      name:'Office Clerk',     pay:70,  reqStr:0,  reqInt:15, reqCha:5  },
+  { id:'bartender',  name:'Bartender',        pay:80,  reqStr:5,  reqInt:0,  reqCha:20 },
+  { id:'programmer', name:'Programmer',       pay:150, reqStr:0,  reqInt:40, reqCha:5  },
+  { id:'manager',    name:'Manager',          pay:200, reqStr:10, reqInt:30, reqCha:30 },
+  { id:'ceo',        name:'CEO',              pay:500, reqStr:20, reqInt:60, reqCha:50, needDegree:true },
+];
+
+const STORE_ITEMS = [
+  { id:'coffee',     name:'☕ Coffee',          price:10,  desc:'+2 STR temporarily', effect:()=>{ G.str+=2; toast('Drank coffee. +2 STR!'); }},
+  { id:'book',       name:'📖 Textbook',       price:25,  desc:'+2 INT',            effect:()=>{ G.int+=2; toast('+2 INT from reading!'); }},
+  { id:'cologne',    name:'✨ Cologne',         price:30,  desc:'+2 CHA',            effect:()=>{ G.cha+=2; toast('+2 CHA! Smelling good.'); }},
+  { id:'protein',    name:'🥤 Protein Shake',  price:50,  desc:'+5 STR',            effect:()=>{ G.str+=5; toast('+5 STR! Gains!'); }},
+  { id:'laptop',     name:'💻 Laptop',          price:300, desc:'+10 INT',           effect:()=>{ G.int+=10; toast('+10 INT!'); }},
+  { id:'suit',       name:'👔 Nice Suit',       price:500, desc:'+10 CHA',           effect:()=>{ G.cha+=10; toast('+10 CHA! Looking sharp.'); }},
+  { id:'medkit',     name:'🩹 Med Kit',         price:30,  desc:'+30 HP',            effect:()=>{ G.hp=Math.min(G.maxHp,G.hp+30); toast('+30 HP'); }},
+];
+
+// ============ CANVAS SETUP ============
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, camX = 0;
+
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ============ INPUT ============
+const keys = { left:false, right:false, up:false, down:false };
+
+function setDir(dir, val) {
+  keys[dir] = val;
+  document.getElementById('dpad-'+dir).classList.toggle('active', val);
+}
+
+['up','down','left','right'].forEach(dir => {
+  const el = document.getElementById('dpad-'+dir);
+  el.addEventListener('touchstart', e => { e.preventDefault(); setDir(dir,true); });
+  el.addEventListener('touchend', e => { e.preventDefault(); setDir(dir,false); });
+  el.addEventListener('touchcancel', e => { setDir(dir,false); });
+  el.addEventListener('mousedown', e => { e.preventDefault(); setDir(dir,true); });
+  el.addEventListener('mouseup', e => { setDir(dir,false); });
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowLeft'||e.key==='a') keys.left=true;
+  if(e.key==='ArrowRight'||e.key==='d') keys.right=true;
+  if(e.key==='ArrowUp'||e.key==='w') keys.up=true;
+  if(e.key==='ArrowDown'||e.key==='s') keys.down=true;
+  if(e.key==='Enter'||e.key===' ') actionPress();
+});
+document.addEventListener('keyup', e => {
+  if(e.key==='ArrowLeft'||e.key==='a') keys.left=false;
+  if(e.key==='ArrowRight'||e.key==='d') keys.right=false;
+  if(e.key==='ArrowUp'||e.key==='w') keys.up=false;
+  if(e.key==='ArrowDown'||e.key==='s') keys.down=false;
+});
+
+document.addEventListener('mouseup', () => { keys.left=keys.right=keys.up=keys.down=false; });
+document.addEventListener('touchend', () => {
+  // Don't clear dpad here; handled per-button
+});
+
+// ============ DRAWING ============
+function getSkyColor() {
+  const h = G.hour;
+  if(h >= 6 && h < 8) return lerpColor('#1a1a3a','#5b8fb9', (h-6)/2);
+  if(h >= 8 && h < 18) return '#5b8fb9';
+  if(h >= 18 && h < 21) return lerpColor('#5b8fb9','#1a1a3a', (h-18)/3);
+  return '#0d0d2b';
+}
+
+function lerpColor(a, b, t) {
+  const ah=parseInt(a.slice(1),16), bh=parseInt(b.slice(1),16);
+  const ar=(ah>>16)&255, ag=(ah>>8)&255, ab=ah&255;
+  const br=(bh>>16)&255, bg=(bh>>8)&255, bb=bh&255;
+  const rr=Math.round(ar+(br-ar)*t), rg=Math.round(ag+(bg-ag)*t), rb=Math.round(ab+(bb-ab)*t);
+  return `rgb(${rr},${rg},${rb})`;
+}
+
+function drawSky() {
+  ctx.fillStyle = getSkyColor();
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars at night
+  if(G.hour >= 21 || G.hour < 5) {
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    for(let i=0; i<50; i++) {
+      const sx = (i*137+50) % W;
+      const sy = (i*97+30) % (H*0.4);
+      ctx.fillRect(sx, sy, 1.5, 1.5);
     }
-    window.addEventListener('resize', resize);
-    resize();
+  }
 
-    // Game State
-    const state = {
-      day: 1,
-      timeOfDay: 0, // 0=morning, 1=afternoon, 2=evening, 3=night
-      money: 100,
-      hp: 100,
-      maxHp: 100,
-      strength: 5,
-      intelligence: 5,
-      charm: 5,
-      karma: 0,
-      job: 'none', // none, mcsticks, janitor, programmer, ceo
-      hasApartment: false,
-      hasCar: false,
-    };
+  // Sun or moon
+  const timeAngle = ((G.hour - 6) / 24) * Math.PI * 2;
+  if(G.hour >= 6 && G.hour < 20) {
+    const sunX = W/2 + Math.cos(timeAngle - Math.PI/2) * W*0.35;
+    const sunY = H*0.15 + Math.sin(timeAngle - Math.PI/2) * -80;
+    ctx.fillStyle = '#ffdd44';
+    ctx.beginPath();
+    ctx.arc(sunX, Math.max(30, sunY), 25, 0, Math.PI*2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = '#dde';
+    ctx.beginPath();
+    ctx.arc(W*0.75, 60, 20, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
 
-    const timeLabels = ['Morning', 'Afternoon', 'Evening', 'Night'];
+function drawGround() {
+  const gy = GROUND_Y - camY();
+  // Road
+  ctx.fillStyle = '#333';
+  ctx.fillRect(0, gy, W, 60);
+  // Dashes
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([20,15]);
+  ctx.beginPath();
+  ctx.moveTo(0, gy+30);
+  ctx.lineTo(W, gy+30);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Sidewalk
+  ctx.fillStyle = '#555';
+  ctx.fillRect(0, gy+60, W, 15);
+  // Grass
+  ctx.fillStyle = '#2a5a1a';
+  ctx.fillRect(0, gy+75, W, H - gy - 75);
+}
 
-    // World / Camera
-    const WORLD_W = 2400;
-    const WORLD_H = 600;
-    let cameraX = 0;
+function camY() { return 0; }
 
-    // Player
-    const player = {
-      x: 200,
-      y: 0,
-      w: 20,
-      h: 48,
-      vx: 0,
-      vy: 0,
-      speed: 3,
-      grounded: false,
-      facing: 1,
-      walkFrame: 0,
-      nearBuilding: null,
-    };
+function drawBuilding(b) {
+  const bx = b.x - camX;
+  const by = b.y;
+  if(bx + b.w < -50 || bx > W + 50) return;
 
-    const GRAVITY = 0.5;
-    const GROUND_Y = WORLD_H - 80;
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(bx+8, by+8, b.w, b.h);
 
-    // Buildings / Locations
-    const buildings = [
-      { x: 60,   w: 140, h: 120, name: 'Home',       color: '#2c3e50', roofColor: '#e74c3c', icon: '🏠', actions: ['sleep', 'rest'] },
-      { x: 280,  w: 160, h: 100, name: 'McSticks',    color: '#e67e22', roofColor: '#d35400', icon: '🍔', actions: ['work_mcsticks'] },
-      { x: 520,  w: 180, h: 140, name: 'University',  color: '#2980b9', roofColor: '#1a5276', icon: '🎓', actions: ['study'] },
-      { x: 780,  w: 150, h: 110, name: 'Gym',         color: '#c0392b', roofColor: '#922b21', icon: '💪', actions: ['exercise'] },
-      { x: 1010, w: 170, h: 130, name: 'Bar',         color: '#8e44ad', roofColor: '#6c3483', icon: '🍺', actions: ['socialize', 'gamble'] },
-      { x: 1260, w: 160, h: 150, name: 'Corp Office', color: '#2c3e50', roofColor: '#1c2833', icon: '🏢', actions: ['work_office'] },
-      { x: 1500, w: 140, h: 100, name: 'Shop',        color: '#27ae60', roofColor: '#1e8449', icon: '🛒', actions: ['shop'] },
-      { x: 1720, w: 160, h: 120, name: 'Casino',      color: '#f1c40f', roofColor: '#d4ac0d', icon: '🎰', actions: ['gamble_big'] },
-      { x: 1960, w: 180, h: 130, name: 'Hospital',    color: '#ecf0f1', roofColor: '#bdc3c7', icon: '🏥', actions: ['heal'] },
-      { x: 2200, w: 140, h: 140, name: 'Penthouse',   color: '#1a1a2e', roofColor: '#e94560', icon: '🏰', actions: ['buy_apartment'] },
-    ];
+  // Body
+  ctx.fillStyle = b.color;
+  ctx.fillRect(bx, by, b.w, b.h);
 
-    // Set building y positions
-    buildings.forEach(b => {
-      b.y = GROUND_Y - b.h;
-    });
+  // Roof
+  ctx.fillStyle = b.roofColor;
+  ctx.beginPath();
+  ctx.moveTo(bx - 10, by);
+  ctx.lineTo(bx + b.w/2, by - 30);
+  ctx.lineTo(bx + b.w + 10, by);
+  ctx.closePath();
+  ctx.fill();
 
-    // Clouds
-    const clouds = [];
-    for (let i = 0; i < 12; i++) {
-      clouds.push({
-        x: Math.random() * WORLD_W,
-        y: 30 + Math.random() * 100,
-        w: 60 + Math.random() * 80,
-        speed: 0.15 + Math.random() * 0.3,
-      });
+  // Door
+  ctx.fillStyle = '#222';
+  ctx.fillRect(bx + b.w/2 - 15, by + b.h - 50, 30, 50);
+  ctx.fillStyle = '#ffcc00';
+  ctx.beginPath();
+  ctx.arc(bx + b.w/2 + 8, by + b.h - 25, 3, 0, Math.PI*2);
+  ctx.fill();
+
+  // Windows
+  ctx.fillStyle = (G.hour >= 18 || G.hour < 6) ? 'rgba(255,230,100,0.7)' : 'rgba(150,200,255,0.5)';
+  const wSize = 22;
+  for(let wx = bx+15; wx < bx+b.w-30; wx += 40) {
+    for(let wy = by+20; wy < by+b.h-60; wy += 45) {
+      ctx.fillRect(wx, wy, wSize, wSize);
     }
+  }
 
-    // NPCs (stick figures walking around)
-    const npcs = [];
-    for (let i = 0; i < 8; i++) {
-      npcs.push({
-        x: 100 + Math.random() * (WORLD_W - 200),
-        facing: Math.random() > 0.5 ? 1 : -1,
-        speed: 0.5 + Math.random() * 1,
-        walkFrame: Math.random() * Math.PI * 2,
-        color: ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#ecf0f1'][i],
-      });
-    }
+  // Icon + Name
+  ctx.font = '28px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(b.icon, bx + b.w/2, by - 35);
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(b.name, bx + b.w/2, by + b.h + 18);
+}
 
-    // Input
-    const keys = {};
-    window.addEventListener('keydown', e => { keys[e.key] = true; });
-    window.addEventListener('keyup', e => { keys[e.key] = false; });
+function drawStickman() {
+  const sx = G.x - camX;
+  const sy = GROUND_Y - 60;
+  const f = G.walkFrame;
+  const dir = G.facing;
 
-    // Mobile controls
-    const mobileDir = { up: false, down: false, left: false, right: false };
-    document.querySelectorAll('.ctrl-btn').forEach(btn => {
-      const dir = btn.dataset.dir;
-      btn.addEventListener('touchstart', e => { e.preventDefault(); mobileDir[dir] = true; }, { passive: false });
-      btn.addEventListener('touchend', e => { e.preventDefault(); mobileDir[dir] = false; }, { passive: false });
-      btn.addEventListener('mousedown', () => mobileDir[dir] = true);
-      btn.addEventListener('mouseup', () => mobileDir[dir] = false);
-    });
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
 
-    // Action button
-    const actionBtn = document.getElementById('action-btn');
-    actionBtn.addEventListener('click', () => {
-      if (player.nearBuilding) {
-        openBuildingMenu(player.nearBuilding);
-      }
-    });
+  // Head
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(sx, sy - 30, 10, 0, Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
 
-    // Keyboard enter
-    window.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && player.nearBuilding && !dialogOpen) {
-        openBuildingMenu(player.nearBuilding);
-      }
-    });
+  // Eyes
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(sx + dir*3, sy - 32, 2, 0, Math.PI*2);
+  ctx.fill();
 
-    // Dialog
-    let dialogOpen = false;
+  // Body
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - 20);
+  ctx.lineTo(sx, sy + 5);
+  ctx.stroke();
 
-    function openBuildingMenu(building) {
-      dialogOpen = true;
-      const overlay = document.getElementById('dialog-overlay');
-      const title = document.getElementById('dialog-title');
-      const text = document.getElementById('dialog-text');
-      const btns = document.getElementById('dialog-buttons');
+  // Arms
+  const armSwing = G.walking ? Math.sin(f*0.2)*15 : 0;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - 14);
+  ctx.lineTo(sx - 15, sy - 5 + armSwing);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - 14);
+  ctx.lineTo(sx + 15, sy - 5 - armSwing);
+  ctx.stroke();
 
-      title.textContent = building.icon + ' ' + building.name;
-      btns.innerHTML = '';
+  // Legs
+  const legSwing = G.walking ? Math.sin(f*0.2)*12 : 0;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy + 5);
+  ctx.lineTo(sx - 10 - legSwing, sy + 30);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(sx, sy + 5);
+  ctx.lineTo(sx + 10 + legSwing, sy + 30);
+  ctx.stroke();
 
-      const actionMap = {
-        sleep: { label: '😴 Sleep (Next Day)', cls: 'btn-sleep', fn: doSleep },
-        rest: { label: '🛋️ Rest (+20 HP)', cls: 'btn-secondary', fn: doRest },
-        work_mcsticks: { label: '🍔 Work Shift (+$' + getWorkPay('mcsticks') + ')', cls: 'btn-work', fn: () => doWork('mcsticks') },
-        study: { label: '📚 Study (+Intelligence)', cls: 'btn-study', fn: doStudy },
-        exercise: { label: '🏋️ Exercise (+Strength)', cls: 'btn-gym', fn: doExercise },
-        socialize: { label: '💬 Socialize (+Charm)', cls: 'btn-charm', fn: doSocialize },
-        gamble: { label: '🎲 Gamble ($50)', cls: 'btn-gamble', fn: () => doGamble(50) },
-        work_office: { label: '💼 Work Office (+$' + getWorkPay('office') + ')', cls: 'btn-work', fn: () => doWork('office') },
-        shop: { label: '🛒 Shop', cls: 'btn-secondary', fn: openShop },
-        gamble_big: { label: '🎰 High Stakes ($200)', cls: 'btn-gamble', fn: () => doGamble(200) },
-        heal: { label: '💊 Heal (Full HP, $50)', cls: 'btn-primary', fn: doHeal },
-        buy_apartment: { label: '🏰 Buy Penthouse ($5000)', cls: 'btn-primary', fn: buyApartment },
-      };
+  // Name tag
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.textAlign = 'center';
+  ctx.fillText(G.name, sx, sy - 48);
+}
 
-      let desc = getLocationDescription(building.name);
-      text.textContent = desc;
+function drawNPCs() {
+  // Draw a few ambient NPCs
+  const npcs = [
+    { x: 500, color: '#ff9999' },
+    { x: 1100, color: '#99ff99' },
+    { x: 1600, color: '#9999ff' },
+    { x: 2100, color: '#ffff99' },
+  ];
+  npcs.forEach(npc => {
+    const nx = npc.x - camX;
+    if(nx < -50 || nx > W+50) return;
+    const ny = GROUND_Y - 60;
+    ctx.strokeStyle = npc.color;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.fillStyle = npc.color;
+    ctx.beginPath(); ctx.arc(nx, ny-28, 8, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(nx, ny-20); ctx.lineTo(nx, ny+2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(nx, ny-12); ctx.lineTo(nx-12, ny-2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(nx, ny-12); ctx.lineTo(nx+12, ny-2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(nx, ny+2); ctx.lineTo(nx-8, ny+26); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(nx, ny+2); ctx.lineTo(nx+8, ny+26); ctx.stroke();
+  });
+}
 
-      building.actions.forEach(action => {
-        const info = actionMap[action];
-        if (!info) return;
-        const btn = document.createElement('button');
-        btn.className = 'dialog-btn ' + info.cls;
-        btn.textContent = info.label;
-        btn.onclick = () => { info.fn(); };
-        btns.appendChild(btn);
-      });
+// Decorations: trees, lamp posts, etc
+function drawDecor() {
+  const trees = [50, 290, 570, 880, 1140, 1400, 1680, 1920, 2180, 2360];
+  trees.forEach(tx => {
+    const dx = tx - camX;
+    if(dx < -60 || dx > W+60) return;
+    const ty = GROUND_Y + 55;
+    // Trunk
+    ctx.fillStyle = '#5a3a1a';
+    ctx.fillRect(dx-5, ty-40, 10, 40);
+    // Leaves
+    ctx.fillStyle = '#1a6b1a';
+    ctx.beginPath();
+    ctx.arc(dx, ty-55, 22, 0, Math.PI*2);
+    ctx.fill();
+  });
 
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'dialog-btn btn-close';
-      closeBtn.textContent = '✕ Leave';
-      closeBtn.onclick = closeDialog;
-      btns.appendChild(closeBtn);
-
-      overlay.style.display = 'flex';
-    }
-
-    function getLocationDescription(name) {
-      const descs = {
-        'Home': 'Your humble starting home. Rest up or sleep to advance to the next day.',
-        'McSticks': 'A fast food joint. Flip burgers for cash. No experience needed!',
-        'University': 'Study hard to boost your Intelligence. Knowledge is power!',
-        'Gym': 'Pump iron and build Strength. Feel the burn!',
-        'Bar': 'Hang out, meet people, and raise your Charm. Maybe try your luck at dice.',
-        'Corp Office': 'Corporate headquarters. Need Intelligence 30+ to work here.',
-        'Shop': 'Buy useful items and upgrades.',
-        'Casino': 'High stakes gambling. Big risk, big reward!',
-        'Hospital': 'Patch yourself up. Full heal for $50.',
-        'Penthouse': state.hasApartment ? 'Your luxurious penthouse! You made it!' : 'A premium penthouse. Yours for only $5,000.',
-      };
-      return descs[name] || '';
-    }
-
-    function closeDialog() {
-      dialogOpen = false;
-      document.getElementById('dialog-overlay').style.display = 'none';
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2000);
-    }
-
-    function advanceTime() {
-      state.timeOfDay++;
-      if (state.timeOfDay >= 4) {
-        state.timeOfDay = 0;
-        state.day++;
-      }
-      updateHUD();
-    }
-
-    function getWorkPay(type) {
-      if (type === 'mcsticks') return 15 + Math.floor(state.strength / 5);
-      if (type === 'office') return 50 + Math.floor(state.intelligence / 3);
-      return 10;
-    }
-
-    // --- Actions ---
-    function doSleep() {
-      state.timeOfDay = 0;
-      state.day++;
-      state.hp = Math.min(state.maxHp, state.hp + 30);
-      showToast('💤 You slept. Day ' + state.day + ' begins!');
-      closeDialog();
-      updateHUD();
-    }
-
-    function doRest() {
-      state.hp = Math.min(state.maxHp, state.hp + 20);
-      showToast('🛋️ You rested. +20 HP');
-      closeDialog();
-      updateHUD();
-    }
-
-    function doWork(type) {
-      if (type === 'office' && state.intelligence < 30) {
-        showToast('❌ Need 30+ Intelligence to work here!');
-        return;
-      }
-      const pay = getWorkPay(type);
-      state.money += pay;
-      state.hp -= 10;
-      advanceTime();
-      showToast('💼 Earned $' + pay + '!');
-      closeDialog();
-    }
-
-    function doStudy() {
-      state.intelligence += 2 + Math.floor(Math.random() * 2);
-      state.hp -= 5;
-      advanceTime();
-      showToast('📚 Intelligence increased!');
-      closeDialog();
-    }
-
-    function doExercise() {
-      state.strength += 2 + Math.floor(Math.random() * 2);
-      state.hp -= 8;
-      advanceTime();
-      showToast('💪 Strength increased!');
-      closeDialog();
-    }
-
-    function doSocialize() {
-      state.charm += 2 + Math.floor(Math.random() * 2);
-      state.hp -= 3;
-      advanceTime();
-      showToast('✨ Charm increased!');
-      closeDialog();
-    }
-
-    function doGamble(amount) {
-      if (state.money < amount) {
-        showToast('❌ Not enough money!');
-        return;
-      }
-      state.money -= amount;
-      const luck = Math.random();
-      const charmBonus = state.charm / 200;
-      if (luck + charmBonus > 0.55) {
-        const winnings = amount * 2;
-        state.money += winnings;
-        showToast('🎉 You won $' + winnings + '!');
-      } else {
-        showToast('😢 You lost $' + amount + '...');
-      }
-      advanceTime();
-      closeDialog();
-    }
-
-    function doHeal() {
-      if (state.money < 50) {
-        showToast('❌ Need $50 for healing!');
-        return;
-      }
-      state.money -= 50;
-      state.hp = state.maxHp;
-      showToast('💊 Fully healed!');
-      closeDialog();
-      updateHUD();
-    }
-
-    function openShop() {
-      const btns = document.getElementById('dialog-buttons');
-      const title = document.getElementById('dialog-title');
-      const text = document.getElementById('dialog-text');
-      title.textContent = '🛒 Shop';
-      text.textContent = 'Buy items to help your journey.';
-      btns.innerHTML = '';
-
-      const items = [
-        { name: '☕ Energy Drink (+30 HP)', cost: 20, fn: () => { state.hp = Math.min(state.maxHp, state.hp + 30); showToast('☕ +30 HP!'); closeDialog(); updateHUD(); }},
-        { name: '📖 Textbook (+5 INT)', cost: 100, fn: () => { state.intelligence += 5; showToast('📖 +5 Intelligence!'); closeDialog(); updateHUD(); }},
-        { name: '👔 Nice Clothes (+5 CHA)', cost: 80, fn: () => { state.charm += 5; showToast('👔 +5 Charm!'); closeDialog(); updateHUD(); }},
-        { name: '🏋️ Protein Shake (+5 STR)', cost: 60, fn: () => { state.strength += 5; showToast('🏋️ +5 Strength!'); closeDialog(); updateHUD(); }},
-      ];
-
-      items.forEach(item => {
-        const btn = document.createElement('button');
-        btn.className = 'dialog-btn btn-secondary';
-        btn.textContent = item.name + ' - $' + item.cost;
-        btn.onclick = () => {
-          if (state.money >= item.cost) {
-            state.money -= item.cost;
-            item.fn();
-          } else {
-            showToast('❌ Not enough money!');
-          }
-        };
-        btns.appendChild(btn);
-      });
-
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'dialog-btn btn-close';
-      closeBtn.textContent = '✕ Leave Shop';
-      closeBtn.onclick = closeDialog;
-      btns.appendChild(closeBtn);
-    }
-
-    function buyApartment() {
-      if (state.hasApartment) {
-        showToast('🏰 You already own the penthouse!');
-        closeDialog();
-        return;
-      }
-      if (state.money < 5000) {
-        showToast('❌ Need $5,000!');
-        return;
-      }
-      state.money -= 5000;
-      state.hasApartment = true;
-      showToast('🎉 You bought the Penthouse! You win!');
-      closeDialog();
-      updateHUD();
-    }
-
-    // HUD update
-    function updateHUD() {
-      document.getElementById('str-val').textContent = state.strength;
-      document.getElementById('int-val').textContent = state.intelligence;
-      document.getElementById('cha-val').textContent = state.charm;
-      document.getElementById('str-bar').style.width = Math.min(100, state.strength) + '%';
-      document.getElementById('int-bar').style.width = Math.min(100, state.intelligence) + '%';
-      document.getElementById('cha-bar').style.width = Math.min(100, state.charm) + '%';
-      document.getElementById('money-val').textContent = '$' + state.money;
-      document.getElementById('hp-val').textContent = Math.max(0, state.hp);
-      document.getElementById('day-val').textContent = state.day;
-      document.getElementById('time-val').textContent = timeLabels[state.timeOfDay];
-    }
-
-    // Drawing functions
-    function getSkyColor() {
-      const colors = [
-        ['#87CEEB', '#E0F7FA'], // morning
-        ['#5DADE2', '#AED6F1'], // afternoon
-        ['#E67E22', '#F5CBA7'], // evening
-        ['#1a1a2e', '#16213e'], // night
-      ];
-      return colors[state.timeOfDay];
-    }
-
-    function drawSky() {
-      const [top, bottom] = getSkyColor();
-      const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, top);
-      grad.addColorStop(1, bottom);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
-
-      // Sun or moon
-      if (state.timeOfDay === 3) {
-        ctx.fillStyle = '#ecf0f1';
-        ctx.beginPath();
-        ctx.arc(W - 80, 60, 30, 0, Math.PI * 2);
-        ctx.fill();
-        // Moon craters
-        ctx.fillStyle = '#bdc3c7';
-        ctx.beginPath();
-        ctx.arc(W - 90, 55, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(W - 72, 65, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Stars
-        ctx.fillStyle = '#fff';
-        for (let i = 0; i < 50; i++) {
-          const sx = (i * 137.5 + 42) % W;
-          const sy = (i * 89.3 + 17) % (H * 0.4);
-          ctx.fillRect(sx, sy, 1.5, 1.5);
-        }
-      } else {
-        ctx.fillStyle = state.timeOfDay === 2 ? '#e74c3c' : '#f9ca24';
-        ctx.beginPath();
-        const sunX = state.timeOfDay === 0 ? W * 0.3 : state.timeOfDay === 1 ? W * 0.6 : W * 0.85;
-        ctx.arc(sunX, state.timeOfDay === 2 ? H * 0.35 : 70, 35, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function drawClouds() {
-      ctx.fillStyle = state.timeOfDay === 3 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.7)';
-      clouds.forEach(c => {
-        const sx = c.x - cameraX;
-        if (sx + c.w < -50 || sx > W + 50) return;
-        ctx.beginPath();
-        ctx.ellipse(sx, c.y, c.w / 2, 18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(sx - c.w * 0.2, c.y - 8, c.w * 0.3, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(sx + c.w * 0.25, c.y - 5, c.w * 0.25, 12, 0, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    }
-
-    function drawGround() {
-      const gy = GROUND_Y - cameraY();
-      // Grass
-      ctx.fillStyle = state.timeOfDay === 3 ? '#1a3c1a' : '#2ecc71';
-      ctx.fillRect(0, gy, W, H - gy);
-      // Road
-      ctx.fillStyle = '#444';
-      ctx.fillRect(0, gy, W, 30);
-      // Road lines
-      ctx.strokeStyle = '#f1c40f';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([20, 15]);
+  // Lamp posts
+  for(let lx=200; lx<WORLD_W; lx+=300) {
+    const dx = lx - camX;
+    if(dx < -30 || dx > W+30) return;
+    ctx.fillStyle = '#555';
+    ctx.fillRect(dx-2, GROUND_Y+40, 4, -80);
+    ctx.fillStyle = (G.hour>=18||G.hour<6) ? '#ffee88' : '#888';
+    ctx.beginPath();
+    ctx.arc(dx, GROUND_Y-42, 6, 0, Math.PI*2);
+    ctx.fill();
+    if(G.hour>=18||G.hour<6) {
+      ctx.fillStyle = 'rgba(255,238,136,0.08)';
       ctx.beginPath();
-      ctx.moveTo(0, gy + 15);
-      ctx.lineTo(W, gy + 15);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      // Sidewalk
-      ctx.fillStyle = '#95a5a6';
-      ctx.fillRect(0, gy + 30, W, 10);
-    }
-
-    function cameraY() {
-      return 0;
-    }
-
-    function drawBuilding(b) {
-      const sx = b.x - cameraX;
-      const sy = b.y - cameraY();
-      if (sx + b.w < -20 || sx > W + 20) return;
-
-      // Building body
-      ctx.fillStyle = b.color;
-      ctx.fillRect(sx, sy, b.w, b.h);
-
-      // Roof
-      ctx.fillStyle = b.roofColor;
-      ctx.beginPath();
-      ctx.moveTo(sx - 10, sy);
-      ctx.lineTo(sx + b.w / 2, sy - 25);
-      ctx.lineTo(sx + b.w + 10, sy);
-      ctx.closePath();
+      ctx.arc(dx, GROUND_Y, 50, 0, Math.PI*2);
       ctx.fill();
-
-      // Windows
-      ctx.fillStyle = state.timeOfDay === 3 ? '#f9ca24' : '#AED6F1';
-      const cols = Math.floor(b.w / 40);
-      const rows = Math.floor(b.h / 40);
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const wx = sx + 15 + c * 38;
-          const wy = sy + 15 + r * 38;
-          ctx.fillRect(wx, wy, 18, 18);
-        }
-      }
-
-      // Door
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(sx + b.w / 2 - 10, sy + b.h - 35, 20, 35);
-      ctx.fillStyle = '#f9ca24';
-      ctx.beginPath();
-      ctx.arc(sx + b.w / 2 + 5, sy + b.h - 16, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Icon & name
-      ctx.font = '24px serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(b.icon, sx + b.w / 2, sy - 30);
-
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = '#fff';
-      ctx.fillText(b.name, sx + b.w / 2, sy - 42);
-
-      // Highlight if near
-      if (player.nearBuilding === b) {
-        ctx.strokeStyle = '#f1c40f';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(sx - 2, sy - 2, b.w + 4, b.h + 4);
-      }
     }
+  }
+}
 
-    function drawStickFigure(x, y, facing, frame, color, h) {
-      const sx = x - cameraX;
-      const sy = y - cameraY();
-      h = h || 48;
-      const headR = 7;
-      const bodyLen = h * 0.4;
-      const legLen = h * 0.35;
-      const armLen = h * 0.25;
+// ============ GAME LOGIC ============
+let nearBuilding = null;
 
-      ctx.strokeStyle = color || '#fff';
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = 'round';
+function update() {
+  let moved = false;
+  if(keys.left)  { G.x -= SPEED; G.facing = -1; moved = true; }
+  if(keys.right) { G.x += SPEED; G.facing = 1; moved = true; }
 
-      // Head
-      ctx.beginPath();
-      ctx.arc(sx, sy - h + headR, headR, 0, Math.PI * 2);
-      ctx.stroke();
+  G.x = Math.max(20, Math.min(WORLD_W - 20, G.x));
+  G.walking = moved;
+  if(moved) G.walkFrame++;
 
-      // Body
-      const bodyTop = sy - h + headR * 2;
-      const bodyBot = bodyTop + bodyLen;
-      ctx.beginPath();
-      ctx.moveTo(sx, bodyTop);
-      ctx.lineTo(sx, bodyBot);
-      ctx.stroke();
+  // Camera
+  camX = G.x - W/2;
+  camX = Math.max(0, Math.min(WORLD_W - W, camX));
 
-      // Legs with walking animation
-      const legSwing = Math.sin(frame) * 20;
-      ctx.beginPath();
-      ctx.moveTo(sx, bodyBot);
-      ctx.lineTo(sx - legSwing * facing * 0.5, bodyBot + legLen);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(sx, bodyBot);
-      ctx.lineTo(sx + legSwing * facing * 0.5, bodyBot + legLen);
-      ctx.stroke();
-
-      // Arms
-      const armSwing = Math.sin(frame) * 15;
-      ctx.beginPath();
-      ctx.moveTo(sx, bodyTop + bodyLen * 0.3);
-      ctx.lineTo(sx + armSwing * facing * 0.5, bodyTop + bodyLen * 0.3 + armLen);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(sx, bodyTop + bodyLen * 0.3);
-      ctx.lineTo(sx - armSwing * facing * 0.5, bodyTop + bodyLen * 0.3 + armLen);
-      ctx.stroke();
+  // Check near building
+  nearBuilding = null;
+  buildings.forEach(b => {
+    const doorX = b.x + b.w/2;
+    if(Math.abs(G.x - doorX) < 50) {
+      nearBuilding = b;
     }
+  });
 
-    function drawNPCs() {
-      npcs.forEach(npc => {
-        drawStickFigure(npc.x, GROUND_Y + 40, npc.facing, npc.walkFrame, npc.color, 40);
-      });
-    }
+  const ab = document.getElementById('action-btn');
+  if(nearBuilding) {
+    ab.classList.remove('hidden');
+    ab.textContent = nearBuilding.icon;
+  } else {
+    ab.classList.add('hidden');
+  }
+}
 
-    // Update
-    function update() {
-      // Player movement
-      let moving = false;
-      if ((keys['ArrowLeft'] || keys['a'] || mobileDir.left) && !dialogOpen) {
-        player.vx = -player.speed;
-        player.facing = -1;
-        moving = true;
-      } else if ((keys['ArrowRight'] || keys['d'] || mobileDir.right) && !dialogOpen) {
-        player.vx = player.speed;
-        player.facing = 1;
-        moving = true;
-      } else {
-        player.vx = 0;
-      }
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  drawSky();
+  drawGround();
+  drawDecor();
+  buildings.forEach(drawBuilding);
+  drawNPCs();
+  drawStickman();
+}
 
-      if (moving) {
-        player.walkFrame += 0.15;
-      }
+function gameLoop() {
+  if(!gameRunning) return;
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
 
-      // Apply velocity
-      player.x += player.vx;
-      player.x = Math.max(10, Math.min(WORLD_W - 10, player.x));
+let gameRunning = false;
 
-      // Camera follow
-      const targetCam = player.x - W / 2;
-      cameraX += (targetCam - cameraX) * 0.1;
-      cameraX = Math.max(0, Math.min(WORLD_W - W, cameraX));
+// ============ UI HELPERS ============
+function updateHUD() {
+  document.getElementById('h-str').textContent = G.str;
+  document.getElementById('h-int').textContent = G.int;
+  document.getElementById('h-cha').textContent = G.cha;
+  document.getElementById('h-hp').textContent = G.hp;
+  document.getElementById('h-money').textContent = G.money;
+  document.getElementById('h-day').textContent = G.day;
+  document.getElementById('h-karma').textContent = G.karma;
+  document.getElementById('h-job').textContent = G.job ? JOBS.find(j=>j.id===G.job).name : 'None';
+  const ampm = G.hour >= 12 ? 'PM' : 'AM';
+  const dispH = G.hour > 12 ? G.hour - 12 : (G.hour === 0 ? 12 : G.hour);
+  document.getElementById('h-time').textContent = `${dispH}:00 ${ampm}`;
+  document.getElementById('bank-savings').textContent = G.bank;
+}
 
-      // Check near building
-      player.nearBuilding = null;
-      buildings.forEach(b => {
-        const px = player.x;
-        if (px > b.x - 20 && px < b.x + b.w + 20) {
-          player.nearBuilding = b;
-        }
-      });
+let toastTimer;
+function toast(msg, dur) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), dur||2200);
+}
 
-      // Show/hide action button
-      if (player.nearBuilding && !dialogOpen) {
-        actionBtn.style.display = 'flex';
-        actionBtn.textContent = player.nearBuilding.icon;
-      } else {
-        actionBtn.style.display = 'none';
-      }
+function advanceTime(hours) {
+  G.hour += hours;
+  while(G.hour >= 24) {
+    G.hour -= 24;
+    G.day++;
+    // Bank interest
+    G.bank = Math.floor(G.bank * 1.05);
+  }
+  updateHUD();
+}
 
-      // NPC movement
-      npcs.forEach(npc => {
-        npc.x += npc.speed * npc.facing;
-        npc.walkFrame += 0.08;
-        if (npc.x < 50 || npc.x > WORLD_W - 50) {
-          npc.facing *= -1;
-        }
-      });
+function openModal(id) {
+  document.getElementById('modal-'+id).classList.add('show');
+  if(id === 'work') refreshJobList();
+  if(id === 'store') refreshStore();
+}
 
-      // Cloud movement
-      clouds.forEach(c => {
-        c.x += c.speed;
-        if (c.x > WORLD_W + 100) c.x = -100;
-      });
+function closeModal(id) {
+  document.getElementById('modal-'+id).classList.remove('show');
+}
 
-      // HP check
-      if (state.hp <= 0) {
-        state.hp = state.maxHp;
-        state.money = Math.max(0, state.money - 50);
-        state.day++;
-        state.timeOfDay = 0;
-        showToast('💀 You passed out! Lost $50. New day...');
-        updateHUD();
-      }
-    }
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+}
 
-    // Render
-    function render() {
-      ctx.clearRect(0, 0, W, H);
+function actionPress() {
+  if(nearBuilding) openModal(nearBuilding.id);
+}
+document.getElementById('action-btn').addEventListener('click', actionPress);
+document.getElementById('action-btn').addEventListener('touchend', e => { e.preventDefault(); actionPress(); });
 
-      drawSky();
-      drawClouds();
+// ============ LOCATION ACTIONS ============
 
-      // Background hills
-      ctx.fillStyle = state.timeOfDay === 3 ? '#0d1117' : '#27ae60';
-      for (let i = 0; i < 5; i++) {
-        const hx = i * 500 - cameraX * 0.3;
-        ctx.beginPath();
-        ctx.ellipse(hx, GROUND_Y - cameraY() - 20, 250, 60, 0, Math.PI, 0);
-        ctx.fill();
-      }
+// GYM
+function trainGym() {
+  if(G.money < 10) return toast('Not enough money!');
+  if(G.hour >= 22) return toast('Too late! Get some sleep.');
+  G.money -= 10;
+  const gain = 1 + Math.floor(Math.random()*3);
+  G.str += gain;
+  advanceTime(2);
+  toast(`Worked out! +${gain} STR`);
+  closeModal('gym');
+}
+function trainGymHard() {
+  if(G.money < 25) return toast('Not enough money!');
+  if(G.hour >= 20) return toast('Too late for intense training!');
+  G.money -= 25;
+  const gain = 3 + Math.floor(Math.random()*4);
+  G.str += gain;
+  G.hp = Math.max(1, G.hp - 10);
+  advanceTime(4);
+  toast(`Intense training! +${gain} STR, -10 HP`);
+  closeModal('gym');
+}
 
-      // Buildings
-      buildings.forEach(drawBuilding);
+// UNIVERSITY
+function studyUni() {
+  if(G.money < 15) return toast('Not enough money!');
+  if(G.hour >= 22) return toast('University is closed!');
+  G.money -= 15;
+  const gain = 1 + Math.floor(Math.random()*3);
+  G.int += gain;
+  advanceTime(2);
+  toast(`Attended class! +${gain} INT`);
+  closeModal('university');
+}
+function studyUniHard() {
+  if(G.money < 30) return toast('Not enough money!');
+  if(G.hour >= 20) return toast('Too late to study!');
+  G.money -= 30;
+  const gain = 3 + Math.floor(Math.random()*4);
+  G.int += gain;
+  advanceTime(4);
+  toast(`Study session! +${gain} INT`);
+  closeModal('university');
+}
+function takeExam() {
+  if(G.hasDegree) return toast('You already have a degree!');
+  if(G.int < 50) return toast('Need 50 INT to attempt the exam.');
+  if(G.money < 500) return toast('Tuition costs $500!');
+  G.money -= 500;
+  const pass = Math.random() < (G.int / (G.int + 20));
+  if(pass) {
+    G.hasDegree = true;
+    toast('🎓 You passed! Degree earned!');
+  } else {
+    toast('Failed the exam... Study more.');
+  }
+  advanceTime(3);
+  closeModal('university');
+}
 
-      drawGround();
+// BAR
+function barChat() {
+  if(G.money < 8) return toast('Not enough money!');
+  G.money -= 8;
+  const gain = 1 + Math.floor(Math.random()*3);
+  G.cha += gain;
+  advanceTime(2);
+  toast(`Good conversations! +${gain} CHA`);
+  closeModal('bar');
+}
+function barParty() {
+  if(G.money < 40) return toast('Not enough money!');
+  G.money -= 40;
+  const gain = 3 + Math.floor(Math.random()*4);
+  G.cha += gain;
+  advanceTime(3);
+  toast(`Party time! +${gain} CHA`);
+  closeModal('bar');
+}
+function barFight() {
+  closeModal('bar');
+  const enemy = 5 + Math.floor(Math.random() * (G.day * 3));
+  if(G.str >= enemy) {
+    const won = 20 + Math.floor(Math.random()*30);
+    G.money += won;
+    G.str += 1;
+    G.karma -= 2;
+    G.hp = Math.max(1, G.hp - Math.floor(Math.random()*15));
+    toast(`Won the fight! +$${won}, +1 STR, -2 Karma`);
+  } else {
+    const lost = Math.min(G.money, 30 + Math.floor(Math.random()*20));
+    G.money -= lost;
+    G.hp = Math.max(1, G.hp - 20 - Math.floor(Math.random()*20));
+    toast(`Lost the fight! -$${lost}, took damage.`);
+  }
+  advanceTime(1);
+}
 
-      // NPCs
-      drawNPCs();
+// WORK
+function refreshJobList() {
+  const list = document.getElementById('job-list');
+  list.innerHTML = '';
+  JOBS.forEach(j => {
+    const canApply = G.str >= j.reqStr && G.int >= j.reqInt && G.cha >= j.reqCha && (!j.needDegree || G.hasDegree);
+    const isCurrent = G.job === j.id;
+    const btn = document.createElement('button');
+    btn.className = 'modal-btn' + (isCurrent ? ' green' : '');
+    btn.disabled = !canApply && !isCurrent;
+    btn.innerHTML = `${isCurrent ? '✓ ' : ''}${j.name} — $${j.pay}/shift` +
+      `<br><span style="font-size:11px;color:#aaa;">Req: STR ${j.reqStr} INT ${j.reqInt} CHA ${j.reqCha}${j.needDegree?' +Degree':''}</span>`;
+    if(!isCurrent) btn.onclick = () => { G.job = j.id; toast(`Hired as ${j.name}!`); refreshJobList(); updateHUD(); };
+    list.appendChild(btn);
+  });
+  document.getElementById('work-btn').disabled = !G.job;
+}
+function goToWork() {
+  if(!G.job) return toast('You need a job first!');
+  if(G.hour >= 20) return toast("It's too late to work today!");
+  const job = JOBS.find(j=>j.id===G.job);
+  const bonus = 1 + (G.int * 0.01) + (G.cha * 0.005);
+  const pay = Math.floor(job.pay * bonus);
+  G.money += pay;
+  advanceTime(4);
+  toast(`Worked a shift! Earned $${pay}`);
+  closeModal('work');
+}
 
-      // Player
-      drawStickFigure(player.x, GROUND_Y + 40, player.facing, player.walkFrame, '#fff', 48);
-    }
+// BANK
+function bankDeposit(amt) {
+  if(G.money < amt) return toast('Not enough cash!');
+  G.money -= amt;
+  G.bank += amt;
+  updateHUD();
+  toast(`Deposited $${amt}`);
+}
+function bankWithdraw(amt) {
+  if(G.bank < amt) return toast('Not enough savings!');
+  G.bank -= amt;
+  G.money += amt;
+  updateHUD();
+  toast(`Withdrew $${amt}`);
+}
+function bankRob() {
+  closeModal('bank');
+  const chance = (G.str + G.cha * 0.5) / 100;
+  if(Math.random() < chance) {
+    const loot = 500 + Math.floor(Math.random()*1500);
+    G.money += loot;
+    G.karma -= 20;
+    toast(`🤑 Heist successful! Stole $${loot}! Karma -20`);
+  } else {
+    const fine = Math.min(G.money, 200 + Math.floor(Math.random()*300));
+    G.money -= fine;
+    G.karma -= 10;
+    G.hp = Math.max(1, G.hp - 30);
+    toast(`🚔 Caught! Fined $${fine}, -30 HP, Karma -10`);
+  }
+  advanceTime(2);
+}
 
-    // Game loop
-    function gameLoop() {
-      update();
-      render();
-      requestAnimationFrame(gameLoop);
-    }
+// STORE
+function refreshStore() {
+  const list = document.getElementById('store-items');
+  list.innerHTML = '';
+  STORE_ITEMS.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'modal-btn yellow';
+    btn.disabled = G.money < item.price;
+    btn.innerHTML = `${item.name} — $${item.price}<br><span style="font-size:11px;color:#aaa;">${item.desc}</span>`;
+    btn.onclick = () => {
+      if(G.money < item.price) return toast('Not enough money!');
+      G.money -= item.price;
+      item.effect();
+      updateHUD();
+      refreshStore();
+    };
+    list.appendChild(btn);
+  });
+}
 
-    updateHUD();
-    gameLoop();
-  </script>
+// CASINO
+function gamble(bet) {
+  if(G.money < bet) return toast('Not enough money!');
+  G.money -= bet;
+  const luckBoost = G.cha * 0.002;
+  const roll = Math.random() + luckBoost;
+  let msg;
+  if(roll > 0.85) {
+    const win = bet * 3;
+    G.money += win;
+    msg = `🎉 JACKPOT! Won $${win}!`;
+  } else if(roll > 0.5) {
+    const win = bet * 2;
+    G.money += win;
+    msg = `😊 Won $${win}!`;
+  } else if(roll > 0.35) {
+    G.money += bet;
+    msg = `😐 Broke even.`;
+  } else {
+    msg = `😢 Lost $${bet}!`;
+  }
+  toast(msg);
+  advanceTime(1);
+  updateHUD();
+}
+
+// HOSPITAL
+function heal() {
+  if(G.money < 50) return toast('Not enough money!');
+  if(G.hp >= G.maxHp) return toast('You\'re already at full HP!');
+  G.money -= 50;
+  G.hp = G.maxHp;
+  toast('Fully healed!');
+  advanceTime(1);
+  updateHUD();
+  closeModal('hospital');
+}
+
+// HOME
+function doSleep() {
+  closeAllModals();
+  if(G.hour < 6) {
+    advanceTime(6 - G.hour);
+  } else {
+    advanceTime(24 - G.hour + 6);
+  }
+  G.hp = Math.min(G.maxHp, G.hp + 30 + G.str);
+  toast(`😴 Slept well. Day ${G.day}. +HP`);
+  updateHUD();
+}
+
+// ============ SAVE / LOAD ============
+function saveGame() {
+  localStorage.setItem('sticklife_save', JSON.stringify(G));
+  toast('💾 Game saved!');
+  closeModal('home');
+}
+
+function loadGame() {
+  const data = localStorage.getItem('sticklife_save');
+  if(!data) return false;
+  try {
+    const parsed = JSON.parse(data);
+    Object.assign(G, parsed);
+    return true;
+  } catch { return false; }
+}
+
+// ============ START GAME ============
+function startNewGame() {
+  G.name = document.getElementById('name-input').value.trim() || 'Stickman';
+  G.str=1; G.int=1; G.cha=1; G.hp=100; G.maxHp=100;
+  G.money=200; G.bank=0; G.karma=0;
+  G.day=1; G.hour=6;
+  G.job=null; G.hasDegree=false;
+  G.x=180; G.y=400; G.facing=1; G.items={};
+  G.homeLevel=0;
+  startPlaying();
+}
+
+function continueGame() {
+  if(loadGame()) startPlaying();
+}
+
+function startPlaying() {
+  document.getElementById('intro-screen').classList.add('hidden');
+  gameRunning = true;
+  updateHUD();
+  gameLoop();
+}
+
+// Check for save
+if(localStorage.getItem('sticklife_save')) {
+  document.getElementById('continue-btn').disabled = false;
+}
+</script>
 </body>
 </html>
