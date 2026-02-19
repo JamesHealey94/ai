@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Deep Miner</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #1a0e0a;
+    color: #fff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    height: 100dvh;
+    width: 100vw;
+  }
+  #game-container {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  canvas { display: block; position: absolute; top: 0; left: 0; }
+
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  #hud > div { pointer-events: auto; }
+  .hud-box {
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    backdrop-filter: blur(4px);
+  }
+  .stat-label { color: #aaa; }
+  .stat-val { font-weight: bold; }
+  .fuel-color { color: #ff9944; }
+  .money-color { color: #44ff66; }
+  .depth-color { color: #66bbff; }
+  .cargo-color { color: #ffcc44; }
+  .hull-color { color: #ff6666; }
+
+  /* D-Pad */
+  #dpad {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 20;
+    width: 130px;
+    height: 130px;
+  }
+  .dpad-btn {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dpad-btn:active, .dpad-btn.active {
+    background: rgba(255,255,255,0.35);
+  }
+  #btn-up    { top: 0; left: 50%; transform: translateX(-50%); }
+  #btn-down  { bottom: 0; left: 50%; transform: translateX(-50%); }
+  #btn-left  { top: 50%; left: 0; transform: translateY(-50%); }
+  #btn-right { top: 50%; right: 0; transform: translateY(-50%); }
+
+  /* Shop button */
+  #shop-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 20;
+    width: 60px;
+    height: 60px;
+    background: rgba(40,180,80,0.7);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 14px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+  }
+  #shop-btn:active { background: rgba(40,180,80,0.95); }
+
+  /* Modal overlays */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #1e1e2e;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 380px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal h2 {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 22px;
+    color: #ffd166;
+  }
+  .modal p {
+    text-align: center;
+    margin-bottom: 12px;
+    color: #ccc;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .upgrade-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .upgrade-info { flex: 1; }
+  .upgrade-name { font-weight: bold; font-size: 14px; }
+  .upgrade-desc { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .upgrade-level { font-size: 11px; color: #88f; margin-top: 2px; }
+  .upgrade-buy {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #28b450;
+    color: #fff;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .upgrade-buy:disabled {
+    background: #555;
+    color: #888;
+    cursor: default;
+  }
+  .upgrade-buy:active:not(:disabled) { background: #33d060; }
+  .modal-close {
+    display: block;
+    margin: 14px auto 0;
+    padding: 10px 28px;
+    border: none;
+    border-radius: 10px;
+    background: #e74c3c;
+    color: #fff;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .modal-close:active { background: #ff6655; }
+  .start-btn {
+    display: block;
+    margin: 10px auto 0;
+    padding: 14px 40px;
+    border: none;
+    border-radius: 12px;
+    background: #e67e22;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .start-btn:active { background: #f39c12; }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-box" id="hud-left">
+      <div><span class="stat-label">$</span> <span class="stat-val money-color" id="hud-money">0</span></div>
+      <div><span class="stat-label">Fuel:</span> <span class="stat-val fuel-color" id="hud-fuel">100</span></div>
+    </div>
+    <div class="hud-box" id="hud-right">
+      <div><span class="stat-label">Depth:</span> <span class="stat-val depth-color" id="hud-depth">0</span><span class="stat-label">m</span></div>
+      <div><span class="stat-label">Cargo:</span> <span class="stat-val cargo-color" id="hud-cargo">0/5</span></div>
+      <div><span class="stat-label">Hull:</span> <span class="stat-val hull-color" id="hud-hull">100%</span></div>
+    </div>
+  </div>
+
+  <!-- D-Pad -->
+  <div id="dpad">
+    <div class="dpad-btn" id="btn-up">▲</div>
+    <div class="dpad-btn" id="btn-down">▼</div>
+    <div class="dpad-btn" id="btn-left">◀</div>
+    <div class="dpad-btn" id="btn-right">▶</div>
+  </div>
+
+  <!-- Shop button -->
+  <div id="shop-btn">🛒<br>Shop</div>
+</div>
+
+<!-- Shop Modal -->
+<div class="modal-overlay" id="shop-overlay">
+  <div class="modal">
+    <h2>⛏️ Mining Shop</h2>
+    <p>Balance: $<span id="shop-money">0</span></p>
+    <div id="shop-items"></div>
+    <button class="modal-close" id="shop-close">Close</button>
+  </div>
+</div>
+
+<!-- Start Screen -->
+<div class="modal-overlay open" id="start-overlay">
+  <div class="modal">
+    <h2>⛏️ Deep Miner</h2>
+    <p>Dig deep into the earth to mine valuable minerals! Sell them at the surface shop to upgrade your drill, fuel tank, cargo bay, and hull.</p>
+    <p>Use the D-pad or arrow keys / WASD to move. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <button class="start-btn" id="start-btn">Start Mining!</button>
+  </div>
+</div>
+
+<!-- Game Over Screen -->
+<div class="modal-overlay" id="gameover-overlay">
+  <div class="modal">
+    <h2>💀 Game Over</h2>
+    <p id="gameover-reason"></p>
+    <p>Final depth: <span id="gameover-depth">0</span>m<br>Total earned: $<span id="gameover-money">0</span></p>
+    <button class="start-btn" id="restart-btn">Try Again</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // === Canvas setup ===
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // === Constants ===
+  const TILE = 32;
+  const SURFACE_ROWS = 3; // rows of sky above ground
+  const WORLD_COLS = 20;
+  const WORLD_ROWS = 300;
+  const GRAVITY = 0.4;
+  const MOVE_SPEED = 2;
+  const DRILL_TIME = 12; // frames to drill a block
+  const FUEL_MOVE = 0.06;
+  const FUEL_DRILL = 0.12;
+
+  // === Mineral definitions ===
+  const MINERALS = [
+    { id: 'dirt',      name: 'Dirt',       color: '#6B4226', value: 0,    weight: 0, minDepth: 0,   chance: 0 },
+    { id: 'ironium',   name: 'Ironium',    color: '#8B7355', value: 15,   weight: 1, minDepth: 2,   chance: 0.22 },
+    { id: 'bronzium',  name: 'Bronzium',   color: '#CD853F', value: 30,   weight: 1, minDepth: 8,   chance: 0.18 },
+    { id: 'silverium', name: 'Silverium',  color: '#C0C0C0', value: 60,   weight: 1, minDepth: 20,  chance: 0.14 },
+    { id: 'goldium',   name: 'Goldium',    color: '#FFD700', value: 120,  weight: 1, minDepth: 40,  chance: 0.12 },
+    { id: 'platinum',  name: 'Platinium',  color: '#E5E4E2', value: 250,  weight: 2, minDepth: 70,  chance: 0.09 },
+    { id: 'einsteinium', name: 'Einsteinium', color: '#00BFFF', value: 500,  weight: 2, minDepth: 100, chance: 0.07 },
+    { id: 'diamond',   name: 'Diamond',    color: '#B9F2FF', value: 1000, weight: 3, minDepth: 140, chance: 0.05 },
+    { id: 'amazonite', name: 'Amazonite',  color: '#00FF7F', value: 2500, weight: 3, minDepth: 200, chance: 0.03 },
+    { id: 'unobtainium', name: 'Unobtainium', color: '#FF00FF', value: 5000, weight: 4, minDepth: 250, chance: 0.02 },
+  ];
+  const ROCK_HARDNESS = [
+    { minDepth: 0,   hardness: 1, color: '#5C4033' },
+    { minDepth: 50,  hardness: 2, color: '#4A3728' },
+    { minDepth: 120, hardness: 3, color: '#3B2F2F' },
+    { minDepth: 200, hardness: 4, color: '#2C2C2C' },
+  ];
+
+  // === Upgrades ===
+  const UPGRADES = [
+    {
+      id: 'drill', name: 'Drill', desc: 'Drill faster through blocks',
+      levels: [0, 200, 600, 1500, 4000, 10000],
+      effect: [1, 1.5, 2, 3, 4.5, 6],
+    },
+    {
+      id: 'fuel', name: 'Fuel Tank', desc: 'Larger fuel capacity',
+      levels: [0, 150, 500, 1200, 3000, 8000],
+      effect: [100, 150, 220, 320, 450, 600],
+    },
+    {
+      id: 'cargo', name: 'Cargo Bay', desc: 'Carry more minerals',
+      levels: [0, 180, 550, 1400, 3500, 9000],
+      effect: [5, 8, 12, 18, 25, 35],
+    },
+    {
+      id: 'hull', name: 'Hull Armor', desc: 'More hull strength',
+      levels: [0, 250, 700, 1800, 5000, 12000],
+      effect: [100, 150, 220, 320, 450, 600],
+    },
+    {
+      id: 'radiator', name: 'Radiator', desc: 'Reduce heat damage at depth',
+      levels: [0, 300, 800, 2000, 5500, 14000],
+      effect: [0, 0.25, 0.5, 0.7, 0.85, 1.0],
+    },
+  ];
+
+  // === Game state ===
+  let state = null;
+
+  function initState() {
+    state = {
+      running: false,
+      player: {
+        x: (WORLD_COLS / 2) * TILE,
+        y: (SURFACE_ROWS - 1) * TILE,
+        vx: 0, vy: 0,
+        w: TILE, h: TILE,
+        fuel: 100,
+        maxFuel: 100,
+        hull: 100,
+        maxHull: 100,
+        money: 0,
+        totalEarned: 0,
+        cargo: [],
+        maxCargo: 5,
+        drillPower: 1,
+        heatResist: 0,
+        upgrades: { drill: 0, fuel: 0, cargo: 0, hull: 0, radiator: 0 },
+        drilling: null, // { tx, ty, progress }
+        onGround: false,
+        facingRight: true,
+      },
+      world: [],
+      camera: { x: 0, y: 0 },
+      input: { left: false, right: false, up: false, down: false },
+      maxDepthReached: 0,
+      particles: [],
+      messages: [],
+    };
+
+    // Generate world
+    generateWorld();
+  }
+
+  function generateWorld() {
+    state.world = [];
+    for (let r = 0; r < WORLD_ROWS; r++) {
+      const row = [];
+      for (let c = 0; c < WORLD_COLS; c++) {
+        if (r < SURFACE_ROWS) {
+          row.push({ type: 'air', mineral: null, hardness: 0 });
+        } else {
+          const depthRow = r - SURFACE_ROWS;
+          let mineral = null;
+          // Try to place a mineral
+          const eligible = MINERALS.filter(m => m.minDepth <= depthRow && m.value > 0);
+          for (let i = eligible.length - 1; i >= 0; i--) {
+            if (Math.random() < eligible[i].chance * 0.5) {
+              mineral = eligible[i];
+              break;
+            }
+          }
+          // Determine rock hardness
+          let hardness = 1;
+          let dirtColor = '#6B4226';
+          for (let i = ROCK_HARDNESS.length - 1; i >= 0; i--) {
+            if (depthRow >= ROCK_HARDNESS[i].minDepth) {
+              hardness = ROCK_HARDNESS[i].hardness;
+              dirtColor = ROCK_HARDNESS[i].color;
+              break;
+            }
+          }
+          row.push({ type: 'dirt', mineral: mineral, hardness: hardness, dirtColor: dirtColor });
+        }
+      }
+      state.world.push(row);
+    }
+
+    // Make the surface row top a grass line
+    if (state.world[SURFACE_ROWS]) {
+      for (let c = 0; c < WORLD_COLS; c++) {
+        state.world[SURFACE_ROWS][c].isGrass = true;
+      }
+    }
+  }
+
+  // === Tile helpers ===
+  function getTile(col, row) {
+    if (row < 0 || row >= WORLD_ROWS || col < 0 || col >= WORLD_COLS) return { type: 'wall', hardness: 999 };
+    return state.world[row][col];
+  }
+
+  function setTileAir(col, row) {
+    if (row >= 0 && row < WORLD_ROWS && col >= 0 && col < WORLD_COLS) {
+      state.world[row][col] = { type: 'air', mineral: null, hardness: 0 };
+    }
+  }
+
+  // === Collision ===
+  function isSolid(col, row) {
+    const t = getTile(col, row);
+    return t.type === 'dirt' || t.type === 'wall';
+  }
+
+  function collidesAt(px, py, pw, ph) {
+    const left = Math.floor(px / TILE);
+    const right = Math.floor((px + pw - 1) / TILE);
+    const top = Math.floor(py / TILE);
+    const bottom = Math.floor((py + ph - 1) / TILE);
+    for (let r = top; r <= bottom; r++) {
+      for (let c = left; c <= right; c++) {
+        if (isSolid(c, r)) return true;
+      }
+    }
+    return false;
+  }
+
+  // === Player movement & physics ===
+  function updatePlayer() {
+    const p = state.player;
+    if (p.fuel <= 0 && p.hull > 0) {
+      // Out of fuel - can only fall
+    }
+
+    // Drilling
+    if (p.drilling) {
+      p.drilling.progress += p.drillPower;
+      p.fuel = Math.max(0, p.fuel - FUEL_DRILL);
+      if (p.drilling.progress >= DRILL_TIME * getTile(p.drilling.tx, p.drilling.ty).hardness) {
+        // Complete drill
+        const tile = getTile(p.drilling.tx, p.drilling.ty);
+        if (tile.mineral && tile.mineral.value > 0) {
+          const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
+          if (cargoWeight + tile.mineral.weight <= p.maxCargo) {
+            p.cargo.push({ ...tile.mineral });
+            addMessage('+' + tile.mineral.name, tile.mineral.color);
+          } else {
+            addMessage('Cargo full!', '#ff4444');
+          }
+        }
+        // Spawn particles
+        spawnDirtParticles(p.drilling.tx * TILE + TILE / 2, p.drilling.ty * TILE + TILE / 2, tile.dirtColor || '#6B4226');
+        setTileAir(p.drilling.tx, p.drilling.ty);
+        p.drilling = null;
+      }
+      return; // Can't move while drilling
+    }
+
+    // Input -> velocity
+    if (p.fuel > 0) {
+      if (state.input.left) {
+        p.vx = -MOVE_SPEED;
+        p.facingRight = false;
+        p.fuel = Math.max(0, p.fuel - FUEL_MOVE);
+      } else if (state.input.right) {
+        p.vx = MOVE_SPEED;
+        p.facingRight = true;
+        p.fuel = Math.max(0, p.fuel - FUEL_MOVE);
+      } else {
+        p.vx *= 0.7;
+        if (Math.abs(p.vx) < 0.1) p.vx = 0;
+      }
+
+      if (state.input.up && p.onGround) {
+        p.vy = -5;
+        p.fuel = Math.max(0, p.fuel - FUEL_MOVE * 3);
+      }
+    } else {
+      p.vx *= 0.85;
+    }
+
+    // Gravity
+    p.vy += GRAVITY;
+    if (p.vy > 8) p.vy = 8;
+
+    // Move X
+    let nx = p.x + p.vx;
+    if (nx < 0) nx = 0;
+    if (nx + p.w > WORLD_COLS * TILE) nx = WORLD_COLS * TILE - p.w;
+    if (!collidesAt(nx, p.y, p.w, p.h)) {
+      p.x = nx;
+    } else {
+      // Try drilling sideways
+      if (p.fuel > 0 && (state.input.left || state.input.right)) {
+        const drillCol = state.input.left
+          ? Math.floor((p.x - 1) / TILE)
+          : Math.floor((p.x + p.w) / TILE);
+        const drillRow = Math.floor((p.y + p.h / 2) / TILE);
+        const target = getTile(drillCol, drillRow);
+        if (target.type === 'dirt') {
+          p.drilling = { tx: drillCol, ty: drillRow, progress: 0 };
+        }
+      }
+      p.vx = 0;
+    }
+
+    // Move Y
+    let ny = p.y + p.vy;
+    p.onGround = false;
+    if (!collidesAt(p.x, ny, p.w, p.h)) {
+      p.y = ny;
+    } else {
+      if (p.vy > 0) {
+        // Landing - snap player to sit on top of the solid surface
+        p.onGround = true;
+        const solidRow = Math.floor((ny + p.h - 1) / TILE);
+        p.y = solidRow * TILE - p.h;
+
+        // Check if drilling down
+        if (p.fuel > 0 && state.input.down) {
+          const drillCol = Math.floor((p.x + p.w / 2) / TILE);
+          const drillRow = solidRow;
+          const target = getTile(drillCol, drillRow);
+          if (target.type === 'dirt') {
+            p.drilling = { tx: drillCol, ty: drillRow, progress: 0 };
+          }
+        }
+        // Fall damage
+        if (p.vy > 5) {
+          const dmg = (p.vy - 5) * 8;
+          p.hull -= dmg;
+          addMessage('-' + Math.round(dmg) + ' hull', '#ff4444');
+        }
+      }
+      p.vy = 0;
+    }
+
+    // Depth tracking
+    const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
+    if (depthM > state.maxDepthReached) state.maxDepthReached = depthM;
+
+    // Heat damage at extreme depth
+    if (depthM > 150) {
+      const heatDmg = (depthM - 150) * 0.003 * (1 - p.heatResist);
+      if (heatDmg > 0) p.hull -= heatDmg;
+    }
+
+    // Hull check
+    if (p.hull <= 0) {
+      p.hull = 0;
+      gameOver('Your hull was destroyed!');
+    }
+
+    // Fuel check - game over only if underground and stuck
+    if (p.fuel <= 0 && depthM > 0 && p.onGround && p.vx === 0) {
+      // Give a moment, then game over
+      if (!state.fuelWarning) {
+        state.fuelWarning = true;
+        addMessage('Out of fuel!', '#ff4444');
+      }
+    }
+
+    // If on surface, refuel automatically
+    if (depthM <= 0) {
+      p.fuel = p.maxFuel;
+      state.fuelWarning = false;
+    }
+  }
+
+  // === Camera ===
+  function updateCamera() {
+    const p = state.player;
+    const targetX = p.x + p.w / 2 - W / 2;
+    const targetY = p.y + p.h / 2 - H / 2;
+    state.camera.x += (targetX - state.camera.x) * 0.1;
+    state.camera.y += (targetY - state.camera.y) * 0.1;
+    // Clamp
+    state.camera.x = Math.max(0, Math.min(WORLD_COLS * TILE - W, state.camera.x));
+    if (state.camera.y < -H / 3) state.camera.y = -H / 3;
+  }
+
+  // === Particles ===
+  function spawnDirtParticles(x, y, color) {
+    for (let i = 0; i < 6; i++) {
+      state.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 1) * 3,
+        life: 20 + Math.random() * 15,
+        color: color,
+        size: 2 + Math.random() * 3,
+      });
+    }
+  }
+
+  function updateParticles() {
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+      const pt = state.particles[i];
+      pt.x += pt.vx;
+      pt.y += pt.vy;
+      pt.vy += 0.1;
+      pt.life--;
+      if (pt.life <= 0) state.particles.splice(i, 1);
+    }
+  }
+
+  // === Messages ===
+  function addMessage(text, color) {
+    state.messages.push({ text, color, life: 60, y: 0 });
+  }
+
+  function updateMessages() {
+    for (let i = state.messages.length - 1; i >= 0; i--) {
+      state.messages[i].life--;
+      state.messages[i].y -= 0.5;
+      if (state.messages[i].life <= 0) state.messages.splice(i, 1);
+    }
+  }
+
+  // === Rendering ===
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const cx = state.camera.x;
+    const cy = state.camera.y;
+
+    // Sky gradient
+    const skyBottom = (SURFACE_ROWS * TILE) - cy;
+    if (skyBottom > 0) {
+      const grad = ctx.createLinearGradient(0, Math.max(0, -cy), 0, skyBottom);
+      grad.addColorStop(0, '#1a1a4e');
+      grad.addColorStop(1, '#4a90d9');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, Math.min(skyBottom, H));
+    }
+
+    // Visible tile range
+    const startCol = Math.max(0, Math.floor(cx / TILE));
+    const endCol = Math.min(WORLD_COLS - 1, Math.ceil((cx + W) / TILE));
+    const startRow = Math.max(0, Math.floor(cy / TILE));
+    const endRow = Math.min(WORLD_ROWS - 1, Math.ceil((cy + H) / TILE));
+
+    // Draw tiles
+    for (let r = startRow; r <= endRow; r++) {
+      for (let c = startCol; c <= endCol; c++) {
+        const tile = state.world[r][c];
+        const sx = c * TILE - cx;
+        const sy = r * TILE - cy;
+
+        if (tile.type === 'dirt') {
+          // Base dirt color
+          ctx.fillStyle = tile.dirtColor || '#6B4226';
+          ctx.fillRect(sx, sy, TILE, TILE);
+
+          // Grass top
+          if (tile.isGrass) {
+            ctx.fillStyle = '#2d7d2d';
+            ctx.fillRect(sx, sy, TILE, 4);
+            ctx.fillStyle = '#3a9a3a';
+            ctx.fillRect(sx, sy, TILE, 2);
+          }
+
+          // Mineral vein
+          if (tile.mineral && tile.mineral.value > 0) {
+            ctx.fillStyle = tile.mineral.color;
+            // Draw a few mineral spots
+            const seed = (r * 997 + c * 113) % 100;
+            ctx.globalAlpha = 0.9;
+            ctx.fillRect(sx + 4 + (seed % 8), sy + 4 + (seed % 6), 10, 8);
+            ctx.fillRect(sx + 14 + (seed % 5), sy + 12 + (seed % 7), 8, 10);
+            ctx.fillRect(sx + 6 + (seed % 4), sy + 18 + (seed % 5), 12, 6);
+            ctx.globalAlpha = 1;
+          }
+
+          // Grid lines (subtle)
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.strokeRect(sx, sy, TILE, TILE);
+        }
+
+        // Drilling indicator
+        if (state.player.drilling && state.player.drilling.tx === c && state.player.drilling.ty === r) {
+          const prog = state.player.drilling.progress / (DRILL_TIME * tile.hardness);
+          ctx.fillStyle = 'rgba(255,255,100,0.3)';
+          ctx.fillRect(sx, sy, TILE * prog, TILE);
+          ctx.strokeStyle = '#ffcc00';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(sx, sy, TILE, TILE);
+          ctx.lineWidth = 1;
+        }
+      }
+    }
+
+    // Draw surface buildings (shop)
+    drawShop(cx, cy);
+
+    // Draw particles
+    for (const pt of state.particles) {
+      ctx.globalAlpha = pt.life / 35;
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(pt.x - cx - pt.size / 2, pt.y - cy - pt.size / 2, pt.size, pt.size);
+    }
+    ctx.globalAlpha = 1;
+
+    // Draw player
+    drawPlayer(cx, cy);
+
+    // Draw messages
+    const p = state.player;
+    for (const msg of state.messages) {
+      ctx.globalAlpha = Math.min(1, msg.life / 20);
+      ctx.fillStyle = msg.color;
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(msg.text, p.x + p.w / 2 - cx, p.y - 10 + msg.y - cy);
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'left';
+  }
+
+  function drawShop(cx, cy) {
+    // Simple shop building on surface
+    const shopX = (WORLD_COLS / 2 - 2) * TILE;
+    const shopY = (SURFACE_ROWS - 2) * TILE;
+    const sw = 4 * TILE;
+    const sh = 2 * TILE;
+    const sx = shopX - cx;
+    const sy = shopY - cy;
+
+    // Building
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = '#A0522D';
+    ctx.fillRect(sx + 2, sy + 2, sw - 4, sh - 4);
+
+    // Roof
+    ctx.fillStyle = '#654321';
+    ctx.beginPath();
+    ctx.moveTo(sx - 8, sy);
+    ctx.lineTo(sx + sw / 2, sy - 20);
+    ctx.lineTo(sx + sw + 8, sy);
+    ctx.fill();
+
+    // Sign
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('SHOP', sx + sw / 2, sy + sh / 2 + 5);
+    ctx.textAlign = 'left';
+
+    // Door
+    ctx.fillStyle = '#4a2a0a';
+    ctx.fillRect(sx + sw / 2 - 8, sy + sh - 20, 16, 20);
+  }
+
+  function drawPlayer(cx, cy) {
+    const p = state.player;
+    const px = p.x - cx;
+    const py = p.y - cy;
+
+    // Mining vehicle body
+    ctx.fillStyle = '#e87020';
+    ctx.fillRect(px + 2, py + 6, TILE - 4, TILE - 10);
+
+    // Cabin
+    ctx.fillStyle = '#66aaff';
+    ctx.fillRect(px + 6, py + 4, TILE - 12, 10);
+
+    // Treads
+    ctx.fillStyle = '#333';
+    ctx.fillRect(px, py + TILE - 6, TILE, 6);
+    ctx.fillStyle = '#555';
+    const treadOffset = (Date.now() / 100) % 8;
+    for (let i = -1; i < TILE / 4 + 1; i++) {
+      const tx = px + (i * 4 + treadOffset) % TILE;
+      if (tx >= px && tx < px + TILE - 2) {
+        ctx.fillRect(tx, py + TILE - 5, 2, 4);
+      }
+    }
+
+    // Drill
+    ctx.fillStyle = '#888';
+    if (p.drilling) {
+      // Animate drill
+      const drillDir = { tx: p.drilling.tx, ty: p.drilling.ty };
+      if (drillDir.ty > Math.floor((p.y + p.h / 2) / TILE)) {
+        // Drilling down
+        ctx.fillRect(px + TILE / 2 - 3, py + TILE - 2, 6, 8);
+        ctx.fillStyle = '#aaa';
+        ctx.fillRect(px + TILE / 2 - 2, py + TILE + 4, 4, 4);
+      } else {
+        // Drilling sideways
+        const dx = p.facingRight ? TILE - 2 : -6;
+        ctx.fillRect(px + dx, py + 12, 8, 6);
+      }
+    } else {
+      // Resting drill - point down
+      ctx.fillRect(px + TILE / 2 - 2, py + TILE - 3, 4, 5);
+    }
+
+    // Fuel warning flash
+    if (p.fuel < p.maxFuel * 0.2 && p.fuel > 0) {
+      if (Math.floor(Date.now() / 300) % 2) {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.fillRect(px, py, TILE, TILE);
+      }
+    }
+  }
+
+  // === HUD update ===
+  function updateHUD() {
+    const p = state.player;
+    document.getElementById('hud-money').textContent = p.money;
+    document.getElementById('hud-fuel').textContent = Math.ceil(p.fuel) + '/' + p.maxFuel;
+    const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
+    document.getElementById('hud-depth').textContent = depthM;
+    const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
+    document.getElementById('hud-cargo').textContent = cargoWeight + '/' + p.maxCargo;
+    document.getElementById('hud-hull').textContent = Math.ceil(p.hull) + '%';
+
+    // Hull color warning
+    const hullEl = document.getElementById('hud-hull');
+    if (p.hull < 30) hullEl.style.color = '#ff3333';
+    else if (p.hull < 60) hullEl.style.color = '#ffaa33';
+    else hullEl.style.color = '#ff6666';
+
+    // Show shop button when near shop on surface
+    const depthRow = Math.floor(p.y / TILE);
+    const shopBtn = document.getElementById('shop-btn');
+    const nearShop = depthRow <= SURFACE_ROWS &&
+      Math.abs(p.x - (WORLD_COLS / 2) * TILE) < 3 * TILE;
+    shopBtn.style.display = nearShop ? 'flex' : 'none';
+  }
+
+  // === Shop ===
+  function openShop() {
+    const p = state.player;
+    // Sell all cargo automatically
+    let sellTotal = 0;
+    for (const m of p.cargo) {
+      sellTotal += m.value;
+    }
+    if (sellTotal > 0) {
+      p.money += sellTotal;
+      p.totalEarned += sellTotal;
+      p.cargo = [];
+      addMessage('+$' + sellTotal, '#44ff66');
+    }
+
+    // Refuel and repair on surface visit
+    p.fuel = p.maxFuel;
+
+    document.getElementById('shop-money').textContent = p.money;
+    renderShopItems();
+    document.getElementById('shop-overlay').classList.add('open');
+  }
+
+  function renderShopItems() {
+    const container = document.getElementById('shop-items');
+    container.innerHTML = '';
+    const p = state.player;
+
+    for (const upg of UPGRADES) {
+      const level = p.upgrades[upg.id];
+      const maxed = level >= upg.levels.length - 1;
+      const cost = maxed ? 0 : upg.levels[level + 1];
+      const canBuy = !maxed && p.money >= cost;
+
+      const row = document.createElement('div');
+      row.className = 'upgrade-row';
+      row.innerHTML = `
+        <div class="upgrade-info">
+          <div class="upgrade-name">${upg.name}</div>
+          <div class="upgrade-desc">${upg.desc}</div>
+          <div class="upgrade-level">Level ${level + 1}/${upg.levels.length}${maxed ? ' (MAX)' : ''}</div>
+        </div>
+        <button class="upgrade-buy" ${canBuy ? '' : 'disabled'}>${maxed ? 'MAX' : '$' + cost}</button>
+      `;
+
+      if (canBuy) {
+        row.querySelector('.upgrade-buy').addEventListener('click', () => {
+          buyUpgrade(upg.id);
+        });
+      }
+      container.appendChild(row);
+    }
+  }
+
+  function buyUpgrade(id) {
+    const p = state.player;
+    const upg = UPGRADES.find(u => u.id === id);
+    const level = p.upgrades[id];
+    if (level >= upg.levels.length - 1) return;
+    const cost = upg.levels[level + 1];
+    if (p.money < cost) return;
+
+    p.money -= cost;
+    p.upgrades[id]++;
+    const newLevel = p.upgrades[id];
+
+    // Apply upgrade effects
+    switch (id) {
+      case 'drill':
+        p.drillPower = upg.effect[newLevel];
+        break;
+      case 'fuel':
+        p.maxFuel = upg.effect[newLevel];
+        p.fuel = p.maxFuel;
+        break;
+      case 'cargo':
+        p.maxCargo = upg.effect[newLevel];
+        break;
+      case 'hull':
+        p.maxHull = upg.effect[newLevel];
+        p.hull = p.maxHull;
+        break;
+      case 'radiator':
+        p.heatResist = upg.effect[newLevel];
+        break;
+    }
+
+    document.getElementById('shop-money').textContent = p.money;
+    renderShopItems();
+    updateHUD();
+  }
+
+  function closeShop() {
+    document.getElementById('shop-overlay').classList.remove('open');
+  }
+
+  // === Game over ===
+  function gameOver(reason) {
+    if (!state.running) return;
+    state.running = false;
+    document.getElementById('gameover-reason').textContent = reason;
+    document.getElementById('gameover-depth').textContent = state.maxDepthReached;
+    document.getElementById('gameover-money').textContent = state.player.totalEarned;
+    document.getElementById('gameover-overlay').classList.add('open');
+  }
+
+  // === Game loop ===
+  function gameLoop() {
+    if (state.running) {
+      updatePlayer();
+      updateCamera();
+      updateParticles();
+      updateMessages();
+    }
+    if (state) {
+      draw();
+      updateHUD();
+    }
+    requestAnimationFrame(gameLoop);
+  }
+
+  // === Input handling ===
+  // Keyboard
+  const keyMap = {
+    ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
+    a: 'left', d: 'right', w: 'up', s: 'down',
+    A: 'left', D: 'right', W: 'up', S: 'down',
+  };
+  document.addEventListener('keydown', (e) => {
+    if (keyMap[e.key] && state && state.running) {
+      state.input[keyMap[e.key]] = true;
+      e.preventDefault();
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (keyMap[e.key] && state) {
+      state.input[keyMap[e.key]] = false;
+    }
+  });
+
+  // D-Pad touch/mouse
+  function setupDpad() {
+    const dirs = ['up', 'down', 'left', 'right'];
+    for (const dir of dirs) {
+      const btn = document.getElementById('btn-' + dir);
+      const start = () => { if (state && state.running) state.input[dir] = true; btn.classList.add('active'); };
+      const end = () => { if (state) state.input[dir] = false; btn.classList.remove('active'); };
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); start(); }, { passive: false });
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); end(); }, { passive: false });
+      btn.addEventListener('touchcancel', end);
+      btn.addEventListener('mousedown', (e) => { e.preventDefault(); start(); });
+      btn.addEventListener('mouseup', end);
+      btn.addEventListener('mouseleave', end);
+    }
+  }
+
+  // Shop button
+  document.getElementById('shop-btn').addEventListener('click', openShop);
+  document.getElementById('shop-btn').addEventListener('touchstart', (e) => { e.preventDefault(); openShop(); }, { passive: false });
+  document.getElementById('shop-close').addEventListener('click', closeShop);
+
+  // Start / Restart
+  document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('start-overlay').classList.remove('open');
+    initState();
+    state.running = true;
+  });
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    document.getElementById('gameover-overlay').classList.remove('open');
+    initState();
+    state.running = true;
+  });
+
+  // === Init ===
+  initState();
+  setupDpad();
+  gameLoop();
+})();
+</script>
+</body>
+</html>
