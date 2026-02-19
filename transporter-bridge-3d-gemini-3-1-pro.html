@@ -1,0 +1,400 @@
+<!-- Made with AI: https://gemini.google.com/share/43489e97f358 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Middlesbrough Transporter Bridge 3D</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Sky Blue */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+        h1 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            transition: opacity 0.5s ease;
+        }
+    </style>
+    <!-- Load Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="ui-container">
+        <h1>Middlesbrough Transporter Bridge</h1>
+        <p>Left Click + Drag to Rotate &bull; Scroll to Zoom &bull; Right Click to Pan</p>
+    </div>
+    <div id="loading">Constructing Bridge...</div>
+
+    <script>
+        // Setup basic Three.js scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.FogExp2(0x87CEEB, 0.0025);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.set(0, 50, 220);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 30, 0);
+        controls.maxPolarAngle = Math.PI / 2 - 0.02; // Prevent going below ground
+        controls.minDistance = 20;
+        controls.maxDistance = 500;
+        controls.update();
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        sunLight.position.set(100, 150, 100);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 10;
+        sunLight.shadow.camera.far = 400;
+        const d = 160;
+        sunLight.shadow.camera.left = -d;
+        sunLight.shadow.camera.right = d;
+        sunLight.shadow.camera.top = d;
+        sunLight.shadow.camera.bottom = -d;
+        scene.add(sunLight);
+
+        // Materials
+        // The distinct "Transporter Blue"
+        const steelMat = new THREE.MeshStandardMaterial({ 
+            color: 0x1E488F, 
+            roughness: 0.6, 
+            metalness: 0.3 
+        });
+        const cableMat = new THREE.MeshStandardMaterial({ 
+            color: 0x222222, 
+            roughness: 0.8,
+            metalness: 0.1
+        });
+        const carMat = new THREE.MeshStandardMaterial({ 
+            color: 0xdd4422, // Orange/Red payload car
+            roughness: 0.5 
+        });
+
+        // Helper function to create a cylindrical strut between two 3D points
+        function createStrut(v1, v2, radius, material) {
+            const distance = v1.distanceTo(v2);
+            const cylinderGeo = new THREE.CylinderGeometry(radius, radius, distance, 6);
+            const mesh = new THREE.Mesh(cylinderGeo, material);
+            mesh.position.copy(v1).lerp(v2, 0.5);
+            // Align cylinder to point from v1 to v2
+            mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), v2.clone().sub(v1).normalize());
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            return mesh;
+        }
+
+        const bridgeGroup = new THREE.Group();
+
+        // 1. Build Towers
+        function buildTower(xOffset) {
+            const tower = new THREE.Group();
+            // Y-heights and matching footprint widths (tapering upwards)
+            const levels = [
+                { y: 0, w: 14, d: 14 },
+                { y: 20, w: 10, d: 10 },
+                { y: 40, w: 8, d: 8 },
+                { y: 55, w: 6, d: 6 }, // Bridge span level
+                { y: 75, w: 4, d: 4 }  // Top peak
+            ];
+
+            for (let i = 0; i < levels.length - 1; i++) {
+                const l1 = levels[i];
+                const l2 = levels[i + 1];
+
+                // Base corners for current tier
+                const c1 = [
+                    new THREE.Vector3(xOffset - l1.w, l1.y, -l1.d),
+                    new THREE.Vector3(xOffset + l1.w, l1.y, -l1.d),
+                    new THREE.Vector3(xOffset + l1.w, l1.y, l1.d),
+                    new THREE.Vector3(xOffset - l1.w, l1.y, l1.d)
+                ];
+                // Top corners for current tier
+                const c2 = [
+                    new THREE.Vector3(xOffset - l2.w, l2.y, -l2.d),
+                    new THREE.Vector3(xOffset + l2.w, l2.y, -l2.d),
+                    new THREE.Vector3(xOffset + l2.w, l2.y, l2.d),
+                    new THREE.Vector3(xOffset - l2.w, l2.y, l2.d)
+                ];
+
+                for (let j = 0; j < 4; j++) {
+                    const nextJ = (j + 1) % 4;
+                    // Main vertical/tapered legs
+                    tower.add(createStrut(c1[j], c2[j], 1.0, steelMat));
+                    
+                    // Horizontal struts
+                    if (i > 0) { // Skip ground level horizontals
+                        tower.add(createStrut(c1[j], c1[nextJ], 0.8, steelMat));
+                    }
+                    
+                    // Diagonal cross-bracing
+                    tower.add(createStrut(c1[j], c2[nextJ], 0.5, steelMat));
+                    tower.add(createStrut(c1[nextJ], c2[j], 0.5, steelMat));
+                }
+            }
+            
+            // Top rim
+            const top = levels[levels.length - 1];
+            const topC = [
+                new THREE.Vector3(xOffset - top.w, top.y, -top.d),
+                new THREE.Vector3(xOffset + top.w, top.y, -top.d),
+                new THREE.Vector3(xOffset + top.w, top.y, top.d),
+                new THREE.Vector3(xOffset - top.w, top.y, top.d)
+            ];
+            for (let j = 0; j < 4; j++) {
+                tower.add(createStrut(topC[j], topC[(j + 1) % 4], 0.8, steelMat));
+            }
+
+            return tower;
+        }
+
+        // Add both towers
+        bridgeGroup.add(buildTower(-80));
+        bridgeGroup.add(buildTower(80));
+
+        // 2. Build Top Span (The cantilevered truss)
+        const spanStartX = -120;
+        const spanEndX = 120;
+        const spanYBot = 55;
+        const spanYTop = 67;
+        const spanZ = 6;
+        const segments = 24;
+        const step = (spanEndX - spanStartX) / segments;
+
+        for (let i = 0; i <= segments; i++) {
+            const x = spanStartX + i * step;
+
+            const tl = new THREE.Vector3(x, spanYTop, -spanZ); // Top Left
+            const tr = new THREE.Vector3(x, spanYTop, spanZ);  // Top Right
+            const bl = new THREE.Vector3(x, spanYBot, -spanZ); // Bottom Left
+            const br = new THREE.Vector3(x, spanYBot, spanZ);  // Bottom Right
+
+            // Vertical struts
+            bridgeGroup.add(createStrut(tl, bl, 0.6, steelMat));
+            bridgeGroup.add(createStrut(tr, br, 0.6, steelMat));
+
+            // Top horizontal cross struts (leave bottom open for gondola cables!)
+            bridgeGroup.add(createStrut(tl, tr, 0.6, steelMat));
+
+            // Longitudinal chords & diagonals
+            if (i < segments) {
+                const nextX = x + step;
+                const ntl = new THREE.Vector3(nextX, spanYTop, -spanZ);
+                const ntr = new THREE.Vector3(nextX, spanYTop, spanZ);
+                const nbl = new THREE.Vector3(nextX, spanYBot, -spanZ);
+                const nbr = new THREE.Vector3(nextX, spanYBot, spanZ);
+
+                // Main horizontal chords
+                bridgeGroup.add(createStrut(tl, ntl, 1.0, steelMat));
+                bridgeGroup.add(createStrut(tr, ntr, 1.0, steelMat));
+                bridgeGroup.add(createStrut(bl, nbl, 1.0, steelMat));
+                bridgeGroup.add(createStrut(br, nbr, 1.0, steelMat));
+
+                // Zig-zag diagonals
+                if (i % 2 === 0) {
+                    bridgeGroup.add(createStrut(tl, nbl, 0.5, steelMat));
+                    bridgeGroup.add(createStrut(tr, nbr, 0.5, steelMat));
+                    bridgeGroup.add(createStrut(tl, ntr, 0.5, steelMat)); // Top zig-zag
+                } else {
+                    bridgeGroup.add(createStrut(bl, ntl, 0.5, steelMat));
+                    bridgeGroup.add(createStrut(br, ntr, 0.5, steelMat));
+                    bridgeGroup.add(createStrut(ntl, tr, 0.5, steelMat)); // Top zig-zag
+                }
+            }
+        }
+
+        // 3. Anchor Tension Cables (from tower tops to ground)
+        const anchors = [
+            { tX: -80, tZ: -4, gX: -150, gZ: -10 },
+            { tX: -80, tZ: 4,  gX: -150, gZ: 10 },
+            { tX: 80,  tZ: -4, gX: 150,  gZ: -10 },
+            { tX: 80,  tZ: 4,  gX: 150,  gZ: 10 }
+        ];
+        anchors.forEach(a => {
+            const topNode = new THREE.Vector3(a.tX, 75, a.tZ);
+            const groundNode = new THREE.Vector3(a.gX, 0, a.gZ);
+            bridgeGroup.add(createStrut(topNode, groundNode, 0.4, cableMat));
+        });
+
+        // 4. Suspension Stays (from towers to top span)
+        const stays = [
+            { tX: -80, sX: -100 }, { tX: -80, sX: -115 },
+            { tX: -80, sX: -60 },  { tX: -80, sX: -45 },
+            { tX: 80,  sX: 100 },  { tX: 80,  sX: 115 },
+            { tX: 80,  sX: 60 },   { tX: 80,  sX: 45 }
+        ];
+        stays.forEach(s => {
+            [spanZ, -spanZ].forEach(z => {
+                const topNode = new THREE.Vector3(s.tX, 75, z * 0.6);
+                const spanNode = new THREE.Vector3(s.sX, 67, z);
+                bridgeGroup.add(createStrut(topNode, spanNode, 0.2, cableMat));
+            });
+        });
+
+        scene.add(bridgeGroup);
+
+        // 5. Build the Moving Gondola
+        const gondola = new THREE.Group();
+
+        // Upper Carriage (rolls on rails)
+        const carriageGeo = new THREE.BoxGeometry(14, 2, 11);
+        const carriageMat = new THREE.MeshStandardMaterial({color: 0x333333});
+        const carriage = new THREE.Mesh(carriageGeo, carriageMat);
+        carriage.position.set(0, 56, 0);
+        carriage.castShadow = true;
+        gondola.add(carriage);
+
+        // The suspended Passenger/Vehicle Car
+        const carGeo = new THREE.BoxGeometry(18, 6, 12);
+        const car = new THREE.Mesh(carGeo, carMat);
+        car.position.set(0, 8, 0); // Hangs just above the water
+        car.castShadow = true;
+        car.receiveShadow = true;
+        gondola.add(car);
+
+        // Suspension Cables
+        const cableDrop = 56 - 8; // distance from carriage to car
+        const cableGeo = new THREE.CylinderGeometry(0.1, 0.1, cableDrop);
+        const cableLocs = [
+            [-8, -5], [8, -5], [-8, 5], [8, 5], 
+            [0, -5], [0, 5] // center supports
+        ];
+        cableLocs.forEach(loc => {
+            const cbl = new THREE.Mesh(cableGeo, cableMat);
+            cbl.position.set(loc[0], 8 + cableDrop/2, loc[1]);
+            gondola.add(cbl);
+        });
+
+        scene.add(gondola);
+
+        // 6. Environment (River and Banks)
+        // River Tees
+        const riverGeo = new THREE.PlaneGeometry(160, 400);
+        const riverMat = new THREE.MeshStandardMaterial({ 
+            color: 0x2A5B75, 
+            roughness: 0.1, 
+            metalness: 0.8,
+            transparent: true,
+            opacity: 0.9
+        });
+        const river = new THREE.Mesh(riverGeo, riverMat);
+        river.rotation.x = -Math.PI / 2;
+        river.receiveShadow = true;
+        scene.add(river);
+
+        // Banks (Land)
+        const landGeo = new THREE.PlaneGeometry(300, 400);
+        const landMat = new THREE.MeshStandardMaterial({ color: 0x3A5F43, roughness: 0.9 });
+        
+        const leftBank = new THREE.Mesh(landGeo, landMat);
+        leftBank.rotation.x = -Math.PI / 2;
+        leftBank.position.set(-230, 0.2, 0); // slightly above water
+        leftBank.receiveShadow = true;
+        scene.add(leftBank);
+
+        const rightBank = new THREE.Mesh(landGeo, landMat);
+        rightBank.rotation.x = -Math.PI / 2;
+        rightBank.position.set(230, 0.2, 0);
+        rightBank.receiveShadow = true;
+        scene.add(rightBank);
+
+        // Hide loading text once built
+        document.getElementById('loading').style.opacity = '0';
+        setTimeout(() => document.getElementById('loading').remove(), 500);
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Animate Gondola back and forth
+            const cycleDuration = 30000; // 30 seconds for a full round trip
+            const time = (Date.now() % cycleDuration) / cycleDuration;
+            
+            // Custom ping-pong logic with dwell time at stations
+            // 0.0-0.4: Travel Right
+            // 0.4-0.5: Wait Right
+            // 0.5-0.9: Travel Left
+            // 0.9-1.0: Wait Left
+            let xPos = 0;
+            const travelDist = 136; // -68 to 68
+            const startX = -68;
+
+            if (time < 0.4) {
+                // Use smoothstep for acceleration/deceleration
+                let t = time / 0.4;
+                t = t * t * (3 - 2 * t); 
+                xPos = startX + t * travelDist;
+            } else if (time < 0.5) {
+                xPos = startX + travelDist;
+            } else if (time < 0.9) {
+                let t = (time - 0.5) / 0.4;
+                t = t * t * (3 - 2 * t);
+                xPos = (startX + travelDist) - t * travelDist;
+            } else {
+                xPos = startX;
+            }
+
+            gondola.position.x = xPos;
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start Animation
+        animate();
+    </script>
+</body>
+</html>
