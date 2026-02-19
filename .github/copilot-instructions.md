@@ -19,7 +19,7 @@
 - Preserve touch + mouse + keyboard support patterns seen in `stickrpg-opus-4-6.html` and `motherload-copilot.html`.
 
 ## External integrations
-- Some pages depend on browser-loaded CDNs (not npm), e.g. import maps for Three.js in `minecraft-opus-4.6.html` and `transporter-bridge-opus-4.6.html`.
+- Some pages depend on browser-loaded CDNs (not npm), e.g. import maps for Three.js in `minecraft-opus-4.6.html` and `transporter-bridge-3d-opus-4.6.html`.
 - When editing those files, keep `type="module"` and import-map URLs consistent; do not add build tooling just to manage dependencies.
 - Optional chat provenance links are stored in `index.html` "Chat Link" column and may be blank (`—`) for some entries.
 

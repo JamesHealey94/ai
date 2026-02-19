@@ -1,0 +1,255 @@
+<!-- Made with AI: https://gemini.google.com/share/2369bef9495c -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Tees Transporter Bridge</title>
+    <!-- Tailwind CSS for the page layout and framing -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Core SVG Animations */
+        @keyframes crossRiver {
+            0%, 15% { transform: translateX(200px); }
+            45%, 65% { transform: translateX(680px); } /* 800 (right dock) - 120 (gondola width) */
+            95%, 100% { transform: translateX(200px); }
+        }
+
+        @keyframes floatCloud {
+            from { transform: translateX(-150px); }
+            to { transform: translateX(1100px); }
+        }
+
+        @keyframes waveFloat {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-15px) translateY(2px); }
+        }
+
+        /* Applying the animations */
+        #gondola {
+            animation: crossRiver 32s ease-in-out infinite;
+        }
+
+        .cloud-1 { animation: floatCloud 50s linear infinite; }
+        .cloud-2 { animation: floatCloud 35s linear infinite; animation-delay: -15s; }
+        .cloud-3 { animation: floatCloud 45s linear infinite; animation-delay: -30s; }
+
+        .wave-group-1 { animation: waveFloat 4s ease-in-out infinite; }
+        .wave-group-2 { animation: waveFloat 5s ease-in-out infinite; animation-delay: -2s; }
+        .wave-group-3 { animation: waveFloat 6s ease-in-out infinite; animation-delay: -1s; }
+    </style>
+</head>
+<body class="m-0 p-0 overflow-hidden bg-slate-900 flex flex-col items-center justify-center h-screen w-screen selection:bg-blue-500 selection:text-white">
+
+    <div class="text-center mb-4 z-10">
+        <h1 class="text-3xl font-bold text-white tracking-wider">TEES TRANSPORTER BRIDGE</h1>
+        <p class="text-slate-400 text-sm mt-1">Middlesbrough, England • Built 1911</p>
+    </div>
+
+    <!-- The SVG Canvas -->
+    <div class="w-full max-w-6xl aspect-video px-4">
+        <svg viewBox="0 0 1000 600" class="w-full h-full shadow-2xl rounded-xl overflow-hidden bg-sky-100" preserveAspectRatio="xMidYMid slice">
+            
+            <defs>
+                <!-- Sky Gradient -->
+                <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="60%" stop-color="#bae6fd" />
+                    <stop offset="100%" stop-color="#f0f9ff" />
+                </linearGradient>
+
+                <!-- Structural Truss Pattern (Used for the towers and main span) -->
+                <pattern id="truss-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <!-- Diagonal bracing -->
+                    <line x1="0" y1="0" x2="20" y2="20" stroke="#1d4ed8" stroke-width="1.5" opacity="0.8"/>
+                    <line x1="20" y1="0" x2="0" y2="20" stroke="#1d4ed8" stroke-width="1.5" opacity="0.8"/>
+                    <!-- Horizontal/Vertical ties -->
+                    <rect x="0" y="0" width="20" height="20" fill="none" stroke="#1e3a8a" stroke-width="1"/>
+                </pattern>
+
+                <!-- Sun Gradient -->
+                <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fef08a" stop-opacity="1" />
+                    <stop offset="70%" stop-color="#fef08a" stop-opacity="0.8" />
+                    <stop offset="100%" stop-color="#fef08a" stop-opacity="0" />
+                </radialGradient>
+            </defs>
+
+            <!-- 1. Background / Sky -->
+            <rect width="1000" height="600" fill="url(#skyGrad)" />
+            
+            <!-- Sun -->
+            <circle cx="850" cy="150" r="60" fill="url(#sunGrad)" />
+
+            <!-- 2. Clouds -->
+            <g class="cloud-1" fill="#ffffff" opacity="0.9">
+                <path d="M 100 120 Q 120 100 150 120 Q 180 90 220 120 Q 250 120 240 150 L 110 150 Q 80 140 100 120 Z" />
+            </g>
+            <g class="cloud-2" fill="#ffffff" opacity="0.7">
+                <path d="M 400 80 Q 430 60 460 80 Q 500 70 520 100 L 390 100 Q 370 90 400 80 Z" />
+            </g>
+            <g class="cloud-3" fill="#ffffff" opacity="0.8">
+                <path d="M 700 180 Q 720 150 760 170 Q 790 160 810 190 Q 830 210 800 220 L 690 220 Q 660 210 700 180 Z" />
+            </g>
+
+            <!-- 3. Distant Hills (Teesside scenery) -->
+            <path d="M 0 500 Q 150 440 350 490 T 700 480 T 1000 450 L 1000 500 L 0 500 Z" fill="#166534" opacity="0.5" />
+            <path d="M 0 500 Q 200 460 500 500 T 1000 470 L 1000 500 L 0 500 Z" fill="#14532d" opacity="0.4" />
+
+            <!-- 4. Bridge Structure (Background layer elements if any) -->
+            
+            <!-- Tension Diagonals (Cantilever Cables) -->
+            <!-- Left side outward -->
+            <path d="M 150 40 L 20 120 M 150 40 L 50 120 M 150 40 L 80 120" stroke="#1e3a8a" stroke-width="2" />
+            <!-- Left side inward -->
+            <path d="M 150 40 L 220 120 M 150 40 L 260 120 M 150 40 L 300 120 M 150 40 L 340 120 M 150 40 L 380 120" stroke="#1e3a8a" stroke-width="2" />
+            
+            <!-- Right side inward -->
+            <path d="M 850 40 L 780 120 M 850 40 L 740 120 M 850 40 L 700 120 M 850 40 L 660 120 M 850 40 L 620 120" stroke="#1e3a8a" stroke-width="2" />
+            <!-- Right side outward -->
+            <path d="M 850 40 L 920 120 M 850 40 L 950 120 M 850 40 L 980 120" stroke="#1e3a8a" stroke-width="2" />
+
+            <!-- Left Tower -->
+            <g id="left-tower">
+                <polygon points="90,500 210,500 170,40 130,40" fill="url(#truss-pattern)" stroke="#1e3a8a" stroke-width="3" stroke-linejoin="round"/>
+                <!-- Tower heavy outer outlines -->
+                <line x1="90" y1="500" x2="130" y2="40" stroke="#0f172a" stroke-width="3"/>
+                <line x1="210" y1="500" x2="170" y2="40" stroke="#0f172a" stroke-width="3"/>
+                
+                <!-- Engine/Winding House on top of left tower -->
+                <rect x="135" y="90" width="30" height="25" fill="#1e40af" stroke="#0f172a" stroke-width="2" />
+                <polygon points="130,90 150,70 170,90" fill="#1e3a8a" stroke="#0f172a" stroke-width="2" />
+                <!-- Flag -->
+                <line x1="150" y1="70" x2="150" y2="30" stroke="#0f172a" stroke-width="2" />
+                <polygon points="150,30 170,38 150,45" fill="#dc2626" />
+            </g>
+
+            <!-- Right Tower -->
+            <g id="right-tower">
+                <polygon points="790,500 910,500 870,40 830,40" fill="url(#truss-pattern)" stroke="#1e3a8a" stroke-width="3" stroke-linejoin="round"/>
+                <!-- Tower heavy outer outlines -->
+                <line x1="790" y1="500" x2="830" y2="40" stroke="#0f172a" stroke-width="3"/>
+                <line x1="910" y1="500" x2="870" y2="40" stroke="#0f172a" stroke-width="3"/>
+                <!-- Flag -->
+                <line x1="850" y1="40" x2="850" y2="10" stroke="#0f172a" stroke-width="2" />
+                <polygon points="850,10 870,18 850,25" fill="#dc2626" />
+            </g>
+
+            <!-- Main Top Truss Span -->
+            <rect x="10" y="120" width="980" height="30" fill="url(#truss-pattern)" stroke="#0f172a" stroke-width="3" />
+            <!-- Strong bottom chord line where carriage rolls -->
+            <line x1="10" y1="150" x2="990" y2="150" stroke="#0f172a" stroke-width="4" />
+
+            <!-- 5. The Gondola (Traveling Car and Assembly) -->
+            <!-- The translation animates between the left dock and right dock -->
+            <g id="gondola">
+                <!-- Carriage (Rolls along the top truss) -->
+                <rect x="10" y="148" width="100" height="8" fill="#1e293b" rx="2" />
+                <!-- Carriage Wheels -->
+                <circle cx="20" cy="148" r="4" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+                <circle cx="40" cy="148" r="4" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+                <circle cx="60" cy="148" r="4" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+                <circle cx="80" cy="148" r="4" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+                <circle cx="100" cy="148" r="4" fill="#94a3b8" stroke="#334155" stroke-width="1"/>
+
+                <!-- Suspension Cables -->
+                <!-- Vertical wires -->
+                <path d="M 15 156 L 15 485 M 35 156 L 35 485 M 60 156 L 60 485 M 85 156 L 85 485 M 105 156 L 105 485" stroke="#94a3b8" stroke-width="1.5" />
+                <!-- Diagonal cross-bracing web -->
+                <path d="M 15 156 L 105 485 M 105 156 L 15 485 M 15 320 L 105 320" stroke="#64748b" stroke-width="1" opacity="0.6" />
+
+                <!-- The Car/Passenger Gondola -->
+                <!-- Car base/floor -->
+                <rect x="0" y="485" width="120" height="6" fill="#1c1917" rx="1" />
+                <!-- Car roof -->
+                <rect x="5" y="470" width="110" height="3" fill="#1c1917" />
+                <!-- Passenger cabin (Yellow for visibility) -->
+                <rect x="35" y="473" width="50" height="12" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
+                <!-- Cabin windows -->
+                <rect x="40" y="475" width="8" height="6" fill="#bae6fd" />
+                <rect x="55" y="475" width="8" height="6" fill="#bae6fd" />
+                <rect x="70" y="475" width="8" height="6" fill="#bae6fd" />
+                
+                <!-- Side safety rails for vehicles -->
+                <line x1="5" y1="480" x2="35" y2="480" stroke="#44403c" stroke-width="1.5" />
+                <line x1="85" y1="480" x2="115" y2="480" stroke="#44403c" stroke-width="1.5" />
+
+                <!-- A little car riding on the gondola -->
+                <rect x="10" y="478" width="20" height="6" fill="#ef4444" rx="1" />
+                <rect x="14" y="474" width="12" height="4" fill="#ef4444" rx="1" />
+                <circle cx="14" cy="484" r="2" fill="#111827" />
+                <circle cx="26" cy="484" r="2" fill="#111827" />
+            </g>
+
+            <!-- 6. Foreground Docks / Riverbanks -->
+            
+            <!-- Left Dock -->
+            <g id="left-dock">
+                <!-- Concrete pier -->
+                <rect x="0" y="485" width="200" height="115" fill="#57534e" />
+                <!-- Dock top/curb -->
+                <rect x="0" y="485" width="200" height="5" fill="#a8a29e" />
+                <!-- Safety stripe -->
+                <rect x="195" y="485" width="5" height="115" fill="#eab308" />
+                <!-- Piling details -->
+                <rect x="170" y="490" width="15" height="110" fill="#44403c" />
+                
+                <!-- Waiting Car on left dock -->
+                <rect x="120" y="477" width="24" height="7" fill="#3b82f6" rx="2" />
+                <rect x="124" y="472" width="14" height="5" fill="#3b82f6" rx="1" />
+                <circle cx="125" cy="484" r="2.5" fill="#111827" />
+                <circle cx="139" cy="484" r="2.5" fill="#111827" />
+
+                <!-- Ramp marking -->
+                <line x1="0" y1="492" x2="195" y2="492" stroke="#fcd34d" stroke-width="1" stroke-dasharray="10 5" />
+            </g>
+
+            <!-- Right Dock -->
+            <g id="right-dock">
+                <!-- Concrete pier -->
+                <rect x="800" y="485" width="200" height="115" fill="#57534e" />
+                <!-- Dock top/curb -->
+                <rect x="800" y="485" width="200" height="5" fill="#a8a29e" />
+                <!-- Safety stripe -->
+                <rect x="800" y="485" width="5" height="115" fill="#eab308" />
+                <!-- Piling details -->
+                <rect x="815" y="490" width="15" height="110" fill="#44403c" />
+
+                <!-- Waiting Car on right dock -->
+                <rect x="850" y="477" width="24" height="7" fill="#10b981" rx="2" />
+                <rect x="856" y="472" width="14" height="5" fill="#10b981" rx="1" />
+                <circle cx="855" cy="484" r="2.5" fill="#111827" />
+                <circle cx="869" cy="484" r="2.5" fill="#111827" />
+
+                <!-- Ramp marking -->
+                <line x1="805" y1="492" x2="1000" y2="492" stroke="#fcd34d" stroke-width="1" stroke-dasharray="10 5" />
+            </g>
+
+            <!-- 7. The River Tees -->
+            <!-- Base water layer overlapping the bottom between docks -->
+            <rect x="200" y="500" width="600" height="100" fill="#0284c7" />
+            
+            <!-- Animated Water ripples -->
+            <g class="wave-group-1" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none">
+                <path d="M 230 520 Q 250 518 270 520" />
+                <path d="M 450 515 Q 480 512 510 515" />
+                <path d="M 700 525 Q 730 522 760 525" />
+            </g>
+            <g class="wave-group-2" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" fill="none">
+                <path d="M 320 540 Q 350 538 380 540" />
+                <path d="M 580 545 Q 610 543 640 545" />
+            </g>
+            <g class="wave-group-3" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round" fill="none">
+                <path d="M 250 570 Q 300 568 350 570" />
+                <path d="M 600 575 Q 650 572 700 575" />
+            </g>
+
+            <!-- Darker water line bordering the docks to simulate shadow/depth -->
+            <rect x="200" y="500" width="5" height="100" fill="#075985" opacity="0.6" />
+            <rect x="795" y="500" width="5" height="100" fill="#075985" opacity="0.6" />
+
+        </svg>
+    </div>
+
+</body>
+</html>
