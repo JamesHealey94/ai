@@ -197,6 +197,30 @@
     cursor: pointer;
   }
   .start-btn:active { background: #f39c12; }
+
+  /* Fuel warning banner */
+  #fuel-warning {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(180, 0, 0, 0.85);
+    border: 2px solid #ff4444;
+    border-radius: 14px;
+    padding: 14px 24px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 15;
+    pointer-events: none;
+    animation: fuel-pulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes fuel-pulse {
+    from { opacity: 0.8; scale: 1; }
+    to   { opacity: 1;   scale: 1.04; }
+  }
 </style>
 </head>
 <body>
@@ -215,6 +239,9 @@
       <div><span class="stat-label">Hull:</span> <span class="stat-val hull-color" id="hud-hull">100%</span></div>
     </div>
   </div>
+
+  <!-- Fuel warning banner -->
+  <div id="fuel-warning">⚠️ OUT OF FUEL ⚠️<br><span style="font-size:13px">Return to the surface to refuel!</span></div>
 
   <!-- D-Pad -->
   <div id="dpad">
@@ -243,7 +270,7 @@
   <div class="modal">
     <h2>⛏️ Deep Miner</h2>
     <p>Dig deep into the earth to mine valuable minerals! Sell them at the surface shop to upgrade your drill, fuel tank, cargo bay, and hull.</p>
-    <p>Use the D-pad or arrow keys / WASD to move. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <p>Use the D-pad or arrow keys / WASD to move. Hold UP to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
     <button class="start-btn" id="start-btn">Start Mining!</button>
   </div>
 </div>
@@ -492,9 +519,10 @@
         if (Math.abs(p.vx) < 0.1) p.vx = 0;
       }
 
-      if (state.input.up && p.onGround) {
-        p.vy = -5;
-        p.fuel = Math.max(0, p.fuel - FUEL_MOVE * 3);
+      if (state.input.up) {
+        p.vy -= 0.6;
+        if (p.vy < -4) p.vy = -4;
+        p.fuel = Math.max(0, p.fuel - FUEL_MOVE * 2);
       }
     } else {
       p.vx *= 0.85;
@@ -572,19 +600,23 @@
       gameOver('Your hull was destroyed!');
     }
 
-    // Fuel check - game over only if underground and stuck
-    if (p.fuel <= 0 && depthM > 0 && p.onGround && p.vx === 0) {
-      // Give a moment, then game over
+    // Fuel check - show warning banner when out of fuel
+    const fuelWarningEl = document.getElementById('fuel-warning');
+    if (p.fuel <= 0) {
       if (!state.fuelWarning) {
         state.fuelWarning = true;
         addMessage('Out of fuel!', '#ff4444');
       }
+      fuelWarningEl.style.display = 'block';
+    } else {
+      fuelWarningEl.style.display = 'none';
     }
 
     // If on surface, refuel automatically
     if (depthM <= 0) {
       p.fuel = p.maxFuel;
       state.fuelWarning = false;
+      fuelWarningEl.style.display = 'none';
     }
   }
 
@@ -818,7 +850,7 @@
     }
 
     // Fuel warning flash
-    if (p.fuel < p.maxFuel * 0.2 && p.fuel > 0) {
+    if (p.fuel < p.maxFuel * 0.2) {
       if (Math.floor(Date.now() / 300) % 2) {
         ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
         ctx.fillRect(px, py, TILE, TILE);
