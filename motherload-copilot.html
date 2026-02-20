@@ -306,7 +306,7 @@
   const MYSTERY_CRATE_FUEL_BOOST_PERCENT = 0.4;
   const MYSTERY_CRATE_HULL_BOOST_PERCENT = 0.35;
   const CORE_ROW_INDEX = WORLD_ROWS - 1;
-  const CORE_LABEL_FONT = 'bold 10px sans-serif';
+  const DYNAMITE_PACK_COST = 4321;
 
   // === Mineral definitions ===
   const MINERALS = [
@@ -387,7 +387,7 @@
     },
     {
       id: 'dynamite', name: 'Dynamite Pack', desc: 'Clears 3×3 blocks around you',
-      cost: 500,
+      cost: DYNAMITE_PACK_COST,
       action: (p, state) => {
         const cx = Math.floor((p.x + p.w / 2) / TILE);
         const cy = Math.floor((p.y + p.h / 2) / TILE);
@@ -574,6 +574,11 @@
 
     // Drilling
     if (p.drilling) {
+      if (p.drilling.ty === CORE_ROW_INDEX) {
+        p.drilling = null;
+        addMessage('Core can only be mined with dynamite!', '#ffd166');
+        return;
+      }
       p.drilling.progress += p.drillPower;
       p.fuel = Math.max(0, p.fuel - FUEL_DRILL);
       if (p.drilling.progress >= DRILL_TIME * getTile(p.drilling.tx, p.drilling.ty).hardness) {
@@ -643,7 +648,7 @@
         const bottomRow = Math.floor((snappedY + p.h - 1) / TILE);
         for (let r = topRow; r <= bottomRow; r++) {
           const target = getTile(drillCol, r);
-          if (target.type === 'dirt') {
+          if (target.type === 'dirt' && r !== CORE_ROW_INDEX) {
             p.y = snappedY; // align to grid for clean drilling
             p.drilling = { tx: drillCol, ty: r, progress: 0 };
             break;
@@ -697,7 +702,7 @@
           const drillCol = Math.floor((p.x + p.w / 2) / TILE);
           const drillRow = solidRow;
           const target = getTile(drillCol, drillRow);
-          if (target.type === 'dirt') {
+          if (target.type === 'dirt' && drillRow !== CORE_ROW_INDEX) {
             p.drilling = { tx: drillCol, ty: drillRow, progress: 0 };
           }
         }
@@ -856,11 +861,6 @@
           ctx.strokeStyle = 'rgba(0,0,0,0.15)';
           if (r === CORE_ROW_INDEX) {
             ctx.strokeStyle = '#ffd166';
-            ctx.fillStyle = '#ffd166';
-            ctx.font = CORE_LABEL_FONT;
-            ctx.textAlign = 'center';
-            ctx.fillText('CORE', sx + TILE / 2, sy + 12);
-            ctx.textAlign = 'left';
           }
           ctx.strokeRect(sx, sy, TILE, TILE);
         }
