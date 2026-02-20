@@ -214,6 +214,7 @@
       <div><span class="stat-val money-color" id="hud-money">$0</span></div>
       <div><span class="stat-val fuel-color" id="hud-fuel">⛽ 100/100</span></div>
       <div><span class="stat-val depth-color" id="hud-depth">↓ 0m</span></div>
+      <div><span class="stat-val depth-color" id="hud-goal">🎯 50m</span></div>
       <div><span class="stat-val cargo-color" id="hud-cargo">📦 0/5</span></div>
       <div><span class="stat-val hull-color" id="hud-hull">🛡 100%</span></div>
     </div>
@@ -425,6 +426,7 @@
       camera: { x: 0, y: 0 },
       input: { left: false, right: false, up: false, down: false },
       maxDepthReached: 0,
+      depthBonusesClaimed: {},
       particles: [],
       messages: [],
     };
@@ -655,6 +657,15 @@
     // Depth tracking
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     if (depthM > state.maxDepthReached) state.maxDepthReached = depthM;
+    const depthBonusStep = 50;
+    const depthBonusMilestone = Math.floor(depthM / depthBonusStep) * depthBonusStep;
+    if (depthBonusMilestone >= depthBonusStep && !state.depthBonusesClaimed[depthBonusMilestone]) {
+      const bonus = depthBonusMilestone * 5;
+      state.depthBonusesClaimed[depthBonusMilestone] = true;
+      p.money += bonus;
+      p.totalEarned += bonus;
+      addMessage('Depth bonus +$' + bonus, '#66bbff');
+    }
 
     // Heat damage at extreme depth
     if (depthM > 150) {
@@ -925,6 +936,8 @@
     document.getElementById('hud-fuel').textContent = '⛽ ' + Math.ceil(p.fuel) + '/' + p.maxFuel;
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     document.getElementById('hud-depth').textContent = '↓ ' + depthM + 'm';
+    const nextDepthBonus = (Math.floor(depthM / 50) + 1) * 50;
+    document.getElementById('hud-goal').textContent = '🎯 ' + Math.min(nextDepthBonus, WORLD_ROWS - SURFACE_ROWS) + 'm';
     const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
     document.getElementById('hud-cargo').textContent = '📦 ' + cargoWeight + '/' + p.maxCargo;
     document.getElementById('hud-hull').textContent = '🛡 ' + Math.ceil(p.hull) + '%';
