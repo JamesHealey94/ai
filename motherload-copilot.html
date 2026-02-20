@@ -237,6 +237,7 @@
   <div class="modal">
     <h2>⛏️ Mining Shop</h2>
     <p>Balance: $<span id="shop-money">0</span></p>
+    <p id="shop-consumables-hint">Consumables owned: 🧰0 ⛽0 💣0 🎉0 • Use keys 1/2/3/4</p>
     <div id="shop-items"></div>
     <button class="modal-close" id="shop-close">Close</button>
   </div>
@@ -248,7 +249,7 @@
     <h2>⛏️ Deep Miner</h2>
     <p>Dig deep into the earth to mine valuable minerals! Sell them at the surface shop to upgrade your drill, fuel tank, cargo bay, and hull.</p>
     <p>Use the D-pad or arrow keys / WASD to move. Hold UP (or Spacebar) to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
-    <p>Press E to open shop near the surface. Use 1/2/3 to trigger Repair/Fuel/Dynamite consumables.</p>
+    <p>Press E to open shop near the surface (Esc closes it). Use 1/2/3/4 to trigger Repair/Fuel/Dynamite/Party consumables.</p>
     <button class="start-btn" id="start-btn">Start Mining!</button>
   </div>
 </div>
@@ -413,6 +414,17 @@
         }
         if (collected > 0) addMessage('Dynamite found ' + collected + ' mineral(s)!', CONSUMABLE_SUCCESS_COLOR);
         if (lost > 0) addMessage(lost + ' mineral(s) lost - cargo full!', '#ff4444');
+        return true;
+      },
+    },
+    {
+      id: 'party_pack', name: 'Party Pack', desc: 'Confetti + random cash reward',
+      cost: 120,
+      action: (p) => {
+        const reward = 25 + Math.floor(Math.random() * 126);
+        p.money += reward;
+        p.totalEarned += reward;
+        addMessage('🎉 Party bonus +$' + reward, '#ffd166');
         return true;
       },
     },
@@ -1018,6 +1030,12 @@
     const container = document.getElementById('shop-items');
     container.innerHTML = '';
     const p = state.player;
+    document.getElementById('shop-consumables-hint').textContent =
+      'Consumables owned: 🧰' + (p.consumables.repair || 0) +
+      ' ⛽' + (p.consumables.reserve_tank || 0) +
+      ' 💣' + (p.consumables.dynamite || 0) +
+      ' 🎉' + (p.consumables.party_pack || 0) +
+      ' • Use keys 1/2/3/4';
 
     for (const upg of UPGRADES) {
       const level = p.upgrades[upg.id];
@@ -1053,7 +1071,7 @@
         <div class="upgrade-info">
           <div class="upgrade-name">${item.name}</div>
           <div class="upgrade-desc">${item.desc}</div>
-          <div class="upgrade-level" style="color:#e8a030">One-time use • Owned ${p.consumables[item.id] || 0}</div>
+          <div class="upgrade-level" style="color:#e8a030">One-time use • Owned ${p.consumables[item.id] || 0} • Press ${item.id === 'repair' ? '1' : item.id === 'reserve_tank' ? '2' : item.id === 'dynamite' ? '3' : '4'}</div>
         </div>
         <button class="upgrade-buy" ${canBuy ? '' : 'disabled'}>$${item.cost}</button>
       `;
@@ -1183,6 +1201,22 @@
     ' ': 'up',
   };
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('shop-overlay').classList.contains('open')) {
+      closeShop();
+      e.preventDefault();
+      return;
+    }
+    if (state && state.running && (e.key === 'p' || e.key === 'P')) {
+      state.player.money += 100;
+      addMessage('+$100', '#66ff99');
+      if (document.getElementById('shop-overlay').classList.contains('open')) {
+        document.getElementById('shop-money').textContent = state.player.money;
+        renderShopItems();
+      }
+      updateHUD();
+      e.preventDefault();
+      return;
+    }
     if (state && state.running && (e.key === 'e' || e.key === 'E') && isNearShop()) {
       openShop();
       e.preventDefault();
@@ -1192,6 +1226,7 @@
       if (e.key === '1') { useConsumable('repair'); e.preventDefault(); return; }
       if (e.key === '2') { useConsumable('reserve_tank'); e.preventDefault(); return; }
       if (e.key === '3') { useConsumable('dynamite'); e.preventDefault(); return; }
+      if (e.key === '4') { useConsumable('party_pack'); e.preventDefault(); return; }
     }
     if (keyMap[e.key] && state && state.running) {
       state.input[keyMap[e.key]] = true;
