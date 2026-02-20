@@ -264,6 +264,7 @@
     const table = document.getElementById('experimentsTable');
     const tbody = table.querySelector('tbody');
     const sortButtons = table.querySelectorAll('.sort-btn');
+
     const setTheme = (theme) => {
       root.dataset.theme = theme;
       const isDark = theme === 'dark';
@@ -277,8 +278,28 @@
       setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
     });
 
-    filterInput.addEventListener('input', () => {
-      const search = filterInput.value.trim().toLowerCase();
+    const updateURL = (searchTerm, sortColumn, sortDirection) => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.set('search', searchTerm);
+      if (sortColumn && sortDirection) {
+        params.set('sort', sortColumn);
+        params.set('order', sortDirection);
+      }
+      const newURL = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      window.history.replaceState(null, '', newURL);
+    };
+
+    const getURLParams = () => {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        search: params.get('search') || '',
+        sort: params.get('sort') || 'created',
+        order: params.get('order') || 'desc'
+      };
+    };
+
+    const applyFilter = (searchTerm) => {
+      const search = searchTerm.trim().toLowerCase();
       const rows = tbody.querySelectorAll('tr');
 
       rows.forEach((row) => {
@@ -290,6 +311,14 @@
 
         row.style.display = haystack.includes(search) ? '' : 'none';
       });
+    };
+
+    filterInput.addEventListener('input', () => {
+      const search = filterInput.value.trim();
+      applyFilter(search);
+      const sortColumn = document.querySelector('.sort-btn[data-sort!="none"]')?.dataset.column || 'created';
+      const sortDirection = document.querySelector('.sort-btn[data-sort!="none"]')?.dataset.sort || 'desc';
+      updateURL(search, sortColumn, sortDirection);
     });
 
     const applySort = (column, direction) => {
@@ -327,10 +356,16 @@
         const current = button.dataset.sort;
         const nextSort = current === 'asc' ? 'desc' : 'asc';
         applySort(column, nextSort);
+        const searchTerm = filterInput.value.trim();
+        updateURL(searchTerm, column, nextSort);
       });
     });
 
-    applySort('created', 'desc');
+    // Restore state from URL on page load
+    const params = getURLParams();
+    filterInput.value = params.search;
+    applyFilter(params.search);
+    applySort(params.sort, params.order);
   </script>
 </body>
 </html>
