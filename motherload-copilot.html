@@ -214,7 +214,7 @@
       <div><span class="stat-val money-color" id="hud-money">$0</span></div>
       <div><span class="stat-val fuel-color" id="hud-fuel">⛽ 100/100</span></div>
       <div><span class="stat-val depth-color" id="hud-depth">↓ 0m</span></div>
-      <div><span class="stat-val depth-color" id="hud-goal">🎯 50m</span></div>
+      <div><span class="stat-val depth-color" id="hud-goal" aria-label="Next depth bonus">🎯 50m</span></div>
       <div><span class="stat-val cargo-color" id="hud-cargo">📦 0/5</span></div>
       <div><span class="stat-val hull-color" id="hud-hull">🛡 100%</span></div>
     </div>
@@ -290,6 +290,9 @@
   const FUEL_MOVE = 0.06;
   const FUEL_DRILL = 0.12;
   const NUDGE_DISTANCE = TILE / 2; // pixels to nudge when stuck flying up
+  const DEPTH_BONUS_STEP = 50;
+  const DEPTH_BONUS_MULTIPLIER = 5;
+  const DEPTH_BONUS_COLOR = '#66bbff';
 
   // === Mineral definitions ===
   const MINERALS = [
@@ -657,14 +660,13 @@
     // Depth tracking
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     if (depthM > state.maxDepthReached) state.maxDepthReached = depthM;
-    const depthBonusStep = 50;
-    const depthBonusMilestone = Math.floor(depthM / depthBonusStep) * depthBonusStep;
-    if (depthBonusMilestone >= depthBonusStep && !state.depthBonusesClaimed[depthBonusMilestone]) {
-      const bonus = depthBonusMilestone * 5;
+    const depthBonusMilestone = Math.floor(depthM / DEPTH_BONUS_STEP) * DEPTH_BONUS_STEP;
+    if (depthBonusMilestone > 0 && !state.depthBonusesClaimed[depthBonusMilestone]) {
+      const bonus = depthBonusMilestone * DEPTH_BONUS_MULTIPLIER;
       state.depthBonusesClaimed[depthBonusMilestone] = true;
       p.money += bonus;
       p.totalEarned += bonus;
-      addMessage('Depth bonus +$' + bonus, '#66bbff');
+      addMessage('Depth bonus +$' + bonus, DEPTH_BONUS_COLOR);
     }
 
     // Heat damage at extreme depth
@@ -936,8 +938,13 @@
     document.getElementById('hud-fuel').textContent = '⛽ ' + Math.ceil(p.fuel) + '/' + p.maxFuel;
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     document.getElementById('hud-depth').textContent = '↓ ' + depthM + 'm';
-    const nextDepthBonus = (Math.floor(depthM / 50) + 1) * 50;
-    document.getElementById('hud-goal').textContent = '🎯 ' + Math.min(nextDepthBonus, WORLD_ROWS - SURFACE_ROWS) + 'm';
+    const maxDepth = WORLD_ROWS - SURFACE_ROWS;
+    if (depthM >= maxDepth) {
+      document.getElementById('hud-goal').textContent = '🎯 MAX';
+    } else {
+      const nextDepthBonus = (Math.floor(depthM / DEPTH_BONUS_STEP) + 1) * DEPTH_BONUS_STEP;
+      document.getElementById('hud-goal').textContent = '🎯 ' + Math.min(nextDepthBonus, maxDepth) + 'm';
+    }
     const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
     document.getElementById('hud-cargo').textContent = '📦 ' + cargoWeight + '/' + p.maxCargo;
     document.getElementById('hud-hull').textContent = '🛡 ' + Math.ceil(p.hull) + '%';
