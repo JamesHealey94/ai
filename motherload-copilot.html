@@ -247,7 +247,8 @@
   <div class="modal">
     <h2>⛏️ Deep Miner</h2>
     <p>Dig deep into the earth to mine valuable minerals! Sell them at the surface shop to upgrade your drill, fuel tank, cargo bay, and hull.</p>
-    <p>Use the D-pad or arrow keys / WASD to move. Hold UP to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <p>Use the D-pad or arrow keys / WASD to move. Hold UP (or Space) to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <p>Press E to open shop near the surface. Use 1/2/3 to trigger Repair/Fuel/Dynamite consumables.</p>
     <button class="start-btn" id="start-btn">Start Mining!</button>
   </div>
 </div>
@@ -255,7 +256,7 @@
 <!-- Game Over Screen -->
 <div class="modal-overlay" id="gameover-overlay">
   <div class="modal">
-    <h2>💀 Game Over</h2>
+    <h2 id="gameover-title">💀 Game Over</h2>
     <p id="gameover-reason"></p>
     <p>Final depth: <span id="gameover-depth">0</span>m<br>Total earned: $<span id="gameover-money">0</span></p>
     <button class="start-btn" id="restart-btn">Try Again</button>
@@ -293,6 +294,7 @@
   const DEPTH_BONUS_STEP = 50;
   const DEPTH_BONUS_MULTIPLIER = 5;
   const DEPTH_BONUS_COLOR = '#66bbff';
+  const CONSUMABLE_SUCCESS_COLOR = '#44ff66';
 
   // === Mineral definitions ===
   const MINERALS = [
@@ -356,12 +358,20 @@
     {
       id: 'repair', name: 'Hull Repair Kit', desc: 'Restore hull to full',
       cost: 300,
-      action: (p) => { p.hull = p.maxHull; },
+      action: (p) => {
+        if (p.hull >= p.maxHull) return false;
+        p.hull = p.maxHull;
+        return true;
+      },
     },
     {
       id: 'reserve_tank', name: 'Reserve Fuel Tank', desc: 'Refill fuel to full',
       cost: 250,
-      action: (p) => { p.fuel = p.maxFuel; },
+      action: (p) => {
+        if (p.fuel >= p.maxFuel) return false;
+        p.fuel = p.maxFuel;
+        return true;
+      },
     },
     {
       id: 'dynamite', name: 'Dynamite Pack', desc: 'Clears 3×3 blocks around you',
@@ -371,6 +381,7 @@
         const cy = Math.floor((p.y + p.h / 2) / TILE);
         let collected = 0;
         let lost = 0;
+        let cleared = 0;
         let cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
         for (let dr = -1; dr <= 1; dr++) {
           for (let dc = -1; dc <= 1; dc++) {
@@ -388,11 +399,20 @@
                   }
                 }
                 state.world[r][c] = { type: 'air', mineral: null, hardness: 0 };
+                cleared++;
               }
             }
           }
         }
+        if (cleared === 0) return false;
+        const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
+        const maxDepth = WORLD_ROWS - SURFACE_ROWS;
+        if (depthM >= maxDepth - 1) {
+          gameOver('You blasted the core with dynamite. You win!', true);
+        }
+        if (collected > 0) addMessage('Dynamite found ' + collected + ' mineral(s)!', CONSUMABLE_SUCCESS_COLOR);
         if (lost > 0) addMessage(lost + ' mineral(s) lost - cargo full!', '#ff4444');
+        return true;
       },
     },
   ];
@@ -424,6 +444,7 @@
         drilling: null, // { tx, ty, progress }
         onGround: false,
         facingRight: true,
+        consumables: { repair: 0, reserve_tank: 0, dynamite: 0 },
       },
       world: [],
       camera: { x: 0, y: 0 },
@@ -932,6 +953,13 @@
   }
 
   // === HUD update ===
+  function isNearShop() {
+    if (!state) return false;
+    const p = state.player;
+    const depthRow = Math.floor(p.y / TILE);
+    return depthRow <= SURFACE_ROWS && Math.abs(p.x - (WORLD_COLS / 2) * TILE) < 3 * TILE;
+  }
+
   function updateHUD() {
     const p = state.player;
     document.getElementById('hud-money').textContent = '$' + p.money;
@@ -939,10 +967,11 @@
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     document.getElementById('hud-depth').textContent = '↓ ' + depthM + 'm';
     const maxDepth = WORLD_ROWS - SURFACE_ROWS;
-    if (depthM >= maxDepth) {
+    const progressDepth = state.maxDepthReached;
+    if (progressDepth >= maxDepth) {
       document.getElementById('hud-goal').textContent = '🎯 MAX';
     } else {
-      const nextDepthBonus = (Math.floor(depthM / DEPTH_BONUS_STEP) + 1) * DEPTH_BONUS_STEP;
+      const nextDepthBonus = (Math.floor(progressDepth / DEPTH_BONUS_STEP) + 1) * DEPTH_BONUS_STEP;
       document.getElementById('hud-goal').textContent = '🎯 ' + Math.min(nextDepthBonus, maxDepth) + 'm';
     }
     const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
@@ -956,15 +985,13 @@
     else hullEl.style.color = '#ff6666';
 
     // Show shop button when near shop on surface
-    const depthRow = Math.floor(p.y / TILE);
     const shopBtn = document.getElementById('shop-btn');
-    const nearShop = depthRow <= SURFACE_ROWS &&
-      Math.abs(p.x - (WORLD_COLS / 2) * TILE) < 3 * TILE;
-    shopBtn.style.display = nearShop ? 'flex' : 'none';
+    shopBtn.style.display = isNearShop() ? 'flex' : 'none';
   }
 
   // === Shop ===
   function openShop() {
+    if (!state || !state.running || !isNearShop()) return;
     const p = state.player;
     // Sell all cargo automatically
     let sellTotal = 0;
@@ -1025,7 +1052,7 @@
         <div class="upgrade-info">
           <div class="upgrade-name">${item.name}</div>
           <div class="upgrade-desc">${item.desc}</div>
-          <div class="upgrade-level" style="color:#e8a030">One-time use</div>
+          <div class="upgrade-level" style="color:#e8a030">One-time use • Owned ${p.consumables[item.id] || 0}</div>
         </div>
         <button class="upgrade-buy" ${canBuy ? '' : 'disabled'}>$${item.cost}</button>
       `;
@@ -1088,10 +1115,30 @@
     const item = CONSUMABLES.find(c => c.id === id);
     if (!item || p.money < item.cost) return;
     p.money -= item.cost;
-    item.action(p, state);
-    addMessage(item.name + '!', '#44ff66');
+    p.consumables[id] = (p.consumables[id] || 0) + 1;
+    addMessage(item.name + ' acquired', CONSUMABLE_SUCCESS_COLOR);
     document.getElementById('shop-money').textContent = p.money;
     renderShopItems();
+    updateHUD();
+  }
+
+  function useConsumable(id) {
+    if (!state || !state.running) return;
+    const p = state.player;
+    if ((p.consumables[id] || 0) <= 0) return;
+    const item = CONSUMABLES.find(c => c.id === id);
+    if (!item) return;
+    const used = item.action(p, state);
+    if (!used) {
+      addMessage('Cannot use ' + item.name + ' right now', '#ffaa33');
+      return;
+    }
+    p.consumables[id]--;
+    addMessage(item.name + ' used!', CONSUMABLE_SUCCESS_COLOR);
+    if (document.getElementById('shop-overlay').classList.contains('open')) {
+      document.getElementById('shop-money').textContent = p.money;
+      renderShopItems();
+    }
     updateHUD();
   }
 
@@ -1100,9 +1147,10 @@
   }
 
   // === Game over ===
-  function gameOver(reason) {
+  function gameOver(reason, won = false) {
     if (!state.running) return;
     state.running = false;
+    document.getElementById('gameover-title').textContent = won ? '🏆 You Win!' : '💀 Game Over';
     document.getElementById('gameover-reason').textContent = reason;
     document.getElementById('gameover-depth').textContent = state.maxDepthReached;
     document.getElementById('gameover-money').textContent = state.player.totalEarned;
@@ -1130,8 +1178,19 @@
     ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
     a: 'left', d: 'right', w: 'up', s: 'down',
     A: 'left', D: 'right', W: 'up', S: 'down',
+    ' ': 'up', Spacebar: 'up',
   };
   document.addEventListener('keydown', (e) => {
+    if (state && state.running && (e.key === 'e' || e.key === 'E') && isNearShop()) {
+      openShop();
+      e.preventDefault();
+      return;
+    }
+    if (state && state.running && !document.getElementById('shop-overlay').classList.contains('open')) {
+      if (e.key === '1') { useConsumable('repair'); e.preventDefault(); return; }
+      if (e.key === '2') { useConsumable('reserve_tank'); e.preventDefault(); return; }
+      if (e.key === '3') { useConsumable('dynamite'); e.preventDefault(); return; }
+    }
     if (keyMap[e.key] && state && state.running) {
       state.input[keyMap[e.key]] = true;
       e.preventDefault();
