@@ -247,7 +247,7 @@
   <div class="modal">
     <h2>⛏️ Deep Miner</h2>
     <p>Dig deep into the earth to mine valuable minerals! Sell them at the surface shop to upgrade your drill, fuel tank, cargo bay, and hull.</p>
-    <p>Use the D-pad or arrow keys / WASD to move. Hold UP (or Space) to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <p>Use the D-pad or arrow keys / WASD to move. Hold UP (or Spacebar) to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
     <p>Press E to open shop near the surface. Use 1/2/3 to trigger Repair/Fuel/Dynamite consumables.</p>
     <button class="start-btn" id="start-btn">Start Mining!</button>
   </div>
@@ -382,6 +382,7 @@
         let collected = 0;
         let lost = 0;
         let cleared = 0;
+        let reachedCore = false;
         let cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
         for (let dr = -1; dr <= 1; dr++) {
           for (let dc = -1; dc <= 1; dc++) {
@@ -400,15 +401,15 @@
                 }
                 state.world[r][c] = { type: 'air', mineral: null, hardness: 0 };
                 cleared++;
+                if (r === WORLD_ROWS - 1) reachedCore = true;
               }
             }
           }
         }
         if (cleared === 0) return false;
-        const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
-        const maxDepth = WORLD_ROWS - SURFACE_ROWS;
-        if (depthM >= maxDepth - 1) {
+        if (reachedCore) {
           gameOver('You blasted the core with dynamite. You win!', true);
+          return true;
         }
         if (collected > 0) addMessage('Dynamite found ' + collected + ' mineral(s)!', CONSUMABLE_SUCCESS_COLOR);
         if (lost > 0) addMessage(lost + ' mineral(s) lost - cargo full!', '#ff4444');
@@ -1129,6 +1130,7 @@
     const item = CONSUMABLES.find(c => c.id === id);
     if (!item) return;
     const used = item.action(p, state);
+    if (!state.running) return;
     if (!used) {
       addMessage('Cannot use ' + item.name + ' right now', '#ffaa33');
       return;
@@ -1178,7 +1180,7 @@
     ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
     a: 'left', d: 'right', w: 'up', s: 'down',
     A: 'left', D: 'right', W: 'up', S: 'down',
-    ' ': 'up', Spacebar: 'up',
+    ' ': 'up',
   };
   document.addEventListener('keydown', (e) => {
     if (state && state.running && (e.key === 'e' || e.key === 'E') && isNearShop()) {
