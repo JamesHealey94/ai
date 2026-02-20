@@ -237,7 +237,7 @@
   <div class="modal">
     <h2>⛏️ Mining Shop</h2>
     <p>Balance: $<span id="shop-money">0</span></p>
-    <p id="shop-consumables-hint">Consumables owned: 🧰0 ⛽0 💣0 🎉0 • Use keys 1/2/3/4</p>
+    <p id="shop-consumables-hint"></p>
     <div id="shop-items"></div>
     <button class="modal-close" id="shop-close">Close</button>
   </div>
@@ -296,6 +296,10 @@
   const DEPTH_BONUS_MULTIPLIER = 5;
   const DEPTH_BONUS_COLOR = '#66bbff';
   const CONSUMABLE_SUCCESS_COLOR = '#44ff66';
+  const CONSUMABLE_USE_KEYS = { repair: '1', reserve_tank: '2', dynamite: '3', party_pack: '4' };
+  const CONSUMABLE_KEY_LIST = Object.values(CONSUMABLE_USE_KEYS).join('/');
+  const PARTY_PACK_MIN_REWARD = 25;
+  const PARTY_PACK_MAX_REWARD = 150;
 
   // === Mineral definitions ===
   const MINERALS = [
@@ -421,7 +425,7 @@
       id: 'party_pack', name: 'Party Pack', desc: 'Confetti + random cash reward',
       cost: 120,
       action: (p) => {
-        const reward = 25 + Math.floor(Math.random() * 126);
+        const reward = PARTY_PACK_MIN_REWARD + Math.floor(Math.random() * (PARTY_PACK_MAX_REWARD - PARTY_PACK_MIN_REWARD + 1));
         p.money += reward;
         p.totalEarned += reward;
         addMessage('🎉 Party bonus +$' + reward, '#ffd166');
@@ -1035,7 +1039,7 @@
       ' ⛽' + (p.consumables.reserve_tank || 0) +
       ' 💣' + (p.consumables.dynamite || 0) +
       ' 🎉' + (p.consumables.party_pack || 0) +
-      ' • Use keys 1/2/3/4';
+      ' • Use keys ' + CONSUMABLE_KEY_LIST;
 
     for (const upg of UPGRADES) {
       const level = p.upgrades[upg.id];
@@ -1071,7 +1075,7 @@
         <div class="upgrade-info">
           <div class="upgrade-name">${item.name}</div>
           <div class="upgrade-desc">${item.desc}</div>
-          <div class="upgrade-level" style="color:#e8a030">One-time use • Owned ${p.consumables[item.id] || 0} • Press ${item.id === 'repair' ? '1' : item.id === 'reserve_tank' ? '2' : item.id === 'dynamite' ? '3' : '4'}</div>
+          <div class="upgrade-level" style="color:#e8a030">One-time use • Owned ${p.consumables[item.id] || 0} • Press ${CONSUMABLE_USE_KEYS[item.id] || '?'}</div>
         </div>
         <button class="upgrade-buy" ${canBuy ? '' : 'disabled'}>$${item.cost}</button>
       `;
@@ -1206,7 +1210,8 @@
       e.preventDefault();
       return;
     }
-    if (state && state.running && (e.key === 'p' || e.key === 'P')) {
+    // Hidden cheat requested for quick testing/fun.
+    if (state && state.running && e.key.toLowerCase() === 'p') {
       state.player.money += 100;
       addMessage('+$100', '#66ff99');
       if (document.getElementById('shop-overlay').classList.contains('open')) {
