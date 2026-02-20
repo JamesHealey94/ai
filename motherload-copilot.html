@@ -247,7 +247,6 @@
       <div><span class="stat-val depth-color" id="hud-depth">↓ 0m</span></div>
       <div><span class="stat-val depth-color" id="hud-goal" aria-label="Next depth bonus">🎯 50m</span></div>
       <div><span class="stat-val cargo-color" id="hud-cargo">📦 0/5</span></div>
-      <div><span class="stat-val cargo-color" id="hud-consumables" aria-label="Consumables inventory"></span></div>
       <div><span class="stat-val hull-color" id="hud-hull">🛡 100%</span></div>
     </div>
   </div>
@@ -1057,11 +1056,6 @@
     }
     const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
     document.getElementById('hud-cargo').textContent = '📦 ' + cargoWeight + '/' + p.maxCargo;
-    document.getElementById('hud-consumables').textContent =
-      '🧰' + (p.consumables.repair || 0) +
-      ' ⛽' + (p.consumables.reserve_tank || 0) +
-      ' 💣' + (p.consumables.dynamite || 0) +
-      ' 🎁' + (p.consumables.mystery_crate || 0);
     document.getElementById('cnt-repair').textContent = p.consumables.repair || 0;
     document.getElementById('cnt-reserve_tank').textContent = p.consumables.reserve_tank || 0;
     document.getElementById('cnt-dynamite').textContent = p.consumables.dynamite || 0;
