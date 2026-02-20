@@ -214,7 +214,9 @@
       <div><span class="stat-val money-color" id="hud-money">$0</span></div>
       <div><span class="stat-val fuel-color" id="hud-fuel">⛽ 100/100</span></div>
       <div><span class="stat-val depth-color" id="hud-depth">↓ 0m</span></div>
+      <div><span class="stat-val depth-color" id="hud-goal" aria-label="Next depth bonus">🎯 50m</span></div>
       <div><span class="stat-val cargo-color" id="hud-cargo">📦 0/5</span></div>
+      <div><span class="stat-val cargo-color" id="hud-consumables" aria-label="Consumables inventory"></span></div>
       <div><span class="stat-val hull-color" id="hud-hull">🛡 100%</span></div>
     </div>
   </div>
@@ -236,6 +238,7 @@
   <div class="modal">
     <h2>⛏️ Mining Shop</h2>
     <p>Balance: $<span id="shop-money">0</span></p>
+    <p id="shop-consumables-hint"></p>
     <div id="shop-items"></div>
     <button class="modal-close" id="shop-close">Close</button>
   </div>
@@ -246,7 +249,8 @@
   <div class="modal">
     <h2>⛏️ Deep Miner</h2>
     <p>Dig deep into the earth to mine valuable minerals! Sell them at the surface shop to upgrade your drill, fuel tank, cargo bay, and hull.</p>
-    <p>Use the D-pad or arrow keys / WASD to move. Hold UP to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <p>Use the D-pad or arrow keys / WASD to move. Hold UP (or Spacebar) to fly with thrusters. Drill left, right, and down into the ground. Watch your fuel!</p>
+    <p>Press E to open shop near the surface (Esc closes it). Use 1/2/3/4 to trigger Repair/Fuel/Dynamite/Mystery consumables.</p>
     <button class="start-btn" id="start-btn">Start Mining!</button>
   </div>
 </div>
@@ -254,7 +258,7 @@
 <!-- Game Over Screen -->
 <div class="modal-overlay" id="gameover-overlay">
   <div class="modal">
-    <h2>💀 Game Over</h2>
+    <h2 id="gameover-title">💀 Game Over</h2>
     <p id="gameover-reason"></p>
     <p>Final depth: <span id="gameover-depth">0</span>m<br>Total earned: $<span id="gameover-money">0</span></p>
     <button class="start-btn" id="restart-btn">Try Again</button>
@@ -289,6 +293,20 @@
   const FUEL_MOVE = 0.06;
   const FUEL_DRILL = 0.12;
   const NUDGE_DISTANCE = TILE / 2; // pixels to nudge when stuck flying up
+  const DEPTH_BONUS_STEP = 50;
+  const DEPTH_BONUS_MULTIPLIER = 5;
+  const DEPTH_BONUS_COLOR = '#66bbff';
+  const CONSUMABLE_SUCCESS_COLOR = '#44ff66';
+  const CONSUMABLE_USE_KEYS = { repair: '1', reserve_tank: '2', dynamite: '3', mystery_crate: '4' };
+  const CONSUMABLE_KEY_LIST = Object.values(CONSUMABLE_USE_KEYS).join('/');
+  const MYSTERY_CRATE_MIN_REWARD = 40;
+  const MYSTERY_CRATE_MAX_REWARD = 180;
+  const MYSTERY_CRATE_CASH_CHANCE = 1 / 3;
+  const MYSTERY_CRATE_FUEL_CHANCE = 2 / 3;
+  const MYSTERY_CRATE_FUEL_BOOST_PERCENT = 0.4;
+  const MYSTERY_CRATE_HULL_BOOST_PERCENT = 0.35;
+  const CORE_ROW_INDEX = WORLD_ROWS - 1;
+  const DYNAMITE_PACK_COST = 4321;
 
   // === Mineral definitions ===
   const MINERALS = [
@@ -314,59 +332,69 @@
   const UPGRADES = [
     {
       id: 'drill', name: 'Drill', desc: 'Drill faster through blocks',
-      levels: [0, 200, 600, 1500, 4000, 10000],
-      effect: [1, 1.5, 2, 3, 4.5, 6],
+      levels: [0, 200, 600, 1500, 4000, 10000, 22000, 45000, 90000, 180000],
+      effect: [1, 1.5, 2, 3, 4.5, 6, 7.5, 9, 10.5, 12],
     },
     {
       id: 'fuel', name: 'Fuel Tank', desc: 'Larger fuel capacity',
-      levels: [0, 150, 500, 1200, 3000, 8000],
-      effect: [100, 150, 220, 320, 450, 600],
+      levels: [0, 150, 500, 1200, 3000, 8000, 18000, 36000, 70000, 130000],
+      effect: [100, 150, 220, 320, 450, 600, 800, 1050, 1350, 1700],
     },
     {
       id: 'cargo', name: 'Cargo Bay', desc: 'Carry more minerals',
-      levels: [0, 180, 550, 1400, 3500, 9000],
-      effect: [5, 8, 12, 18, 25, 35],
+      levels: [0, 180, 550, 1400, 3500, 9000, 20000, 40000, 78000, 145000],
+      effect: [5, 8, 12, 18, 25, 35, 48, 64, 82, 105],
     },
     {
       id: 'hull', name: 'Hull Armor', desc: 'More hull strength',
-      levels: [0, 250, 700, 1800, 5000, 12000],
-      effect: [100, 150, 220, 320, 450, 600],
+      levels: [0, 250, 700, 1800, 5000, 12000, 25000, 50000, 95000, 170000],
+      effect: [100, 150, 220, 320, 450, 600, 800, 1050, 1350, 1700],
     },
     {
       id: 'radiator', name: 'Radiator', desc: 'Reduce heat damage at depth',
-      levels: [0, 300, 800, 2000, 5500, 14000],
-      effect: [0, 0.25, 0.5, 0.7, 0.85, 1.0],
+      levels: [0, 300, 800, 2000, 5500, 14000, 28000, 52000, 90000, 150000],
+      effect: [0, 0.25, 0.5, 0.7, 0.85, 0.9, 0.93, 0.95, 0.97, 1.0],
     },
     {
       id: 'efficiency', name: 'Fuel Efficiency', desc: 'Use less fuel when moving',
-      levels: [0, 200, 600, 1500, 4000, 10000],
-      effect: [1, 0.85, 0.7, 0.55, 0.4, 0.25],
+      levels: [0, 200, 600, 1500, 4000, 10000, 22000, 42000, 78000, 140000],
+      effect: [1, 0.85, 0.7, 0.55, 0.4, 0.25, 0.2, 0.17, 0.14, 0.12],
     },
     {
       id: 'thruster', name: 'Thruster', desc: 'Fly upward faster',
-      levels: [0, 250, 700, 1800, 5000],
-      effect: [0.6, 0.8, 1.0, 1.3, 1.6],
+      levels: [0, 250, 700, 1800, 5000, 12000, 26000, 52000, 98000, 175000],
+      effect: [0.6, 0.8, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8, 3.1],
     },
   ];
   const CONSUMABLES = [
     {
       id: 'repair', name: 'Hull Repair Kit', desc: 'Restore hull to full',
       cost: 300,
-      action: (p) => { p.hull = p.maxHull; },
+      action: (p) => {
+        if (p.hull >= p.maxHull) return false;
+        p.hull = p.maxHull;
+        return true;
+      },
     },
     {
       id: 'reserve_tank', name: 'Reserve Fuel Tank', desc: 'Refill fuel to full',
       cost: 250,
-      action: (p) => { p.fuel = p.maxFuel; },
+      action: (p) => {
+        if (p.fuel >= p.maxFuel) return false;
+        p.fuel = p.maxFuel;
+        return true;
+      },
     },
     {
       id: 'dynamite', name: 'Dynamite Pack', desc: 'Clears 3×3 blocks around you',
-      cost: 500,
+      cost: DYNAMITE_PACK_COST,
       action: (p, state) => {
         const cx = Math.floor((p.x + p.w / 2) / TILE);
         const cy = Math.floor((p.y + p.h / 2) / TILE);
         let collected = 0;
         let lost = 0;
+        let cleared = 0;
+        let reachedCore = false;
         let cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
         for (let dr = -1; dr <= 1; dr++) {
           for (let dc = -1; dc <= 1; dc++) {
@@ -384,11 +412,40 @@
                   }
                 }
                 state.world[r][c] = { type: 'air', mineral: null, hardness: 0 };
+                cleared++;
+                if (r === CORE_ROW_INDEX) reachedCore = true;
               }
             }
           }
         }
+        if (cleared === 0) return false;
+        if (reachedCore) {
+          gameOver('You blasted the core with dynamite. You win!', true);
+          return true;
+        }
+        if (collected > 0) addMessage('Dynamite found ' + collected + ' mineral(s)!', CONSUMABLE_SUCCESS_COLOR);
         if (lost > 0) addMessage(lost + ' mineral(s) lost - cargo full!', '#ff4444');
+        return true;
+      },
+    },
+    {
+      id: 'mystery_crate', name: 'Mystery Crate', desc: 'Random bonus: cash, fuel, or hull',
+      cost: 120,
+      action: (p) => {
+        const roll = Math.random();
+        if (roll < MYSTERY_CRATE_CASH_CHANCE) {
+          const reward = MYSTERY_CRATE_MIN_REWARD + Math.floor(Math.random() * (MYSTERY_CRATE_MAX_REWARD - MYSTERY_CRATE_MIN_REWARD + 1));
+          p.money += reward;
+          p.totalEarned += reward;
+          addMessage('🎁 Mystery cash +$' + reward, '#ffd166');
+        } else if (roll < MYSTERY_CRATE_FUEL_CHANCE) {
+          p.fuel = Math.min(p.maxFuel, p.fuel + Math.ceil(p.maxFuel * MYSTERY_CRATE_FUEL_BOOST_PERCENT));
+          addMessage('🎁 Mystery fuel boost!', '#66bbff');
+        } else {
+          p.hull = Math.min(p.maxHull, p.hull + Math.ceil(p.maxHull * MYSTERY_CRATE_HULL_BOOST_PERCENT));
+          addMessage('🎁 Mystery hull patch!', '#ff9f66');
+        }
+        return true;
       },
     },
   ];
@@ -420,11 +477,13 @@
         drilling: null, // { tx, ty, progress }
         onGround: false,
         facingRight: true,
+        consumables: { repair: 0, reserve_tank: 0, dynamite: 0, mystery_crate: 0 },
       },
       world: [],
       camera: { x: 0, y: 0 },
       input: { left: false, right: false, up: false, down: false },
       maxDepthReached: 0,
+      depthBonusesClaimed: {},
       particles: [],
       messages: [],
     };
@@ -515,6 +574,11 @@
 
     // Drilling
     if (p.drilling) {
+      if (p.drilling.ty === CORE_ROW_INDEX) {
+        p.drilling = null;
+        addMessage('Core can only be mined with dynamite!', '#ffd166');
+        return;
+      }
       p.drilling.progress += p.drillPower;
       p.fuel = Math.max(0, p.fuel - FUEL_DRILL);
       if (p.drilling.progress >= DRILL_TIME * getTile(p.drilling.tx, p.drilling.ty).hardness) {
@@ -584,7 +648,7 @@
         const bottomRow = Math.floor((snappedY + p.h - 1) / TILE);
         for (let r = topRow; r <= bottomRow; r++) {
           const target = getTile(drillCol, r);
-          if (target.type === 'dirt') {
+          if (target.type === 'dirt' && r !== CORE_ROW_INDEX) {
             p.y = snappedY; // align to grid for clean drilling
             p.drilling = { tx: drillCol, ty: r, progress: 0 };
             break;
@@ -638,7 +702,7 @@
           const drillCol = Math.floor((p.x + p.w / 2) / TILE);
           const drillRow = solidRow;
           const target = getTile(drillCol, drillRow);
-          if (target.type === 'dirt') {
+          if (target.type === 'dirt' && drillRow !== CORE_ROW_INDEX) {
             p.drilling = { tx: drillCol, ty: drillRow, progress: 0 };
           }
         }
@@ -655,6 +719,14 @@
     // Depth tracking
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     if (depthM > state.maxDepthReached) state.maxDepthReached = depthM;
+    const depthBonusMilestone = Math.floor(depthM / DEPTH_BONUS_STEP) * DEPTH_BONUS_STEP;
+    if (depthBonusMilestone > 0 && !state.depthBonusesClaimed[depthBonusMilestone]) {
+      const bonus = depthBonusMilestone * DEPTH_BONUS_MULTIPLIER;
+      state.depthBonusesClaimed[depthBonusMilestone] = true;
+      p.money += bonus;
+      p.totalEarned += bonus;
+      addMessage('Depth bonus +$' + bonus, DEPTH_BONUS_COLOR);
+    }
 
     // Heat damage at extreme depth
     if (depthM > 150) {
@@ -762,6 +834,7 @@
         if (tile.type === 'dirt') {
           // Base dirt color
           ctx.fillStyle = tile.dirtColor || '#6B4226';
+          if (r === CORE_ROW_INDEX) ctx.fillStyle = '#b32020';
           ctx.fillRect(sx, sy, TILE, TILE);
 
           // Grass top
@@ -786,6 +859,9 @@
 
           // Grid lines (subtle)
           ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          if (r === CORE_ROW_INDEX) {
+            ctx.strokeStyle = '#ffd166';
+          }
           ctx.strokeRect(sx, sy, TILE, TILE);
         }
 
@@ -919,14 +995,34 @@
   }
 
   // === HUD update ===
+  function isNearShop() {
+    if (!state) return false;
+    const p = state.player;
+    const depthRow = Math.floor(p.y / TILE);
+    return depthRow <= SURFACE_ROWS && Math.abs(p.x - (WORLD_COLS / 2) * TILE) < 3 * TILE;
+  }
+
   function updateHUD() {
     const p = state.player;
     document.getElementById('hud-money').textContent = '$' + p.money;
     document.getElementById('hud-fuel').textContent = '⛽ ' + Math.ceil(p.fuel) + '/' + p.maxFuel;
     const depthM = Math.max(0, Math.floor((p.y / TILE) - SURFACE_ROWS + 1));
     document.getElementById('hud-depth').textContent = '↓ ' + depthM + 'm';
+    const maxDepth = WORLD_ROWS - SURFACE_ROWS;
+    const progressDepth = state.maxDepthReached;
+    if (progressDepth >= maxDepth) {
+      document.getElementById('hud-goal').textContent = '🎯 MAX';
+    } else {
+      const nextDepthBonus = (Math.floor(progressDepth / DEPTH_BONUS_STEP) + 1) * DEPTH_BONUS_STEP;
+      document.getElementById('hud-goal').textContent = '🎯 ' + Math.min(nextDepthBonus, maxDepth) + 'm';
+    }
     const cargoWeight = p.cargo.reduce((s, m) => s + m.weight, 0);
     document.getElementById('hud-cargo').textContent = '📦 ' + cargoWeight + '/' + p.maxCargo;
+    document.getElementById('hud-consumables').textContent =
+      '🧰' + (p.consumables.repair || 0) +
+      ' ⛽' + (p.consumables.reserve_tank || 0) +
+      ' 💣' + (p.consumables.dynamite || 0) +
+      ' 🎁' + (p.consumables.mystery_crate || 0);
     document.getElementById('hud-hull').textContent = '🛡 ' + Math.ceil(p.hull) + '%';
 
     // Hull color warning
@@ -936,15 +1032,13 @@
     else hullEl.style.color = '#ff6666';
 
     // Show shop button when near shop on surface
-    const depthRow = Math.floor(p.y / TILE);
     const shopBtn = document.getElementById('shop-btn');
-    const nearShop = depthRow <= SURFACE_ROWS &&
-      Math.abs(p.x - (WORLD_COLS / 2) * TILE) < 3 * TILE;
-    shopBtn.style.display = nearShop ? 'flex' : 'none';
+    shopBtn.style.display = isNearShop() ? 'flex' : 'none';
   }
 
   // === Shop ===
   function openShop() {
+    if (!state || !state.running || !isNearShop()) return;
     const p = state.player;
     // Sell all cargo automatically
     let sellTotal = 0;
@@ -970,6 +1064,12 @@
     const container = document.getElementById('shop-items');
     container.innerHTML = '';
     const p = state.player;
+    document.getElementById('shop-consumables-hint').textContent =
+      'Consumables owned: 🧰' + (p.consumables.repair || 0) +
+      ' ⛽' + (p.consumables.reserve_tank || 0) +
+      ' 💣' + (p.consumables.dynamite || 0) +
+      ' 🎁' + (p.consumables.mystery_crate || 0) +
+      ' • Use keys ' + CONSUMABLE_KEY_LIST;
 
     for (const upg of UPGRADES) {
       const level = p.upgrades[upg.id];
@@ -1005,7 +1105,7 @@
         <div class="upgrade-info">
           <div class="upgrade-name">${item.name}</div>
           <div class="upgrade-desc">${item.desc}</div>
-          <div class="upgrade-level" style="color:#e8a030">One-time use</div>
+          <div class="upgrade-level" style="color:#e8a030">One-time use • Owned ${p.consumables[item.id] || 0} • Press ${CONSUMABLE_USE_KEYS[item.id] || '?'}</div>
         </div>
         <button class="upgrade-buy" ${canBuy ? '' : 'disabled'}>$${item.cost}</button>
       `;
@@ -1068,10 +1168,31 @@
     const item = CONSUMABLES.find(c => c.id === id);
     if (!item || p.money < item.cost) return;
     p.money -= item.cost;
-    item.action(p, state);
-    addMessage(item.name + '!', '#44ff66');
+    p.consumables[id] = (p.consumables[id] || 0) + 1;
+    addMessage(item.name + ' acquired', CONSUMABLE_SUCCESS_COLOR);
     document.getElementById('shop-money').textContent = p.money;
     renderShopItems();
+    updateHUD();
+  }
+
+  function useConsumable(id) {
+    if (!state || !state.running) return;
+    const p = state.player;
+    if ((p.consumables[id] || 0) <= 0) return;
+    const item = CONSUMABLES.find(c => c.id === id);
+    if (!item) return;
+    const used = item.action(p, state);
+    if (!state.running) return;
+    if (!used) {
+      addMessage('Cannot use ' + item.name + ' right now', '#ffaa33');
+      return;
+    }
+    p.consumables[id]--;
+    addMessage(item.name + ' used!', CONSUMABLE_SUCCESS_COLOR);
+    if (document.getElementById('shop-overlay').classList.contains('open')) {
+      document.getElementById('shop-money').textContent = p.money;
+      renderShopItems();
+    }
     updateHUD();
   }
 
@@ -1080,9 +1201,10 @@
   }
 
   // === Game over ===
-  function gameOver(reason) {
+  function gameOver(reason, won = false) {
     if (!state.running) return;
     state.running = false;
+    document.getElementById('gameover-title').textContent = won ? '🏆 You Win!' : '💀 Game Over';
     document.getElementById('gameover-reason').textContent = reason;
     document.getElementById('gameover-depth').textContent = state.maxDepthReached;
     document.getElementById('gameover-money').textContent = state.player.totalEarned;
@@ -1110,8 +1232,37 @@
     ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
     a: 'left', d: 'right', w: 'up', s: 'down',
     A: 'left', D: 'right', W: 'up', S: 'down',
+    ' ': 'up',
   };
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('shop-overlay').classList.contains('open')) {
+      closeShop();
+      e.preventDefault();
+      return;
+    }
+    // Hidden cheat requested for quick testing/fun.
+    if (state && state.running && e.key.toLowerCase() === 'p') {
+      state.player.money += 100;
+      addMessage('+$100', '#66ff99');
+      if (document.getElementById('shop-overlay').classList.contains('open')) {
+        document.getElementById('shop-money').textContent = state.player.money;
+        renderShopItems();
+      }
+      updateHUD();
+      e.preventDefault();
+      return;
+    }
+    if (state && state.running && (e.key === 'e' || e.key === 'E') && isNearShop()) {
+      openShop();
+      e.preventDefault();
+      return;
+    }
+    if (state && state.running && !document.getElementById('shop-overlay').classList.contains('open')) {
+      if (e.key === '1') { useConsumable('repair'); e.preventDefault(); return; }
+      if (e.key === '2') { useConsumable('reserve_tank'); e.preventDefault(); return; }
+      if (e.key === '3') { useConsumable('dynamite'); e.preventDefault(); return; }
+      if (e.key === '4') { useConsumable('mystery_crate'); e.preventDefault(); return; }
+    }
     if (keyMap[e.key] && state && state.running) {
       state.input[keyMap[e.key]] = true;
       e.preventDefault();
