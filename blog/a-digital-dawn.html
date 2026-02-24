@@ -40,32 +40,11 @@
       color: var(--text);
       line-height: 1.7;
     }
-    .site-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 0.75rem 0;
-      margin-bottom: 1.25rem;
-      border-bottom: 1px solid var(--poem-border);
-    }
-    .nav-link {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    .nav-link:hover { color: var(--link); }
-    .theme-toggle {
-      padding: 0.45rem 0.7rem;
-      border: 1px solid var(--toggle-border);
-      border-radius: 8px;
-      background: var(--toggle-bg);
-      color: var(--text);
-      cursor: pointer;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
+    .site-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 0; margin-bottom: 1.25rem; border-bottom: 1px solid var(--poem-border); }
+    .nav-brand { font-size: 1.2rem; font-weight: 700; color: var(--text); text-decoration: none; }
+    .nav-brand:hover { text-decoration: none; opacity: 0.8; }
+    .nav-actions { display: flex; align-items: center; gap: 1rem; }
+    .theme-toggle { padding: 0.45rem 0.7rem; border: 1px solid var(--toggle-border); border-radius: 8px; background: var(--toggle-bg); color: var(--text); cursor: pointer; }
     h1 { font-size: 2rem; }
     .post-meta {
       color: var(--muted);
@@ -110,8 +89,10 @@
 </head>
 <body>
   <nav class="site-nav">
-    <a href="index.html" class="nav-link">&larr; Blog</a>
-    <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+    <a href="index.html" class="nav-brand">&larr; Blog</a>
+    <div class="nav-actions">
+      <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+    </div>
   </nav>
 
   <h1>A Digital Dawn</h1>
