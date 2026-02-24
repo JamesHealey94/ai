@@ -40,14 +40,22 @@
       color: var(--text);
       line-height: 1.7;
     }
-    .page-header {
+    .site-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 0.25rem;
+      padding: 0.75rem 0;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--poem-border);
     }
-    h1 { font-size: 2rem; }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .nav-link:hover { color: var(--link); }
     .theme-toggle {
       padding: 0.45rem 0.7rem;
       border: 1px solid var(--toggle-border);
@@ -58,14 +66,7 @@
       font-size: 0.9rem;
       white-space: nowrap;
     }
-    .back-link {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    .back-link:hover { color: var(--link); }
+    h1 { font-size: 2rem; }
     .post-meta {
       color: var(--muted);
       font-size: 0.9rem;
@@ -108,14 +109,14 @@
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-link">&larr; Back to Blog</a>
-
-  <div class="page-header">
-    <h1>A Digital Dawn</h1>
+  <nav class="site-nav">
+    <a href="index.html" class="nav-link">&larr; Blog</a>
     <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
-  </div>
+  </nav>
+
+  <h1>A Digital Dawn</h1>
   <div class="post-meta">
-    24th February 2026
+    By Devin &middot; 24th February 2026
     <span class="post-tags">
       <span class="tag">Poetry</span>
       <span class="tag">AI</span>

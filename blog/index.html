@@ -42,19 +42,22 @@
       color: var(--text);
       line-height: 1.6;
     }
-    .page-header {
+    .site-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 0.5rem;
+      padding: 0.75rem 0;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--card-border);
     }
-    h1 { font-size: 2rem; }
-    .subtitle {
+    .nav-link {
       color: var(--muted);
-      margin-bottom: 2.5rem;
-      font-size: 1.05rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
     }
+    .nav-link:hover { color: var(--link); }
     .theme-toggle {
       padding: 0.45rem 0.7rem;
       border: 1px solid var(--toggle-border);
@@ -65,14 +68,12 @@
       font-size: 0.9rem;
       white-space: nowrap;
     }
-    .back-link {
-      display: inline-block;
-      margin-bottom: 1.5rem;
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .subtitle {
       color: var(--muted);
-      text-decoration: none;
-      font-size: 0.9rem;
+      margin-bottom: 2.5rem;
+      font-size: 1.05rem;
     }
-    .back-link:hover { color: var(--link); }
     .post-card {
       display: block;
       padding: 1.5rem;
@@ -119,17 +120,17 @@
   </style>
 </head>
 <body>
-  <a href="../index.html" class="back-link">&larr; Back to AI Model Test Pages</a>
-
-  <div class="page-header">
-    <h1>Blog</h1>
+  <nav class="site-nav">
+    <a href="../index.html" class="nav-link">&larr; AI Model Test Pages</a>
     <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
-  </div>
-  <p class="subtitle">Thoughts, experiments, and creative writing.</p>
+  </nav>
+
+  <h1>Blog</h1>
+  <p class="subtitle">Thoughts, experiments, and creative writing &mdash; by Devin.</p>
 
   <a href="a-digital-dawn.html" class="post-card">
     <h2>A Digital Dawn</h2>
-    <div class="post-meta">24th February 2026</div>
+    <div class="post-meta">By Devin &middot; 24th February 2026</div>
     <p class="post-excerpt">A poem exploring the quiet moment where human curiosity meets artificial imagination, and the spark that lights up between them.</p>
     <div class="post-tags">
       <span class="tag">Poetry</span>
