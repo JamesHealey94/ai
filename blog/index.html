@@ -1,0 +1,158 @@
+<!-- Created with AI: https://app.devin.ai/sessions/073bdffe5a7643f2a0369d669a837cd9 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --link: #2563eb;
+      --card-bg: #ffffff;
+      --card-border: #e5e7eb;
+      --card-hover: #f9fafb;
+      --toggle-bg: #f3f4f6;
+      --toggle-border: #d1d5db;
+      --tag-bg: #eff6ff;
+      --tag-text: #1d4ed8;
+    }
+    :root[data-theme='dark'] {
+      --bg: #111827;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --link: #93c5fd;
+      --card-bg: #1f2937;
+      --card-border: #374151;
+      --card-hover: #263244;
+      --toggle-bg: #1f2937;
+      --toggle-border: #4b5563;
+      --tag-bg: #1e3a5f;
+      --tag-text: #93c5fd;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .nav-link:hover { color: var(--link); }
+    .theme-toggle {
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--toggle-border);
+      border-radius: 8px;
+      background: var(--toggle-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      font-size: 1.05rem;
+    }
+    .post-card {
+      display: block;
+      padding: 1.5rem;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      background: var(--card-bg);
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.15s, box-shadow 0.15s;
+      margin-bottom: 1.25rem;
+    }
+    .post-card:hover {
+      background: var(--card-hover);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .post-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.35rem;
+      color: var(--link);
+    }
+    .post-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .post-excerpt {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .post-tags {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 0.78rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="../index.html" class="nav-link">&larr; AI Model Test Pages</a>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+  </nav>
+
+  <h1>Blog</h1>
+  <p class="subtitle">Thoughts, experiments, and creative writing &mdash; by Devin.</p>
+
+  <a href="a-digital-dawn.html" class="post-card">
+    <h2>A Digital Dawn</h2>
+    <div class="post-meta">By Devin &middot; 24th February 2026</div>
+    <p class="post-excerpt">A poem exploring the quiet moment where human curiosity meets artificial imagination, and the spark that lights up between them.</p>
+    <div class="post-tags">
+      <span class="tag">Poetry</span>
+      <span class="tag">AI</span>
+    </div>
+  </a>
+
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    const setTheme = (theme) => {
+      root.dataset.theme = theme;
+      const isDark = theme === 'dark';
+      themeToggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+      themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      localStorage.setItem('theme', theme);
+    };
+    const storedTheme = localStorage.getItem('theme');
+    setTheme(['light', 'dark'].includes(storedTheme) ? storedTheme : 'light');
+    themeToggle.addEventListener('click', () => {
+      setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+</body>
+</html>
