@@ -1,0 +1,189 @@
+<!-- Made with AI: https://t3.chat/share/1xhzxv87am | Model: Gemini 3 Flash | Prompt: Recreate the CEF.co.uk website in a single HTML page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEF | Electrical Supplies & Essentials</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --cef-yellow: #ffdd00;
+            --cef-blue: #003366;
+        }
+        .bg-cef-yellow { background-color: var(--cef-yellow); }
+        .text-cef-blue { color: var(--cef-blue); }
+        .bg-cef-blue { background-color: var(--cef-blue); }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Top Bar -->
+    <div class="bg-gray-800 text-white text-xs py-2 px-4 flex justify-between items-center">
+        <div>FREE Delivery on orders over £50 (ex VAT)</div>
+        <div class="hidden md:flex gap-4">
+            <a href="#" class="hover:underline">Find a Store</a>
+            <a href="#" class="hover:underline">Catalogues</a>
+            <a href="#" class="hover:underline">Trade Account</a>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-cef-yellow p-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto flex flex-wrap items-center justify-between gap-4">
+            <!-- Logo -->
+            <div class="text-3xl font-black italic text-cef-blue tracking-tighter">
+                CEF<span class="text-sm not-italic align-top">.CO.UK</span>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 min-w-[300px]">
+                <div class="relative">
+                    <input type="text" placeholder="Search 40,000+ products..." class="w-full py-2 px-4 rounded-md focus:outline-none shadow-inner">
+                    <button class="absolute right-0 top-0 bg-cef-blue text-white h-full px-4 rounded-r-md">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Icons -->
+            <div class="flex items-center gap-6 text-cef-blue font-bold">
+                <div class="flex flex-col items-center cursor-pointer">
+                    <i class="fa-regular fa-user text-xl"></i>
+                    <span class="text-xs">Account</span>
+                </div>
+                <div class="flex flex-col items-center cursor-pointer">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    <span class="text-xs">Lists</span>
+                </div>
+                <div class="flex flex-col items-center cursor-pointer relative">
+                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    <span class="text-xs">Basket</span>
+                    <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-cef-blue text-white hidden md:block">
+        <div class="container mx-auto flex gap-8 py-3 text-sm font-semibold">
+            <a href="#" class="hover:text-cef-yellow uppercase">Browse Products</a>
+            <a href="#" class="hover:text-cef-yellow uppercase">Deals & Offers</a>
+            <a href="#" class="hover:text-cef-yellow uppercase">New Products</a>
+            <a href="#" class="hover:text-cef-yellow uppercase">Our Brands</a>
+            <a href="#" class="hover:text-cef-yellow uppercase">Services</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="container mx-auto mt-6 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 bg-white rounded-lg overflow-hidden shadow h-80 relative flex items-center px-12">
+                <div class="z-10 max-w-sm">
+                    <h1 class="text-4xl font-bold mb-4">The New 2024 Trade Catalogue</h1>
+                    <p class="mb-6">Pick up your copy in-store or browse online today.</p>
+                    <button class="bg-cef-yellow text-cef-blue font-bold py-3 px-8 rounded hover:bg-yellow-400 transition">Request a Copy</button>
+                </div>
+                <div class="absolute right-0 top-0 h-full w-1/2 bg-gray-200 flex items-center justify-center">
+                    <i class="fa-solid fa-book-open text-9xl text-gray-400"></i>
+                </div>
+            </div>
+            <div class="bg-cef-blue text-white p-8 rounded-lg flex flex-col justify-center">
+                <h2 class="text-2xl font-bold mb-2">Trade Account</h2>
+                <p class="mb-4 text-gray-300">Open a trade account today and enjoy personalized pricing and credit terms.</p>
+                <button class="border-2 border-white py-2 px-4 rounded font-bold hover:bg-white hover:text-cef-blue transition">Apply Now</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Categories -->
+    <section class="container mx-auto mt-12 px-4">
+        <h3 class="text-2xl font-bold mb-6">Popular Categories</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Category Item -->
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center">
+                <div class="bg-gray-100 h-24 mb-3 flex items-center justify-center rounded">
+                    <i class="fa-solid fa-lightbulb text-4xl text-gray-400"></i>
+                </div>
+                <span class="text-sm font-semibold">Lighting</span>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center">
+                <div class="bg-gray-100 h-24 mb-3 flex items-center justify-center rounded">
+                    <i class="fa-solid fa-plug text-4xl text-gray-400"></i>
+                </div>
+                <span class="text-sm font-semibold">Cables & Accessories</span>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center">
+                <div class="bg-gray-100 h-24 mb-3 flex items-center justify-center rounded">
+                    <i class="fa-solid fa-toggle-on text-4xl text-gray-400"></i>
+                </div>
+                <span class="text-sm font-semibold">Wiring Accessories</span>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center">
+                <div class="bg-gray-100 h-24 mb-3 flex items-center justify-center rounded">
+                    <i class="fa-solid fa-bolt text-4xl text-gray-400"></i>
+                </div>
+                <span class="text-sm font-semibold">Circuit Protection</span>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center">
+                <div class="bg-gray-100 h-24 mb-3 flex items-center justify-center rounded">
+                    <i class="fa-solid fa-screwdriver-wrench text-4xl text-gray-400"></i>
+                </div>
+                <span class="text-sm font-semibold">Tools & Equipment</span>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center">
+                <div class="bg-gray-100 h-24 mb-3 flex items-center justify-center rounded">
+                    <i class="fa-solid fa-fan text-4xl text-gray-400"></i>
+                </div>
+                <span class="text-sm font-semibold">Ventilation</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-cef-blue text-white mt-20 py-12 px-4">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <h4 class="font-bold text-lg mb-4 border-b border-gray-600 pb-2">Customer Service</h4>
+                <ul class="text-sm space-y-2 text-gray-300">
+                    <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                    <li><a href="#" class="hover:text-white">Delivery Information</a></li>
+                    <li><a href="#" class="hover:text-white">Returns & Refunds</a></li>
+                    <li><a href="#" class="hover:text-white">FAQs</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-lg mb-4 border-b border-gray-600 pb-2">Company Info</h4>
+                <ul class="text-sm space-y-2 text-gray-300">
+                    <li><a href="#" class="hover:text-white">About CEF</a></li>
+                    <li><a href="#" class="hover:text-white">Careers</a></li>
+                    <li><a href="#" class="hover:text-white">Gender Pay Gap</a></li>
+                    <li><a href="#" class="hover:text-white">Modern Slavery Statement</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-lg mb-4 border-b border-gray-600 pb-2">Shopping</h4>
+                <ul class="text-sm space-y-2 text-gray-300">
+                    <li><a href="#" class="hover:text-white">Catalogues</a></li>
+                    <li><a href="#" class="hover:text-white">Brands</a></li>
+                    <li><a href="#" class="hover:text-white">Buying Guides</a></li>
+                    <li><a href="#" class="hover:text-white">Trade Accounts</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-lg mb-4 border-b border-gray-600 pb-2">Stay Connected</h4>
+                <div class="flex gap-4 text-2xl">
+                    <i class="fa-brands fa-facebook cursor-pointer hover:text-cef-yellow"></i>
+                    <i class="fa-brands fa-twitter cursor-pointer hover:text-cef-yellow"></i>
+                    <i class="fa-brands fa-linkedin cursor-pointer hover:text-cef-yellow"></i>
+                    <i class="fa-brands fa-youtube cursor-pointer hover:text-cef-yellow"></i>
+                </div>
+                <p class="mt-4 text-xs text-gray-400">© 2026 City Electrical Factors Ltd. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
