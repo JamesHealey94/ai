@@ -1,0 +1,1245 @@
+<!-- Made with AI: https://t3.chat/share/imsp1vpaha -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>ElectroSupply - Electrical Products & Trade Supplies</title>
+    <style>
+      :root {
+        --yellow: #ffd200;
+        --yellow-dark: #e0b900;
+        --black: #111111;
+        --charcoal: #1e1e1e;
+        --gray-900: #222;
+        --gray-700: #555;
+        --gray-500: #888;
+        --gray-300: #dcdcdc;
+        --gray-200: #ededed;
+        --gray-100: #f6f6f6;
+        --white: #ffffff;
+        --green: #1f9d55;
+        --red: #d7263d;
+        --blue: #005bbb;
+        --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        --radius: 14px;
+        --max: 1280px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--gray-900);
+        background: var(--white);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      .container {
+        width: min(var(--max), calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        background: var(--black);
+        color: var(--white);
+        font-size: 13px;
+      }
+
+      .topbar-inner {
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 8px 0;
+      }
+
+      .topbar-left,
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .topbar a {
+        opacity: 0.95;
+      }
+
+      .topbar a:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+
+      .header {
+        background: var(--yellow);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+
+      .header-inner {
+        display: grid;
+        grid-template-columns: 220px 1fr auto;
+        gap: 20px;
+        align-items: center;
+        padding: 16px 0;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 900;
+        font-size: 30px;
+        letter-spacing: 0.5px;
+        color: var(--black);
+      }
+
+      .logo-badge {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: var(--black);
+        color: var(--yellow);
+        display: grid;
+        place-items: center;
+        font-size: 24px;
+        font-weight: 900;
+        box-shadow: var(--shadow);
+      }
+
+      .search {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        background: var(--white);
+        border-radius: 999px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .search input {
+        flex: 1;
+        border: 0;
+        outline: none;
+        padding: 16px 20px;
+        font-size: 15px;
+      }
+
+      .search button {
+        border: 0;
+        background: var(--black);
+        color: var(--white);
+        padding: 0 22px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .search button:hover {
+        background: #000;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .action-btn {
+        background: rgba(255, 255, 255, 0.45);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        color: var(--black);
+        border-radius: 999px;
+        padding: 12px 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+
+      .action-btn:hover {
+        background: rgba(255, 255, 255, 0.75);
+      }
+
+      .nav {
+        background: var(--white);
+        border-bottom: 1px solid var(--gray-200);
+      }
+
+      .nav-inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 12px 0;
+      }
+
+      .nav-link {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: var(--gray-100);
+        color: var(--gray-900);
+        font-weight: 700;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background: var(--yellow);
+        border-color: rgba(0, 0, 0, 0.08);
+      }
+
+      .hero {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(17, 17, 17, 0.88),
+            rgba(17, 17, 17, 0.7)
+          ),
+          radial-gradient(circle at top right, #ffea80, transparent 40%),
+          linear-gradient(120deg, #2a2a2a, #101010);
+        color: var(--white);
+      }
+
+      .hero-inner {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 30px;
+        align-items: center;
+        padding: 56px 0;
+      }
+
+      .hero-copy h1 {
+        margin: 0 0 14px;
+        font-size: clamp(34px, 5vw, 58px);
+        line-height: 1.02;
+      }
+
+      .hero-copy p {
+        margin: 0 0 24px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 18px;
+        max-width: 640px;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 20px;
+        font-weight: 800;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: var(--yellow);
+        color: var(--black);
+      }
+
+      .btn-primary:hover {
+        background: var(--yellow-dark);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--white);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .hero-panel {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 24px;
+        padding: 20px;
+        backdrop-filter: blur(8px);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .mini-card {
+        background: var(--white);
+        color: var(--gray-900);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+      }
+
+      .mini-card strong {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+
+      .mini-card span {
+        color: var(--gray-700);
+        font-size: 14px;
+      }
+
+      .section {
+        padding: 34px 0;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 18px;
+      }
+
+      .section-header h2 {
+        margin: 0;
+        font-size: 28px;
+      }
+
+      .section-header p {
+        margin: 6px 0 0;
+        color: var(--gray-700);
+      }
+
+      .link-more {
+        font-weight: 700;
+        color: var(--blue);
+      }
+
+      .link-more:hover {
+        text-decoration: underline;
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+      }
+
+      .category-card {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        padding: 18px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          border-color 0.18s ease;
+      }
+
+      .category-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow);
+        border-color: rgba(0, 0, 0, 0.08);
+      }
+
+      .icon-circle {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: var(--yellow);
+        display: grid;
+        place-items: center;
+        margin: 0 auto 12px;
+        font-size: 24px;
+        font-weight: 900;
+      }
+
+      .category-card h3 {
+        margin: 0 0 6px;
+        font-size: 16px;
+      }
+
+      .category-card p {
+        margin: 0;
+        color: var(--gray-700);
+        font-size: 13px;
+      }
+
+      .promo-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 18px;
+      }
+
+      .promo-main,
+      .promo-side {
+        border-radius: 22px;
+        overflow: hidden;
+        position: relative;
+        min-height: 240px;
+        color: var(--white);
+        box-shadow: var(--shadow);
+      }
+
+      .promo-main {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(0, 91, 187, 0.9),
+            rgba(0, 0, 0, 0.6)
+          ),
+          linear-gradient(120deg, #3a6ea5, #0d1b2a);
+      }
+
+      .promo-side {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(31, 157, 85, 0.9),
+            rgba(0, 0, 0, 0.5)
+          ),
+          linear-gradient(120deg, #2b9348, #081c15);
+      }
+
+      .promo-content {
+        position: absolute;
+        inset: 0;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+      }
+
+      .promo-kicker {
+        display: inline-block;
+        width: fit-content;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+
+      .promo-content h3 {
+        margin: 0 0 10px;
+        font-size: 30px;
+        line-height: 1.08;
+      }
+
+      .promo-content p {
+        margin: 0 0 16px;
+        max-width: 520px;
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+
+      .product-card {
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 18px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+
+      .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow);
+      }
+
+      .product-media {
+        background:
+          linear-gradient(135deg, #fafafa, #f0f0f0);
+        min-height: 180px;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+      }
+
+      .product-art {
+        width: 100%;
+        max-width: 160px;
+        aspect-ratio: 1;
+        border-radius: 20px;
+        background:
+          linear-gradient(145deg, var(--yellow), #ffe566);
+        border: 8px solid #1c1c1c;
+        box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.2);
+      }
+
+      .product-body {
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+      }
+
+      .sku {
+        color: var(--gray-500);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .product-title {
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.35;
+        min-height: 44px;
+      }
+
+      .stock {
+        font-size: 13px;
+        color: var(--green);
+        font-weight: 700;
+      }
+
+      .price-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: auto;
+      }
+
+      .price {
+        font-size: 26px;
+        font-weight: 900;
+      }
+
+      .price small {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--gray-700);
+      }
+
+      .buy-btn {
+        background: var(--yellow);
+        color: var(--black);
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .buy-btn:hover {
+        background: var(--yellow-dark);
+      }
+
+      .info-strip {
+        background: var(--gray-100);
+        border-top: 1px solid var(--gray-200);
+        border-bottom: 1px solid var(--gray-200);
+      }
+
+      .info-strip-inner {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        padding: 20px 0;
+      }
+
+      .info-item {
+        display: flex;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .info-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--yellow);
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+      }
+
+      .info-item h4 {
+        margin: 0 0 4px;
+        font-size: 15px;
+      }
+
+      .info-item p {
+        margin: 0;
+        color: var(--gray-700);
+        font-size: 13px;
+      }
+
+      .footer {
+        background: var(--charcoal);
+        color: var(--white);
+        margin-top: 24px;
+      }
+
+      .footer-top {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr 1fr;
+        gap: 26px;
+        padding: 40px 0 28px;
+      }
+
+      .footer h4 {
+        margin: 0 0 14px;
+        font-size: 16px;
+      }
+
+      .footer p,
+      .footer li,
+      .footer a {
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 14px;
+      }
+
+      .footer ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .footer a:hover {
+        color: var(--white);
+        text-decoration: underline;
+      }
+
+      .newsletter {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .newsletter input {
+        flex: 1;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--white);
+        padding: 12px 14px;
+        outline: none;
+      }
+
+      .newsletter button {
+        border: 0;
+        background: var(--yellow);
+        color: var(--black);
+        font-weight: 800;
+        border-radius: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+      }
+
+      .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 16px 0 30px;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .mobile-menu {
+        display: none;
+      }
+
+      @media (max-width: 1100px) {
+        .category-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .product-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .footer-top {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .header-inner {
+          grid-template-columns: 1fr;
+        }
+
+        .header-actions {
+          justify-content: space-between;
+          flex-wrap: wrap;
+        }
+
+        .hero-inner,
+        .promo-row,
+        .info-strip-inner {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .mobile-menu {
+          display: inline-flex;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          width: min(var(--max), calc(100% - 20px));
+        }
+
+        .topbar-inner {
+          justify-content: center;
+        }
+
+        .logo {
+          font-size: 24px;
+        }
+
+        .logo-badge {
+          width: 44px;
+          height: 44px;
+          font-size: 20px;
+        }
+
+        .search input {
+          padding: 14px 16px;
+        }
+
+        .hero-inner {
+          padding: 36px 0;
+        }
+
+        .hero-grid,
+        .category-grid,
+        .product-grid,
+        .footer-top {
+          grid-template-columns: 1fr;
+        }
+
+        .section-header {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .price-row {
+          flex-direction: column;
+          align-items: start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="container topbar-inner">
+        <div class="topbar-left">
+          <a href="#">Branch locator</a>
+          <a href="#">Trade account</a>
+          <a href="#">Business support</a>
+        </div>
+        <div class="topbar-right">
+          <a href="#">Next day delivery</a>
+          <a href="#">Click & collect</a>
+          <a href="#">Help</a>
+        </div>
+      </div>
+    </div>
+
+    <header class="header">
+      <div class="container header-inner">
+        <a href="#" class="logo" aria-label="ElectroSupply home">
+          <span class="logo-badge">ES</span>
+          <span>ElectroSupply</span>
+        </a>
+
+        <form class="search" id="searchForm">
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search cable, lighting, consumer units, tools..."
+            aria-label="Search products"
+          />
+          <button type="submit">Search</button>
+        </form>
+
+        <div class="header-actions">
+          <a href="#" class="action-btn mobile-menu">☰ Menu</a>
+          <a href="#" class="action-btn">👤 Account</a>
+          <a href="#" class="action-btn">📍 Store</a>
+          <a href="#" class="action-btn">🛒 Cart <span id="cartCount">0</span></a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav">
+      <div class="container nav-inner">
+        <a class="nav-link active" href="#categories">Categories</a>
+        <a class="nav-link" href="#featured">Featured</a>
+        <a class="nav-link" href="#deals">Deals</a>
+        <a class="nav-link" href="#products">Cables & Wiring</a>
+        <a class="nav-link" href="#products">Lighting</a>
+        <a class="nav-link" href="#products">Circuit Protection</a>
+        <a class="nav-link" href="#products">Switches & Sockets</a>
+        <a class="nav-link" href="#products">Tools & Testers</a>
+        <a class="nav-link" href="#footer">Support</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <h1>Trade electrical supplies, delivered fast</h1>
+          <p>
+            Browse cables, lighting, protection devices, tools, and site
+            essentials in a modern trade-focused storefront built as a
+            single-page HTML demo.
+          </p>
+          <div class="hero-actions">
+            <a href="#products" class="btn btn-primary">Shop products</a>
+            <a href="#categories" class="btn btn-secondary">Browse categories</a>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="hero-grid">
+            <div class="mini-card">
+              <strong>10,000+</strong>
+              <span>Products across trade categories</span>
+            </div>
+            <div class="mini-card">
+              <strong>Fast</strong>
+              <span>Next-day delivery available</span>
+            </div>
+            <div class="mini-card">
+              <strong>Click & Collect</strong>
+              <span>Reserve and pick up locally</span>
+            </div>
+            <div class="mini-card">
+              <strong>Trade Ready</strong>
+              <span>Built for contractors and installers</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="categories">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>Shop by category</h2>
+            <p>Popular departments for electrical and trade buyers.</p>
+          </div>
+          <a href="#" class="link-more">View all categories</a>
+        </div>
+
+        <div class="category-grid">
+          <a href="#products" class="category-card">
+            <div class="icon-circle">⚡</div>
+            <h3>Cables</h3>
+            <p>Twin & earth, flex, armoured and accessories</p>
+          </a>
+          <a href="#products" class="category-card">
+            <div class="icon-circle">💡</div>
+            <h3>Lighting</h3>
+            <p>LED panels, battens, downlights and lamps</p>
+          </a>
+          <a href="#products" class="category-card">
+            <div class="icon-circle">🔌</div>
+            <h3>Wiring Devices</h3>
+            <p>Switches, sockets, spurs and grid systems</p>
+          </a>
+          <a href="#products" class="category-card">
+            <div class="icon-circle">🧰</div>
+            <h3>Tools</h3>
+            <p>Hand tools, testers, drills and consumables</p>
+          </a>
+          <a href="#products" class="category-card">
+            <div class="icon-circle">🛡</div>
+            <h3>Protection</h3>
+            <p>Consumer units, RCBOs, MCBs and SPD kits</p>
+          </a>
+          <a href="#products" class="category-card">
+            <div class="icon-circle">🏗</div>
+            <h3>Site Essentials</h3>
+            <p>PPE, fixings, containment and temporary power</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="featured">
+      <div class="container">
+        <div class="promo-row">
+          <div class="promo-main">
+            <div class="promo-content">
+              <span class="promo-kicker">Trade Offer</span>
+              <h3>Save on commercial LED lighting packs</h3>
+              <p>
+                Efficient, reliable fittings for offices, retail spaces and
+                industrial installs. Designed to mimic a modern electrical trade
+                homepage layout.
+              </p>
+              <div>
+                <a href="#products" class="btn btn-primary">Shop lighting</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="promo-side" id="deals">
+            <div class="promo-content">
+              <span class="promo-kicker">Weekly Deals</span>
+              <h3>Tools from £19.99</h3>
+              <p>Selected trade essentials at promotional prices.</p>
+              <div>
+                <a href="#products" class="btn btn-secondary">See deals</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="products">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2>Featured products</h2>
+            <p>Example trade product cards with pricing and quick add.</p>
+          </div>
+          <a href="#" class="link-more">View full range</a>
+        </div>
+
+        <div class="product-grid">
+          <article class="product-card">
+            <div class="product-media">
+              <div class="product-art"></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-TNE-6242Y</div>
+              <div class="product-title">
+                6242Y Twin & Earth Cable 2.5mm² 100m Coil
+              </div>
+              <div class="stock">In stock for delivery</div>
+              <div class="price-row">
+                <div class="price">£84.99 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #f4f4f4, #d8d8d8);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-LED-PNL-600</div>
+              <div class="product-title">
+                LED Panel 600 x 600 Backlit 4000K Emergency Compatible
+              </div>
+              <div class="stock">Available for click & collect</div>
+              <div class="price-row">
+                <div class="price">£22.50 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #2b2b2b, #000000);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-CU-10WAY</div>
+              <div class="product-title">
+                10 Way Dual RCD Consumer Unit with Surge Protection
+              </div>
+              <div class="stock">In stock at selected branches</div>
+              <div class="price-row">
+                <div class="price">£69.95 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #ffd200, #ffb703);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-SKT-13A-WH</div>
+              <div class="product-title">
+                13A Double Switched Socket White Moulded
+              </div>
+              <div class="stock">Ready to ship today</div>
+              <div class="price-row">
+                <div class="price">£2.49 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #7dd3fc, #2563eb);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-RCD-40A</div>
+              <div class="product-title">
+                40A 30mA Type A RCBO Single Module Protection Device
+              </div>
+              <div class="stock">In stock for delivery</div>
+              <div class="price-row">
+                <div class="price">£18.95 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #fb7185, #be123c);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-TOOL-MULTI</div>
+              <div class="product-title">
+                Digital Multifunction Tester for Installation Checks
+              </div>
+              <div class="stock">Low stock - order soon</div>
+              <div class="price-row">
+                <div class="price">£249.00 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #bbf7d0, #15803d);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-BATT-5FT</div>
+              <div class="product-title">
+                5ft LED Batten Fitting 4000K IP20 50W
+              </div>
+              <div class="stock">Available for click & collect</div>
+              <div class="price-row">
+                <div class="price">£16.75 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="product-card">
+            <div class="product-media">
+              <div
+                class="product-art"
+                style="background: linear-gradient(145deg, #fde68a, #f59e0b);"
+              ></div>
+            </div>
+            <div class="product-body">
+              <div class="sku">SKU: ES-FIX-CLIP100</div>
+              <div class="product-title">
+                Cable Clips Assorted Pack of 100 for Domestic Wiring
+              </div>
+              <div class="stock">In stock for delivery</div>
+              <div class="price-row">
+                <div class="price">£3.99 <small>ex VAT</small></div>
+                <button class="buy-btn add-to-cart">Add to cart</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-strip">
+      <div class="container info-strip-inner">
+        <div class="info-item">
+          <div class="info-icon">✓</div>
+          <div>
+            <h4>Trade-focused range</h4>
+            <p>Built around common electrical supply categories.</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">🚚</div>
+          <div>
+            <h4>Fast fulfilment</h4>
+            <p>Delivery and click & collect messaging included.</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">🏬</div>
+          <div>
+            <h4>Branch-ready layout</h4>
+            <p>Includes store, support and account utility areas.</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">⚙</div>
+          <div>
+            <h4>Single file demo</h4>
+            <p>Everything is contained in one HTML document.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer" id="footer">
+      <div class="container footer-top">
+        <div>
+          <h4>ElectroSupply</h4>
+          <p>
+            A self-contained demo page for an electrical trade storefront,
+            inspired by common e-commerce layouts used in the sector.
+          </p>
+          <form class="newsletter" id="newsletterForm">
+            <input
+              type="email"
+              placeholder="Your email address"
+              aria-label="Email address"
+            />
+            <button type="submit">Join</button>
+          </form>
+        </div>
+
+        <div>
+          <h4>Customer services</h4>
+          <ul>
+            <li><a href="#">Contact us</a></li>
+            <li><a href="#">Delivery information</a></li>
+            <li><a href="#">Returns</a></li>
+            <li><a href="#">Branch finder</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Trade account</h4>
+          <ul>
+            <li><a href="#">Open an account</a></li>
+            <li><a href="#">Credit options</a></li>
+            <li><a href="#">Invoices</a></li>
+            <li><a href="#">Business support</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>About</h4>
+          <ul>
+            <li><a href="#">About this demo</a></li>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Accessibility</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="container footer-bottom">
+        <div>© 2026 ElectroSupply. Demo storefront only.</div>
+        <div>Built as a single HTML page with CSS and JavaScript.</div>
+      </div>
+    </footer>
+
+    <script>
+      let cartCount = 0;
+      const cartCountEl = document.getElementById("cartCount");
+      const addButtons = document.querySelectorAll(".add-to-cart");
+      const searchForm = document.getElementById("searchForm");
+      const searchInput = document.getElementById("searchInput");
+      const newsletterForm = document.getElementById("newsletterForm");
+
+      addButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          cartCount += 1;
+          cartCountEl.textContent = cartCount;
+          button.textContent = "Added";
+          button.disabled = true;
+          button.style.opacity = "0.75";
+          setTimeout(() => {
+            button.textContent = "Add to cart";
+            button.disabled = false;
+            button.style.opacity = "1";
+          }, 1000);
+        });
+      });
+
+      searchForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const query = searchInput.value.trim();
+        if (!query) {
+          alert("Please enter a search term.");
+          return;
+        }
+        alert(`Search submitted for: "${query}"`);
+      });
+
+      newsletterForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        alert("Thanks for subscribing.");
+      });
+    </script>
+  </body>
+</html>
