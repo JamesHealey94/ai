@@ -1,0 +1,197 @@
+<!-- Made with AI: https://t3.chat/share/orcg9w0lsb -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electrical Supplies Store</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+}
+
+header {
+  background: #d71920;
+  color: white;
+  padding: 15px 20px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.search {
+  flex: 1;
+  margin: 0 20px;
+}
+
+.search input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: none;
+}
+
+.nav {
+  background: #333;
+  color: white;
+  display: flex;
+  padding: 10px;
+  gap: 20px;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.hero {
+  background: url("https://images.unsplash.com/photo-1581092335397-9583eb92d232")
+    center/cover;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.container {
+  padding: 20px;
+}
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.product {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.product img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.product h3 {
+  font-size: 16px;
+}
+
+.price {
+  color: #d71920;
+  font-weight: bold;
+}
+
+button {
+  background: #d71920;
+  border: none;
+  padding: 8px 14px;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+footer {
+  background: #222;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  margin-top: 30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="logo">Electrical Direct</div>
+    <div class="search">
+      <input type="text" placeholder="Search products...">
+    </div>
+    <div>Cart (0)</div>
+  </div>
+</header>
+
+<div class="nav">
+  <a href="#">Cables</a>
+  <a href="#">Lighting</a>
+  <a href="#">Switches</a>
+  <a href="#">Tools</a>
+  <a href="#">Safety</a>
+</div>
+
+<div class="hero">
+  Trade Electrical Supplies
+</div>
+
+<div class="container">
+  <h2>Popular Products</h2>
+
+  <div class="products">
+
+    <div class="product">
+      <img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc">
+      <h3>LED Downlight</h3>
+      <div class="price">£8.99</div>
+      <button onclick="addToCart()">Add to Cart</button>
+    </div>
+
+    <div class="product">
+      <img src="https://images.unsplash.com/photo-1581093458791-9f3c3900df8d">
+      <h3>Consumer Unit</h3>
+      <div class="price">£79.99</div>
+      <button onclick="addToCart()">Add to Cart</button>
+    </div>
+
+    <div class="product">
+      <img src="https://images.unsplash.com/photo-1581093588401-22a5a40c66f8">
+      <h3>Electrical Cable 2.5mm</h3>
+      <div class="price">£32.00</div>
+      <button onclick="addToCart()">Add to Cart</button>
+    </div>
+
+    <div class="product">
+      <img src="https://images.unsplash.com/photo-1581092795360-fd1ca04f0952">
+      <h3>Light Switch</h3>
+      <div class="price">£4.50</div>
+      <button onclick="addToCart()">Add to Cart</button>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  © 2026 Electrical Direct – Demo Store
+</footer>
+
+<script>
+let cart = 0;
+
+function addToCart() {
+  cart++;
+  document.querySelector("header .topbar div:last-child").innerText =
+    "Cart (" + cart + ")";
+}
+</script>
+
+</body>
+</html>
