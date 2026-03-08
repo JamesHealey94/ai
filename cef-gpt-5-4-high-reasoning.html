@@ -1,0 +1,1260 @@
+<!-- Made with AI: https://t3.chat/share/4gbazy1fup -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>VoltSupply Electrical</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --surface: #ffffff;
+        --surface-2: #eef2f7;
+        --text: #17202a;
+        --muted: #657289;
+        --line: #dbe2ea;
+        --brand: #e31e24;
+        --brand-dark: #b71419;
+        --accent: #0d5cab;
+        --success: #0f8a4b;
+        --shadow: 0 10px 30px rgba(23, 32, 42, 0.08);
+        --radius: 16px;
+        --radius-sm: 10px;
+        --max: 1280px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      .container {
+        width: min(var(--max), calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        background: #111827;
+        color: #fff;
+        font-size: 14px;
+      }
+
+      .topbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 0;
+      }
+
+      .topbar-links {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .header-inner {
+        display: grid;
+        grid-template-columns: 200px 1fr auto;
+        align-items: center;
+        gap: 20px;
+        padding: 14px 0;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 24px;
+        letter-spacing: 0.3px;
+      }
+
+      .logo-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--brand), #ff6a3d);
+        color: #fff;
+        box-shadow: var(--shadow);
+        font-size: 20px;
+      }
+
+      .search-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .search {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 12px 16px;
+        box-shadow: var(--shadow);
+      }
+
+      .search input {
+        flex: 1;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font-size: 15px;
+        color: var(--text);
+      }
+
+      .search button {
+        border: 0;
+        background: var(--brand);
+        color: #fff;
+        font-weight: 700;
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        font-weight: 600;
+      }
+
+      .nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .nav .container {
+        display: flex;
+        gap: 18px;
+        overflow-x: auto;
+        padding: 12px 0;
+      }
+
+      .nav a {
+        white-space: nowrap;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .nav a:hover {
+        color: var(--brand);
+      }
+
+      .hero {
+        padding: 28px 0 20px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 20px;
+      }
+
+      .hero-card {
+        background: linear-gradient(
+          135deg,
+          #10223d 0%,
+          #16365e 55%,
+          #215da0 100%
+        );
+        color: #fff;
+        border-radius: calc(var(--radius) + 6px);
+        padding: 34px;
+        min-height: 360px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .hero-card::after {
+        content: "";
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        right: -70px;
+        bottom: -70px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.22),
+          rgba(255, 255, 255, 0)
+        );
+      }
+
+      .eyebrow {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+
+      .hero h1 {
+        font-size: clamp(32px, 5vw, 54px);
+        line-height: 1.02;
+        margin: 18px 0 14px;
+      }
+
+      .hero p {
+        max-width: 620px;
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 17px;
+        line-height: 1.6;
+      }
+
+      .hero-cta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 46px;
+        padding: 0 18px;
+        border-radius: 999px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--brand-dark);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .side-promos {
+        display: grid;
+        gap: 20px;
+      }
+
+      .promo-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .promo-card.red {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+        border: 0;
+      }
+
+      .promo-card h3 {
+        margin: 0 0 8px;
+        font-size: 22px;
+      }
+
+      .promo-card p {
+        margin: 0 0 14px;
+        color: inherit;
+        opacity: 0.92;
+      }
+
+      .trust-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .trust-item {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 18px;
+        box-shadow: var(--shadow);
+      }
+
+      .trust-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      section {
+        padding: 26px 0;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .section-head h2 {
+        margin: 0;
+        font-size: 28px;
+      }
+
+      .section-head p {
+        margin: 4px 0 0;
+        color: var(--muted);
+      }
+
+      .chip-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--muted);
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .chip.active {
+        color: #fff;
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+      }
+
+      .category-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .category-card:hover,
+      .product-card:hover,
+      .brand-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 38px rgba(23, 32, 42, 0.12);
+      }
+
+      .category-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 24px;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, #e8f0fb, #d8e7fa);
+      }
+
+      .category-card h3 {
+        margin: 0 0 6px;
+        font-size: 17px;
+      }
+
+      .category-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+
+      .product-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .product-media {
+        aspect-ratio: 1 / 1;
+        background: linear-gradient(135deg, #fafbfc, #eef2f7);
+        display: grid;
+        place-items: center;
+        font-size: 58px;
+      }
+
+      .product-body {
+        padding: 16px;
+      }
+
+      .product-meta {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .product-title {
+        margin: 0 0 8px;
+        font-size: 17px;
+        line-height: 1.4;
+      }
+
+      .product-price {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin: 10px 0 14px;
+      }
+
+      .product-price strong {
+        font-size: 22px;
+        color: var(--brand);
+      }
+
+      .product-price span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        background: #eaf8ef;
+        color: var(--success);
+      }
+
+      .product-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .product-actions .btn {
+        flex: 1;
+        min-height: 42px;
+      }
+
+      .btn-light {
+        background: var(--surface-2);
+        border-color: var(--line);
+        color: var(--text);
+      }
+
+      .split-banner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .banner {
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .banner.dark {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        color: #fff;
+      }
+
+      .banner.light {
+        background: linear-gradient(135deg, #fff7ed, #ffedd5);
+        color: #7c2d12;
+        border: 1px solid #fed7aa;
+      }
+
+      .brand-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
+      }
+
+      .brand-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 20px;
+        text-align: center;
+        font-weight: 900;
+        font-size: 22px;
+        letter-spacing: 1px;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .newsletter {
+        background: linear-gradient(135deg, #111827, #1f2937);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 30px;
+        box-shadow: var(--shadow);
+      }
+
+      .newsletter-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .newsletter-form {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .newsletter-form input {
+        min-width: 280px;
+        flex: 1;
+        padding: 14px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        outline: none;
+      }
+
+      .newsletter-form input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .footer {
+        margin-top: 28px;
+        padding: 34px 0 50px;
+        border-top: 1px solid var(--line);
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr 1fr;
+        gap: 24px;
+      }
+
+      .footer h4 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .footer a,
+      .footer p,
+      .footer li {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .footer ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 8px;
+      }
+
+      .copyright {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 1100px) {
+        .hero-grid,
+        .split-banner,
+        .newsletter-grid,
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .category-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .product-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .brand-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .trust-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .header-inner {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .container {
+          width: min(var(--max), calc(100% - 20px));
+        }
+
+        .topbar .container {
+          padding: 8px 0;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .hero-card,
+        .promo-card,
+        .newsletter {
+          padding: 22px;
+        }
+
+        .category-grid,
+        .product-grid,
+        .brand-grid,
+        .trust-row {
+          grid-template-columns: 1fr;
+        }
+
+        .header-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .search-wrap {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .search {
+          border-radius: 18px;
+        }
+
+        .search button {
+          width: 100%;
+        }
+
+        .newsletter-form {
+          flex-direction: column;
+        }
+
+        .newsletter-form input {
+          min-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="container">
+        <div>Trade prices, fast delivery, and click & collect nationwide.</div>
+        <div class="topbar-links">
+          <a href="#products">Deals</a>
+          <a href="#categories">Categories</a>
+          <a href="#brands">Brands</a>
+          <a href="#footer">Support</a>
+        </div>
+      </div>
+    </div>
+
+    <header class="header">
+      <div class="container header-inner">
+        <a href="#" class="logo" aria-label="VoltSupply home">
+          <div class="logo-mark">⚡</div>
+          <div>VoltSupply</div>
+        </a>
+
+        <div class="search-wrap">
+          <div class="search">
+            <span>🔎</span>
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Search cables, lighting, consumer units, tools..."
+            />
+            <button type="button" id="searchBtn">Search</button>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <a class="action-btn" href="#account">👤 Account</a>
+          <a class="action-btn" href="#basket">🛒 Basket</a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav">
+      <div class="container">
+        <a href="#categories">Cable & Cable Management</a>
+        <a href="#categories">Wiring Accessories</a>
+        <a href="#categories">Lighting</a>
+        <a href="#categories">Distribution</a>
+        <a href="#categories">Smart Home</a>
+        <a href="#categories">Tools & Test</a>
+        <a href="#products">Best Sellers</a>
+        <a href="#brands">Top Brands</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-grid">
+            <div class="hero-card">
+              <span class="eyebrow">Built for electricians, contractors, and trade</span>
+              <h1>Electrical supplies delivered fast, priced for the trade.</h1>
+              <p>
+                Shop cables, consumer units, lighting, smart controls, and
+                accessories from trusted brands. Designed as an original demo
+                storefront page in a single HTML file.
+              </p>
+              <div class="hero-cta">
+                <a class="btn btn-primary" href="#products">Shop deals</a>
+                <a class="btn btn-secondary" href="#categories"
+                  >Browse categories</a
+                >
+              </div>
+            </div>
+
+            <div class="side-promos">
+              <div class="promo-card red">
+                <h3>Spring Trade Event</h3>
+                <p>
+                  Save up to 25% on selected lighting, circuit protection, and
+                  cable accessories this week only.
+                </p>
+                <a class="btn btn-secondary" href="#products">View offers</a>
+              </div>
+
+              <div class="promo-card">
+                <h3>Click & Collect in 30 Minutes</h3>
+                <p>
+                  Reserve online and collect from your local branch with live
+                  stock availability.
+                </p>
+                <a class="btn btn-primary" href="#footer">Find a branch</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="trust-row">
+            <div class="trust-item">
+              <strong>Nationwide Delivery</strong>
+              <span>Tracked shipping available across the UK.</span>
+            </div>
+            <div class="trust-item">
+              <strong>Trade Accounts</strong>
+              <span>Apply for better pricing and business credit options.</span>
+            </div>
+            <div class="trust-item">
+              <strong>Top Brands</strong>
+              <span>Stock from well-known electrical manufacturers.</span>
+            </div>
+            <div class="trust-item">
+              <strong>Expert Support</strong>
+              <span>Help choosing the right products for the job.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="categories">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>Shop by category</h2>
+              <p>Quick access to the most popular product ranges.</p>
+            </div>
+          </div>
+
+          <div class="category-grid">
+            <a class="category-card" href="#products" data-filter="Cable">
+              <div class="category-icon">🧵</div>
+              <h3>Cables</h3>
+              <p>Twin & earth, flex, SWA, data, and control cables.</p>
+            </a>
+
+            <a class="category-card" href="#products" data-filter="Lighting">
+              <div class="category-icon">💡</div>
+              <h3>Lighting</h3>
+              <p>LED panels, battens, downlights, and emergency fittings.</p>
+            </a>
+
+            <a class="category-card" href="#products" data-filter="Sockets">
+              <div class="category-icon">🔌</div>
+              <h3>Wiring Accessories</h3>
+              <p>Sockets, switches, plates, spurs, and grid modules.</p>
+            </a>
+
+            <a class="category-card" href="#products" data-filter="Consumer">
+              <div class="category-icon">📦</div>
+              <h3>Distribution</h3>
+              <p>Consumer units, RCBOs, MCBs, isolators, and SPD kits.</p>
+            </a>
+
+            <a class="category-card" href="#products" data-filter="Smart">
+              <div class="category-icon">📱</div>
+              <h3>Smart Home</h3>
+              <p>Thermostats, smart switches, cameras, and controls.</p>
+            </a>
+
+            <a class="category-card" href="#products" data-filter="Tools">
+              <div class="category-icon">🛠️</div>
+              <h3>Tools & Test</h3>
+              <p>Hand tools, testers, meters, PPE, and consumables.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="products">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>Featured products</h2>
+              <p>Demo product cards with simple filtering and search.</p>
+            </div>
+            <div class="chip-row" id="chips">
+              <button class="chip active" data-filter="All">All</button>
+              <button class="chip" data-filter="Cable">Cable</button>
+              <button class="chip" data-filter="Lighting">Lighting</button>
+              <button class="chip" data-filter="Sockets">Sockets</button>
+              <button class="chip" data-filter="Consumer">Consumer</button>
+              <button class="chip" data-filter="Smart">Smart</button>
+              <button class="chip" data-filter="Tools">Tools</button>
+            </div>
+          </div>
+
+          <div class="product-grid" id="productGrid">
+            <article
+              class="product-card"
+              data-category="Cable"
+              data-name="Twin and earth cable 2.5mm 100m"
+            >
+              <div class="product-media">🧵</div>
+              <div class="product-body">
+                <div class="product-meta">Cable • SKU VS-10021</div>
+                <h3 class="product-title">Twin & Earth Cable 2.5mm² 100m</h3>
+                <span class="badge">In stock</span>
+                <div class="product-price">
+                  <strong>£84.99</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Lighting"
+              data-name="led panel 600x600 cool white"
+            >
+              <div class="product-media">💡</div>
+              <div class="product-body">
+                <div class="product-meta">Lighting • SKU VS-22004</div>
+                <h3 class="product-title">LED Panel 600 × 600 Cool White</h3>
+                <span class="badge">Best seller</span>
+                <div class="product-price">
+                  <strong>£19.50</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Sockets"
+              data-name="13a double switched socket white moulded"
+            >
+              <div class="product-media">🔌</div>
+              <div class="product-body">
+                <div class="product-meta">Sockets • SKU VS-30117</div>
+                <h3 class="product-title">
+                  13A Double Switched Socket White
+                </h3>
+                <span class="badge">Trade value</span>
+                <div class="product-price">
+                  <strong>£2.39</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Consumer"
+              data-name="10 way consumer unit with spd"
+            >
+              <div class="product-media">📦</div>
+              <div class="product-body">
+                <div class="product-meta">Consumer • SKU VS-48003</div>
+                <h3 class="product-title">10 Way Consumer Unit with SPD</h3>
+                <span class="badge">In stock</span>
+                <div class="product-price">
+                  <strong>£72.00</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Smart"
+              data-name="smart thermostat wifi programmable"
+            >
+              <div class="product-media">📱</div>
+              <div class="product-body">
+                <div class="product-meta">Smart • SKU VS-51088</div>
+                <h3 class="product-title">Smart Wi-Fi Programmable Thermostat</h3>
+                <span class="badge">Popular</span>
+                <div class="product-price">
+                  <strong>£58.75</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Tools"
+              data-name="digital multifunction tester"
+            >
+              <div class="product-media">🛠️</div>
+              <div class="product-body">
+                <div class="product-meta">Tools • SKU VS-64001</div>
+                <h3 class="product-title">Digital Multifunction Tester</h3>
+                <span class="badge">Low stock</span>
+                <div class="product-price">
+                  <strong>£289.00</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Lighting"
+              data-name="led fire rated downlight satin chrome"
+            >
+              <div class="product-media">✨</div>
+              <div class="product-body">
+                <div class="product-meta">Lighting • SKU VS-22019</div>
+                <h3 class="product-title">LED Fire Rated Downlight Satin Chrome</h3>
+                <span class="badge">New</span>
+                <div class="product-price">
+                  <strong>£8.95</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+
+            <article
+              class="product-card"
+              data-category="Cable"
+              data-name="cat6 data cable box 305m"
+            >
+              <div class="product-media">🧰</div>
+              <div class="product-body">
+                <div class="product-meta">Cable • SKU VS-10105</div>
+                <h3 class="product-title">Cat6 Data Cable Box 305m</h3>
+                <span class="badge">In stock</span>
+                <div class="product-price">
+                  <strong>£89.40</strong>
+                  <span>ex VAT</span>
+                </div>
+                <div class="product-actions">
+                  <button class="btn btn-light">Details</button>
+                  <button class="btn btn-primary">Add</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <div class="split-banner">
+            <div class="banner dark">
+              <div class="eyebrow">For projects large and small</div>
+              <h3 style="margin: 16px 0 10px; font-size: 28px;">
+                Need a quote for a full job?
+              </h3>
+              <p style="margin: 0 0 16px; opacity: 0.88;">
+                Send your material list and we’ll build a competitive trade
+                quote with delivery options.
+              </p>
+              <a class="btn btn-primary" href="#footer">Request a quote</a>
+            </div>
+
+            <div class="banner light">
+              <div class="eyebrow" style="background: rgba(255, 255, 255, 0.5);">
+                This week’s offer
+              </div>
+              <h3 style="margin: 16px 0 10px; font-size: 28px;">
+                Buy 4 packs of LED lamps, get 1 free
+              </h3>
+              <p style="margin: 0 0 16px;">
+                Simple promotional section for a trade-style ecommerce homepage.
+              </p>
+              <a class="btn btn-primary" href="#products">Browse lighting</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="brands">
+        <div class="container">
+          <div class="section-head">
+            <div>
+              <h2>Top brands</h2>
+              <p>Placeholder brand strip for your own suppliers or partners.</p>
+            </div>
+          </div>
+
+          <div class="brand-grid">
+            <div class="brand-card">LUMA</div>
+            <div class="brand-card">GRIDEX</div>
+            <div class="brand-card">ARCON</div>
+            <div class="brand-card">NEXA</div>
+            <div class="brand-card">VOLTIX</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <div class="newsletter">
+            <div class="newsletter-grid">
+              <div>
+                <h2 style="margin: 0 0 8px;">Get offers and product updates</h2>
+                <p style="margin: 0; color: rgba(255, 255, 255, 0.78);">
+                  Join the mailing list for trade promotions, stock updates, and
+                  new product launches.
+                </p>
+              </div>
+              <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed!');">
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  required
+                />
+                <button class="btn btn-primary" type="submit">
+                  Subscribe
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer" id="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="logo" style="margin-bottom: 10px;">
+              <div class="logo-mark">⚡</div>
+              <div>VoltSupply</div>
+            </div>
+            <p>
+              Original single-page demo for an electrical wholesaler-style
+              storefront. Replace the content, products, and branding with your
+              own.
+            </p>
+          </div>
+
+          <div>
+            <h4>Customer service</h4>
+            <ul>
+              <li><a href="#">Delivery information</a></li>
+              <li><a href="#">Returns</a></li>
+              <li><a href="#">Track your order</a></li>
+              <li><a href="#">Branch locator</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Trade</h4>
+            <ul>
+              <li><a href="#">Open a trade account</a></li>
+              <li><a href="#">Credit application</a></li>
+              <li><a href="#">Project quotations</a></li>
+              <li><a href="#">Business support</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Contact</h4>
+            <ul>
+              <li><a href="#">support@voltsupply.example</a></li>
+              <li><a href="#">0800 123 4567</a></li>
+              <li><a href="#">Mon–Fri 7:00–17:30</a></li>
+              <li><a href="#">UK-wide service</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="copyright">
+          © 2026 VoltSupply. Demo layout only. Not affiliated with CEF.
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const chips = document.querySelectorAll(".chip");
+      const productCards = document.querySelectorAll(".product-card");
+      const categoryCards = document.querySelectorAll(".category-card");
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+
+      let activeFilter = "All";
+
+      function applyFilters() {
+        const query = searchInput.value.trim().toLowerCase();
+
+        productCards.forEach((card) => {
+          const category = card.dataset.category;
+          const name = card.dataset.name.toLowerCase();
+
+          const matchesCategory =
+            activeFilter === "All" || category === activeFilter;
+          const matchesQuery = !query || name.includes(query);
+
+          card.classList.toggle("hidden", !(matchesCategory && matchesQuery));
+        });
+      }
+
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          chips.forEach((c) => c.classList.remove("active"));
+          chip.classList.add("active");
+          activeFilter = chip.dataset.filter;
+          applyFilters();
+        });
+      });
+
+      categoryCards.forEach((card) => {
+        card.addEventListener("click", () => {
+          const target = card.dataset.filter;
+          const matchingChip = [...chips].find(
+            (chip) => chip.dataset.filter === target
+          );
+
+          if (matchingChip) {
+            chips.forEach((c) => c.classList.remove("active"));
+            matchingChip.classList.add("active");
+            activeFilter = target;
+          }
+
+          applyFilters();
+        });
+      });
+
+      searchInput.addEventListener("input", applyFilters);
+      searchBtn.addEventListener("click", applyFilters);
+    </script>
+  </body>
+</html>
