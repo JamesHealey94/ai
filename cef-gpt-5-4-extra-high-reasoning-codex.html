@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEF.co.uk Recreation</title>
+  <style>
+    :root{--red:#e02028;--red2:#b91318;--navy:#15283d;--ink:#111417;--copy:#5a6b79;--bg:#eef3f6;--line:#d7dee5;--white:#fff;--shadow:0 18px 40px rgba(12,20,28,.08);--wrap:min(1240px,calc(100vw - 32px))}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;color:var(--ink);background:radial-gradient(circle at top right,rgba(224,32,40,.08),transparent 24%),linear-gradient(180deg,#f8fafb,#eef3f6)}
+    a{text-decoration:none;color:inherit} button,input{font:inherit} .wrap{width:var(--wrap);margin:0 auto}
+    .bar,.header-inner,.nav-inner,.promo-links,.footbar{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .top{background:#111;color:rgba(255,255,255,.88);font-size:.92rem}.bar{width:var(--wrap);min-height:44px;margin:0 auto;flex-wrap:wrap}.bar div,.utility a{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .pill{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);white-space:nowrap}
+    .main{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(21,40,61,.08)}
+    .header-inner{width:var(--wrap);min-height:84px;margin:0 auto}.brand{display:flex;align-items:center;gap:14px;min-width:240px}
+    .mark{width:82px;height:50px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#ff4951,var(--red),var(--red2));color:#fff;font:800 1.95rem/1 Bahnschrift,"Arial Narrow",sans-serif;letter-spacing:.08em}
+    .brand strong,h1,h2,h3,summary{font-family:Bahnschrift,"Arial Narrow",sans-serif}.brand small{display:block;color:#6a7b89}
+    .search{display:flex;flex:1;min-width:280px;max-width:620px;border-radius:999px;overflow:hidden;background:#fff;box-shadow:inset 0 0 0 1px rgba(21,40,61,.12)}
+    .search input{border:0;flex:1;padding:16px 18px;background:transparent}.search input:focus{outline:none}.search button,.btn,.cta{border:0;background:var(--red);color:#fff;font-weight:700;cursor:pointer}
+    .search button{padding:0 24px}.actions{display:flex;gap:12px;flex-wrap:wrap}.action{padding:11px 14px;border-radius:16px;background:#f3f6f8;display:grid;gap:2px;min-width:110px}
+    .action span{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:#6c7d8a}
+    .nav{background:var(--navy);color:#fff;overflow:auto hidden}.nav-inner{width:var(--wrap);min-height:58px;margin:0 auto;justify-content:flex-start}.nav-title{font-size:.84rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.68);white-space:nowrap}
+    .chips{display:flex;gap:10px;flex-wrap:nowrap}.chip,.link-pill{padding:10px 14px;border-radius:999px;white-space:nowrap}
+    .chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)} .promo{background:#fff4f4;border-bottom:1px solid rgba(224,32,40,.08)} .promo-links{width:var(--wrap);min-height:52px;margin:0 auto;justify-content:flex-start;overflow:auto hidden;padding:8px 0;flex-wrap:nowrap}
+    .link-pill{background:#fff;box-shadow:inset 0 0 0 1px rgba(224,32,40,.12);font-weight:600}
+    section{padding:30px 0}.hero-grid,.split,.support-grid,.footer-grid{display:grid;gap:20px}.hero-grid{grid-template-columns:1.05fr .95fr}
+    .hero-copy,.hero-art,.promo-card,.cat,.service,.brand-box,.app,.trade,.footer-card,details{background:#fff;border:1px solid rgba(21,40,61,.08);box-shadow:var(--shadow)}
+    .hero-copy,.hero-art,.app,.brand-box{border-radius:30px}.hero-copy{padding:38px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(224,32,40,.06),transparent 28%),#fff}
+    .hero-copy:after{content:"";position:absolute;right:-110px;top:-120px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(224,32,40,.16),transparent 65%)}
+    .eyebrow{margin:0 0 12px;color:var(--red);text-transform:uppercase;letter-spacing:.14em;font-size:.88rem;font-weight:800}
+    h1{margin:0;font-size:clamp(2.7rem,4.8vw,5rem);line-height:.94;max-width:10.5ch} .lead,.section-copy,.cat p,.service p,.footer-card p,.trade p,.app-copy p,.brand-box p{color:var(--copy);line-height:1.7}
+    .lead{max-width:60ch;margin:18px 0 26px}.btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}.btn,.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 20px;border-radius:999px;font-weight:700}
+    .ghost{background:#fff;border:1px solid rgba(21,40,61,.12)} .metrics,.promo-grid,.cats,.brands,.trade-grid{display:grid;gap:16px}
+    .metrics{grid-template-columns:repeat(3,1fr)} .metric{padding:18px;border-radius:18px;background:#f3f6f8;border:1px solid rgba(21,40,61,.08)}
+    .metric strong{display:block;margin-bottom:8px;font:800 clamp(1.8rem,2.2vw,2.35rem)/1 Bahnschrift,"Arial Narrow",sans-serif}.metric span{color:#5f7180;line-height:1.5}
+    .hero-art{padding:18px;color:#fff;overflow:hidden;background:linear-gradient(145deg,#101720,#15283d 62%,#1f3d5a 100%);position:relative}
+    .hero-art:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent,transparent 24px,rgba(255,255,255,.03) 24px,rgba(255,255,255,.03) 27px)}
+    .art-inner,.app-demo{position:relative;z-index:1}.art-inner{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;height:100%}.stack{display:grid;gap:14px}
+    .dark-card,.mini-card,.step{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);border-radius:22px;padding:18px}.dark-card span,.mini-card span,.step span{display:inline-block;text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;color:rgba(255,255,255,.68);font-weight:800}
+    .dark-card h3,.mini-card h3,.promo-card h3,.service h3,.footer-card h3{margin:10px 0 0;font-size:1.3rem}.dark-card p,.mini-card p,.step p{margin:10px 0 0;color:rgba(255,255,255,.78);line-height:1.6}
+    .mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.mini-card{min-height:100px}.mini-card h3{font-size:1rem}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:18px;flex-wrap:wrap} h2{margin:0;font-size:clamp(2rem,3vw,3.1rem);line-height:1}
+    .promo-grid{grid-template-columns:repeat(6,1fr)} .promo-card{padding:22px;border-radius:24px;position:relative;overflow:hidden;min-height:220px;display:grid;gap:10px;align-content:start}
+    .promo-card:after{content:"";position:absolute;right:-28px;bottom:-56px;width:150px;height:150px;border-radius:28px;transform:rotate(18deg);opacity:.9}
+    .t1{background:linear-gradient(145deg,#ff4d55,var(--red),var(--red2));color:#fff}.t1:after{background:linear-gradient(145deg,rgba(255,255,255,.22),transparent)}
+    .t2{background:linear-gradient(145deg,#172c42,#101720);color:#fff}.t2:after{background:linear-gradient(145deg,rgba(255,206,84,.2),transparent)}
+    .t3{background:linear-gradient(145deg,#0b8b5e,#0a6547);color:#fff}.t3:after{background:linear-gradient(145deg,rgba(255,255,255,.22),transparent)}
+    .t4{background:linear-gradient(145deg,#fff8e0,#ffe7a4)} .t4:after,.t5:after,.t6:after{background:linear-gradient(145deg,rgba(21,40,61,.14),transparent)}
+    .t5,.t6{background:linear-gradient(180deg,#fff,#f7fbff)}
+    .tag{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800;opacity:.76}.cta{display:inline-flex;align-items:center;justify-self:start;min-height:42px;padding:0 16px;border-radius:999px}
+    .t1 .cta,.t2 .cta,.t3 .cta{background:rgba(255,255,255,.16)} .cats{grid-template-columns:repeat(4,1fr)}
+    .cat{padding:20px;border-radius:24px;display:grid;gap:12px;min-height:232px}.cat-top{display:flex;justify-content:space-between;align-items:center}
+    .badge{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(224,32,40,.14),rgba(224,32,40,.04));border:1px solid rgba(224,32,40,.16);color:var(--red);font:800 1.05rem/1 Bahnschrift,"Arial Narrow",sans-serif}
+    .cat ul,.footer-links,details ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}.cat li,.footer-links a,details li{color:#445766;line-height:1.55}
+    .cat li:before,details li:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(224,32,40,.1);margin-right:10px;vertical-align:middle}
+    .split{grid-template-columns:1.05fr .95fr}.services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.service{padding:24px;border-radius:24px}
+    .service span,.brand-box .eyebrow2,.footer-card span{color:var(--red);font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;font-weight:800}.service.dark{background:linear-gradient(145deg,#15283d,#101720);color:#fff;position:relative;overflow:hidden}
+    .service.dark p{color:rgba(255,255,255,.78)} .service.dark:after{content:"";position:absolute;right:-60px;bottom:-60px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(255,206,84,.24),transparent 65%)}
+    .service .cta{margin-top:16px}.app{padding:26px;background:linear-gradient(145deg,#172c42,#101720);color:#fff}.app-grid{display:grid;grid-template-columns:240px 1fr;gap:18px;align-items:center}
+    .phone{padding:12px;border-radius:30px;background:linear-gradient(180deg,#20384f,#101926);border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px rgba(0,0,0,.3)}
+    .screen{border-radius:22px;padding:16px;background:linear-gradient(180deg,#fff,#eef3f7);color:var(--ink);display:grid;gap:12px}.bnr{min-height:112px;border-radius:16px;padding:16px;background:linear-gradient(145deg,#ff4d55,var(--red),var(--red2));color:#fff;display:grid;align-content:end}
+    .bnr strong{font:800 1.25rem/1 Bahnschrift,"Arial Narrow",sans-serif}.fake{padding:12px 14px;border-radius:999px;background:#f1f4f7;border:1px solid rgba(21,40,61,.08);color:#718392}
+    .item{padding:13px;border-radius:14px;background:#fff;border:1px solid rgba(21,40,61,.08);box-shadow:0 8px 16px rgba(17,20,23,.05)} .item strong{display:block}
+    .app-copy h2{margin:0 0 12px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.step{min-height:100px}
+    .brand-box{padding:28px;background:linear-gradient(135deg,rgba(224,32,40,.05),transparent 30%),#fff}.brands{grid-template-columns:repeat(6,1fr)}
+    .brand-pill{min-height:86px;border-radius:18px;display:grid;place-items:center;text-align:center;background:#fff;border:1px solid rgba(21,40,61,.08);box-shadow:var(--shadow);font:800 1.2rem/1 Bahnschrift,"Arial Narrow",sans-serif;letter-spacing:.04em}
+    .brand-pill small{display:block;margin-top:6px;font:.75rem/1 "Segoe UI",Tahoma,sans-serif;color:#748593;text-transform:uppercase;letter-spacing:.12em}
+    .trade-grid{grid-template-columns:repeat(4,1fr)} .trade{padding:22px;border-radius:22px}
+    .trade strong{display:block;font-size:1.12rem;margin-bottom:8px}
+    .support-grid{grid-template-columns:repeat(4,1fr)} details{padding:22px;border-radius:22px} summary{cursor:pointer;font-size:1.22rem;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    summary::-webkit-details-marker{display:none} summary:after{content:"+";font-size:1.5rem;color:var(--red)} details[open] summary:after{content:"-"} details ul{margin-top:16px}
+    .footer{padding:34px 0 42px}.footer-grid{grid-template-columns:1.2fr 1fr 1fr 1fr;margin-bottom:18px}.footer-card{padding:24px;border-radius:24px}
+    .footer-card.brandcard{background:linear-gradient(145deg,#121821,#15283d);color:#fff}.footer-card.brandcard p,.footer-card.brandcard .meta,.footer-card.brandcard .footer-links a{color:rgba(255,255,255,.8)}
+    .meta{display:grid;gap:6px;margin-top:16px}.footbar{border-top:1px solid rgba(21,40,61,.08);padding-top:16px;color:#627381;flex-wrap:wrap}.socials{display:flex;gap:10px;flex-wrap:wrap}.socials a{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid rgba(21,40,61,.08);box-shadow:var(--shadow);font-weight:700}
+    .toast{position:fixed;right:18px;bottom:18px;max-width:340px;padding:16px 18px;border-radius:18px;background:rgba(17,20,23,.96);color:#fff;box-shadow:0 16px 40px rgba(0,0,0,.24);opacity:0;transform:translateY(16px);pointer-events:none;transition:.24s;z-index:50}.toast.show{opacity:1;transform:translateY(0)}
+    @media (max-width:1180px){.hero-grid,.split,.footer-grid{grid-template-columns:1fr}.promo-grid{grid-template-columns:repeat(3,1fr)}.cats,.brands,.trade-grid,.support-grid,.services{grid-template-columns:repeat(2,1fr)}.header-inner{flex-wrap:wrap;padding:14px 0}.actions{width:100%;justify-content:space-between}.art-inner,.app-grid{grid-template-columns:1fr}}
+    @media (max-width:780px){.wrap,.bar,.header-inner,.nav-inner,.promo-links{width:min(100vw - 24px,100%)}.metrics,.promo-grid,.cats,.services,.brands,.trade-grid,.support-grid,.footer-grid,.steps{grid-template-columns:1fr}.search,.actions,.section-head,.footbar{flex-direction:column;align-items:stretch}.hero-copy,.hero-art,.brand-box,.app{padding:24px}.mini-grid{grid-template-columns:1fr}h1{max-width:none}}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="bar">
+      <div><span class="pill">National 7:30am to 8pm | Mon-Fri</span><span class="pill">01763 272 717</span></div>
+      <div class="utility"><a href="#trade">Find a Store</a><a href="#support">Online Chat</a><a href="#footer">Trade Hub</a></div>
+    </div>
+  </div>
+
+  <header class="main">
+    <div class="header-inner">
+      <a class="brand" href="#top">
+        <div class="mark">CEF</div>
+        <div><strong>City Electrical Factors</strong><small>Electrical wholesaler, branch-led and trade-first</small></div>
+      </a>
+      <form class="search" data-demo="search">
+        <input type="search" placeholder="Search cables, tools, switchgear, EV and solar..." aria-label="Search">
+        <button type="submit">Search</button>
+      </form>
+      <div class="actions">
+        <a class="action" href="#trade"><span>Selected store</span><strong>Select branch</strong></a>
+        <a class="action" href="#support"><span>Account</span><strong>Sign in or register</strong></a>
+        <a class="action" href="#trade"><span>Basket</span><strong>0 items | &pound;0.00</strong></a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-title">Categories</div>
+      <div class="chips">
+        <a class="chip" href="#categories">Cable & Accessories</a>
+        <a class="chip" href="#categories">Lighting</a>
+        <a class="chip" href="#categories">Power Tools</a>
+        <a class="chip" href="#categories">Renewables</a>
+        <a class="chip" href="#categories">Switchgear</a>
+        <a class="chip" href="#categories">Test Equipment</a>
+        <a class="chip" href="#categories">Wiring Accessories</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="promo">
+    <div class="promo-links">
+      <a class="link-pill" href="#services">Next Day Delivery | Free over &pound;50</a>
+      <a class="link-pill" href="#quick">Quick Order</a>
+      <a class="link-pill" href="#promos">Offers</a>
+      <a class="link-pill" href="#brands">Shop by Brand</a>
+      <a class="link-pill" href="#support">Rated 4.5</a>
+    </div>
+  </div>
+
+  <main id="top">
+    <section>
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Electrical wholesaler</p>
+          <h1>Everything the trade needs, all in one place.</h1>
+          <p class="lead">This single-page recreation is based on the current CEF.co.uk homepage structure: bold red-and-navy branding, branch support, fast ordering, category-led browsing, featured campaigns and brand merchandising.</p>
+          <div class="btn-row">
+            <a class="btn" href="#categories">Shop categories</a>
+            <a class="ghost" href="#services">Explore services</a>
+          </div>
+          <div class="metrics">
+            <div class="metric"><strong data-count="44000">44,000+</strong><span>products online across cable, lighting, tools, EV and more.</span></div>
+            <div class="metric"><strong data-count="390">390+</strong><span>branches nationwide for local stock and collection.</span></div>
+            <div class="metric"><strong>Free</strong><span>next-day delivery on orders over &pound;50, Monday to Friday.</span></div>
+          </div>
+        </div>
+        <div class="hero-art">
+          <div class="art-inner">
+            <div class="stack">
+              <div class="dark-card">
+                <span>Fast moving stock</span>
+                <h3>Power tools, cable, switchgear and renewables up front.</h3>
+                <p>Built to feel like the live homepage hero rail, where trade priorities are obvious immediately.</p>
+              </div>
+              <div class="dark-card">
+                <span>Trade-first flow</span>
+                <h3>Search, branch choice and quick ordering stay visible.</h3>
+                <p>The layout keeps the same practical emphasis as the source site rather than leaning on lifestyle content.</p>
+              </div>
+            </div>
+            <div class="stack">
+              <div class="dark-card">
+                <span>Nationwide offer</span>
+                <h3>Delivery, expertise and local support.</h3>
+                <p>CEF positions itself around range depth and branch convenience, so that message remains central here.</p>
+              </div>
+              <div class="mini-grid">
+                <div class="mini-card"><span>EV & Solar</span><h3>Charging and storage</h3></div>
+                <div class="mini-card"><span>Lighting</span><h3>Panels and battens</h3></div>
+                <div class="mini-card"><span>Cable</span><h3>T&amp;E and armoured</h3></div>
+                <div class="mini-card"><span>Testing</span><h3>MFTs and meters</h3></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="promos">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">Current focus</p><h2>Homepage promo rail</h2></div>
+          <p class="section-copy">The live homepage uses strong campaign tiles for seasonal ranges, app downloads, trade offers and brand shortcuts. This recreation keeps that rhythm.</p>
+        </div>
+        <div class="promo-grid">
+          <article class="promo-card t1"><div class="tag">Trade promo</div><h3>Impact & masonry essentials</h3><p>Hard-working campaign space for drilling, fixing and site-ready accessories.</p><a class="cta" href="#categories">Browse range</a></article>
+          <article class="promo-card t2"><div class="tag">Monthly offers</div><h3>March trade deals</h3><p>Discount-led merchandising inspired by the darker high-contrast homepage banners.</p><a class="cta" href="#trade">View deals</a></article>
+          <article class="promo-card t3"><div class="tag">Sustainable spec</div><h3>Greener essentials</h3><p>Renewables, efficient lighting and energy-aware choices grouped together.</p><a class="cta" href="#categories">See options</a></article>
+          <article class="promo-card t4"><div class="tag">Heating</div><h3>Electric comfort solutions</h3><p>Storage heating, panel heaters and smart controls in a seasonal trade block.</p><a class="cta" href="#categories">Explore</a></article>
+          <article class="promo-card t5"><div class="tag">Mobile ordering</div><h3>Download the CEF trade app</h3><p>Quick shopping, stock checks and checkout on the move.</p><a class="cta" href="#app">Open app section</a></article>
+          <article class="promo-card t6"><div class="tag">Shop by brand</div><h3>Trusted manufacturers</h3><p>A clean route into the brand-led browsing CEF highlights across the site.</p><a class="cta" href="#brands">View brands</a></article>
+        </div>
+      </div>
+    </section>
+    <section id="categories">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">Catalogue</p><h2>Shop by category</h2></div>
+          <p class="section-copy">These cards are based on the category structure visible on CEF.co.uk, using real product families from the live catalogue.</p>
+        </div>
+        <div class="cats">
+          <article class="cat"><div class="cat-top"><div class="badge">CA</div><strong>&gt;</strong></div><h3>Cable & Accessories</h3><p>Twin & earth, armoured and EV cable families.</p><ul><li>Twin &amp; earth</li><li>SWA armoured</li><li>EV and solar cable</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">CM</div><strong>&gt;</strong></div><h3>Cable Management</h3><p>Containment, trunking and conduit systems.</p><ul><li>Mini trunking</li><li>Steel conduit</li><li>Basket tray</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">FS</div><strong>&gt;</strong></div><h3>CCTV, Fire & Security</h3><p>Security and life-safety systems for domestic and commercial work.</p><ul><li>CCTV systems</li><li>Fire alarms</li><li>Security lighting</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">DN</div><strong>&gt;</strong></div><h3>Data & Networking</h3><p>Structured cabling and infrastructure for connected installs.</p><ul><li>CAT5e and CAT6</li><li>Patch panels</li><li>Cabinets</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">HV</div><strong>&gt;</strong></div><h3>Heating & Ventilation</h3><p>Climate products and controls grouped into one trade panel.</p><ul><li>Panel heaters</li><li>Fans and vents</li><li>Water heating</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">LL</div><strong>&gt;</strong></div><h3>Lighting Luminaires</h3><p>Commercial and domestic lighting, from panels to floodlights.</p><ul><li>LED panels</li><li>Emergency lighting</li><li>Floodlights</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">PT</div><strong>&gt;</strong></div><h3>Power Tools</h3><p>One of the clearest visual families on the homepage.</p><ul><li>Combi drills</li><li>SDS and saws</li><li>Accessories</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">RE</div><strong>&gt;</strong></div><h3>Renewables</h3><p>EV charging and solar kept visible as a growth category.</p><ul><li>EV charging</li><li>Solar products</li><li>Energy-conscious installs</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">SD</div><strong>&gt;</strong></div><h3>Switchgear & Distribution</h3><p>Boards, protection and distribution products for quick comparison.</p><ul><li>Consumer units</li><li>RCBOs and MCBs</li><li>Surge protection</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">TE</div><strong>&gt;</strong></div><h3>Test Equipment</h3><p>Trade testing tools in a compact, practical section.</p><ul><li>MFTs</li><li>Clamp meters</li><li>Voltage detectors</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">TW</div><strong>&gt;</strong></div><h3>Tools, Fixings & Workwear</h3><p>Site consumables and hardware in one easy panel.</p><ul><li>Hand tools</li><li>Fixings</li><li>PPE</li></ul></article>
+          <article class="cat"><div class="cat-top"><div class="badge">WA</div><strong>&gt;</strong></div><h3>Wiring Accessories</h3><p>Sockets, switches and control accessories in a cleaner home.</p><ul><li>Decorative ranges</li><li>Smart controls</li><li>Weatherproof range</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="wrap split">
+        <div>
+          <div class="section-head">
+            <div><p class="eyebrow">Why CEF</p><h2>Delivery, support and specialist services</h2></div>
+          </div>
+          <div class="services">
+            <article class="service dark"><span>Delivery</span><h3>Free next-day delivery over &pound;50</h3><p>Delivery is a top-line trust cue on the live site and remains prominent here.</p><a class="cta" href="#trade">Delivery information</a></article>
+            <article class="service"><span>Trade support</span><h3>Expert help in branch and online</h3><p>Branch teams, customer service and account support stay easy to find.</p><a class="cta" href="#support">Customer service</a></article>
+            <article class="service"><span>Specialist services</span><h3>Lighting, energy and export support</h3><p>Service-led content in the lower page reflects the real footer structure.</p><a class="cta" href="#support">Explore services</a></article>
+          </div>
+        </div>
+        <aside class="app" id="app">
+          <div class="app-grid">
+            <div class="phone">
+              <div class="screen">
+                <div class="bnr"><strong>CEF Trade App</strong><div>Quick shop | Stock check | Delivery</div></div>
+                <div class="fake">Search by stock code or keyword</div>
+                <div class="item"><strong>EV charger kit</strong><span>In stock | Next-day delivery</span></div>
+                <div class="item"><strong>18V combi drill</strong><span>Offer price | Nearby branches</span></div>
+                <div class="item"><strong>Twin &amp; earth cable</strong><span>Trade account pricing available</span></div>
+              </div>
+            </div>
+            <div class="app-copy">
+              <p class="eyebrow">CEF trade app</p>
+              <h2>Built for ordering on the move</h2>
+              <p>The live app page leans on easy browsing, quick shop, secure payment, stock checks, store finder and VAT toggling. This recreation pulls those themes into one responsive block.</p>
+              <div class="steps">
+                <div class="step"><span>1 Scan</span><p>Jump in with a product code or reference.</p></div>
+                <div class="step"><span>2 Select</span><p>Add products fast and check availability.</p></div>
+                <div class="step"><span>3 Checkout</span><p>Choose delivery or collection and move on.</p></div>
+              </div>
+              <form class="search" id="quick" data-demo="quick">
+                <input type="text" placeholder="Quick order stock code" aria-label="Quick order">
+                <button type="submit">Add</button>
+              </form>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="brands">
+      <div class="wrap">
+        <div class="brand-box">
+          <div class="section-head">
+            <div><div class="eyebrow2">Shop by brand</div><h2>Trusted manufacturers across the trade</h2></div>
+            <p>Brand-led discovery is a strong part of CEF's ecommerce flow, so this recreation keeps a clean logo-grid treatment.</p>
+          </div>
+          <div class="brands">
+            <div class="brand-pill">SCHNEIDER<small>Switchgear</small></div>
+            <div class="brand-pill">WAGO<small>Connectors</small></div>
+            <div class="brand-pill">HAGER<small>Distribution</small></div>
+            <div class="brand-pill">MILWAUKEE<small>Power tools</small></div>
+            <div class="brand-pill">LEGRAND<small>Wiring systems</small></div>
+            <div class="brand-pill">PHILIPS<small>Lighting</small></div>
+            <div class="brand-pill">ESP<small>Security</small></div>
+            <div class="brand-pill">DIMPLEX<small>Heating</small></div>
+            <div class="brand-pill">MK<small>Accessories</small></div>
+            <div class="brand-pill">AICO<small>Detection</small></div>
+            <div class="brand-pill">LUTRON<small>Controls</small></div>
+            <div class="brand-pill">ROLEC<small>EV charging</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="trade">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">Trade tools</p><h2>Everyday routes customers use most</h2></div>
+          <p class="section-copy">These utility cards echo the role of the live site's sign-in, store finder, delivery and account pathways.</p>
+        </div>
+        <div class="trade-grid">
+          <article class="trade"><strong>Find a Store</strong><p>Locate a nearby branch, check local stock and plan a collection route.</p></article>
+          <article class="trade"><strong>Trade Account</strong><p>Access account pricing and speed up day-to-day purchasing.</p></article>
+          <article class="trade"><strong>Delivery Information</strong><p>Clear operational messaging around timing and thresholds.</p></article>
+          <article class="trade"><strong>National Accounts</strong><p>Support for larger customers with nationwide requirements.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="support">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">Support & info</p><h2>Footer content, simplified into one page</h2></div>
+          <p class="section-copy">The live site carries a substantial footer with service, company and policy links. Here it becomes a compact expandable directory.</p>
+        </div>
+        <div class="support-grid">
+          <details open><summary>Customer service</summary><ul><li>Contact routes and callback options</li><li>Online chat and delivery guidance</li><li>Trade-focused support for urgent needs</li></ul></details>
+          <details><summary>Company info</summary><ul><li>About CEF and branch locator</li><li>Trade hub, careers and sustainability</li><li>Company statements and governance</li></ul></details>
+          <details><summary>Services</summary><ul><li>Energy saving surveys</li><li>Lighting design support</li><li>Waste recycling and exports</li></ul></details>
+          <details><summary>Terms & policies</summary><ul><li>Returns policy and site terms</li><li>Privacy and modern slavery</li><li>Section 172 disclosures</li></ul></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <article class="footer-card brandcard">
+          <span>CEF recreation</span>
+          <h3>Single-page concept inspired by CEF.co.uk</h3>
+          <p>A static local HTML interpretation of the CEF homepage using the same priorities: trade-first navigation, product depth, branch support, brand discovery and delivery trust.</p>
+          <div class="meta">
+            <div>City Electrical Factors Limited</div>
+            <div>Georgina Mackie House</div>
+            <div>141 Farmer Ward Road, Kenilworth</div>
+            <div>Warwickshire, CV8 2SU</div>
+          </div>
+        </article>
+        <article class="footer-card"><span>Customer service</span><h3>Helpful routes</h3><ul class="footer-links"><li><a href="#support">Contact us</a></li><li><a href="#support">Online chat</a></li><li><a href="#trade">National accounts</a></li><li><a href="#support">Request a callback</a></li><li><a href="#services">Delivery information</a></li></ul></article>
+        <article class="footer-card"><span>Company info</span><h3>About CEF</h3><ul class="footer-links"><li><a href="#top">About us</a></li><li><a href="#trade">Find a store</a></li><li><a href="#footer">Trade hub</a></li><li><a href="#footer">Careers</a></li><li><a href="#footer">Sustainability</a></li></ul></article>
+        <article class="footer-card"><span>Services</span><h3>Specialist support</h3><ul class="footer-links"><li><a href="#services">Energy saving surveys</a></li><li><a href="#services">Lighting design surveys</a></li><li><a href="#services">Waste recycling</a></li><li><a href="#services">Global exports</a></li><li><a href="#support">Terms and policies</a></li></ul></article>
+      </div>
+      <div class="footbar">
+        <div>&copy; 2011-2026 City Electrical Factors Limited | Concept recreation in one HTML file.</div>
+        <div class="socials"><a href="#footer">f</a><a href="#footer">x</a><a href="#footer">&#9654;</a><a href="#footer">in</a><a href="#footer">ig</a></div>
+      </div>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    const toast = document.getElementById("toast");
+    let timer;
+    function showToast(message){toast.textContent=message;toast.classList.add("show");clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove("show"),2400)}
+    document.querySelectorAll("[data-demo]").forEach((form)=>form.addEventListener("submit",(event)=>{event.preventDefault();showToast(form.dataset.demo==="search"?"Search is a demo in this local recreation.":"Quick order is mocked here for presentation only.")}));
+    const items=document.querySelectorAll("[data-count]");
+    const io=new IntersectionObserver((entries)=>{entries.forEach((entry)=>{if(!entry.isIntersecting)return;const el=entry.target,target=Number(el.dataset.count),suffix=el.textContent.replace(/[0-9,]/g,""),start=performance.now(),dur=1100;const tick=(now)=>{const p=Math.min((now-start)/dur,1),e=1-Math.pow(1-p,3),v=Math.floor(target*e);el.textContent=v.toLocaleString("en-GB")+suffix;if(p<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);io.unobserve(el)})},{threshold:.45});
+    items.forEach((item)=>io.observe(item));
+  </script>
+</body>
+</html>
