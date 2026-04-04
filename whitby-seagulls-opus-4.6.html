@@ -1,0 +1,1112 @@
+<!-- Made with AI: https://claude.ai/share/a1a7cb3b-d2ca-4050-aa45-196161ab285a | Model: Claude Opus 4.6 | Prompt: Create 3d game with three.js where you're in Whitby getting fish and chips and seagulls keep trying to eat them | Artifact: https://claude.ai/public/artifacts/03556883-2b90-47d5-9f61-c2f5aa175bda -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whitby Chip Shop Chaos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Permanent+Marker&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: #1a1a2e; font-family: 'Londrina Solid', cursive; }
+  canvas { display: block; }
+
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 20px 30px; pointer-events: none; z-index: 10;
+  }
+
+  .hud-box {
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,200,50,0.4);
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: #fff;
+  }
+
+  #chips-bar-container {
+    width: 220px;
+  }
+
+  #chips-label {
+    font-size: 18px; color: #ffd866;
+    letter-spacing: 1px; margin-bottom: 6px;
+    text-shadow: 0 0 10px rgba(255,200,50,0.5);
+  }
+
+  #chips-bar-bg {
+    width: 100%; height: 22px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 11px; overflow: hidden;
+    border: 1px solid rgba(255,200,50,0.3);
+  }
+
+  #chips-bar {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #ff6b35, #ffd866);
+    border-radius: 11px;
+    transition: width 0.3s;
+    box-shadow: 0 0 12px rgba(255,150,50,0.6);
+  }
+
+  #score-box {
+    text-align: right;
+  }
+
+  #score {
+    font-size: 32px; color: #ffd866;
+    font-family: 'Permanent Marker', cursive;
+    text-shadow: 0 0 15px rgba(255,200,50,0.5);
+  }
+
+  #score-label {
+    font-size: 14px; color: rgba(255,255,255,0.6);
+    letter-spacing: 2px;
+  }
+
+  #combo {
+    font-size: 16px; color: #ff6b35;
+    margin-top: 4px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+
+  #message {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Permanent Marker', cursive;
+    font-size: 48px; color: #ffd866;
+    text-shadow: 0 0 30px rgba(255,200,50,0.8), 3px 3px 0 #ff6b35;
+    pointer-events: none; z-index: 20;
+    opacity: 0; transition: opacity 0.5s;
+    text-align: center; line-height: 1.4;
+  }
+
+  #start-screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #0a0a1e 0%, #1a1a3e 40%, #2a1a1e 100%);
+    z-index: 100;
+  }
+
+  #start-screen h1 {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 64px; color: #ffd866;
+    text-shadow: 4px 4px 0 #ff6b35, 0 0 40px rgba(255,200,50,0.4);
+    margin-bottom: 10px;
+  }
+
+  #start-screen h2 {
+    font-size: 24px; color: rgba(255,255,255,0.6);
+    margin-bottom: 40px; font-weight: 400;
+    letter-spacing: 3px;
+  }
+
+  .instructions {
+    color: rgba(255,255,255,0.7);
+    font-size: 20px; margin-bottom: 30px;
+    text-align: center; line-height: 1.8;
+  }
+
+  .instructions span { color: #ffd866; }
+
+  #start-btn {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 32px; padding: 16px 50px;
+    background: linear-gradient(135deg, #ff6b35, #ffd866);
+    border: none; border-radius: 50px;
+    color: #1a1a2e; cursor: pointer;
+    box-shadow: 0 0 30px rgba(255,150,50,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  #start-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 50px rgba(255,150,50,0.7);
+  }
+
+  #game-over {
+    position: fixed; inset: 0;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+  }
+
+  #game-over h1 {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 56px; color: #ff6b35;
+    text-shadow: 3px 3px 0 #ffd866;
+    margin-bottom: 10px;
+  }
+
+  #game-over .final-score {
+    font-size: 28px; color: #ffd866; margin-bottom: 30px;
+  }
+
+  #restart-btn {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 28px; padding: 14px 44px;
+    background: linear-gradient(135deg, #ff6b35, #ffd866);
+    border: none; border-radius: 50px;
+    color: #1a1a2e; cursor: pointer;
+    box-shadow: 0 0 30px rgba(255,150,50,0.4);
+    transition: transform 0.2s;
+  }
+
+  #restart-btn:hover { transform: scale(1.08); }
+
+  #mobile-controls {
+    display: none;
+    position: fixed; bottom: 20px; left: 0; right: 0;
+    justify-content: center; gap: 20px;
+    z-index: 50; pointer-events: none;
+  }
+
+  .mobile-btn {
+    width: 70px; height: 70px;
+    background: rgba(255,200,50,0.25);
+    border: 2px solid rgba(255,200,50,0.5);
+    border-radius: 50%;
+    color: #ffd866; font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  @media (max-width: 768px) {
+    #mobile-controls { display: flex; }
+    #start-screen h1 { font-size: 36px; }
+    #start-screen h2 { font-size: 16px; }
+    .instructions { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="start-screen">
+  <h1>CHIP SHOP CHAOS</h1>
+  <h2>WHITBY HARBOUR</h2>
+  <div class="instructions">
+    <span>WASD / Arrow Keys</span> — Move around<br>
+    <span>SPACE</span> — Swat seagulls away<br>
+    <span>Protect your fish &amp; chips!</span>
+  </div>
+  <button id="start-btn" onclick="startGame()">LET'S 'AVE IT!</button>
+</div>
+
+<div id="game-over">
+  <h1>THEY GOT YER CHIPS!</h1>
+  <div class="final-score">Score: <span id="final-score">0</span></div>
+  <button id="restart-btn" onclick="restartGame()">TRY AGAIN</button>
+</div>
+
+<div id="hud">
+  <div class="hud-box" id="chips-bar-container">
+    <div id="chips-label">🐟 FISH & CHIPS</div>
+    <div id="chips-bar-bg"><div id="chips-bar"></div></div>
+  </div>
+  <div class="hud-box" id="score-box">
+    <div id="score-label">SEAGULLS SWATTED</div>
+    <div id="score">0</div>
+    <div id="combo"></div>
+  </div>
+</div>
+
+<div id="message"></div>
+
+<div id="mobile-controls">
+  <div class="mobile-btn" id="btn-left">◀</div>
+  <div class="mobile-btn" id="btn-up">▲</div>
+  <div class="mobile-btn" id="btn-down">▼</div>
+  <div class="mobile-btn" id="btn-right">▶</div>
+  <div class="mobile-btn" id="btn-swat">👋</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── GAME STATE ───
+let scene, camera, renderer, clock;
+let player, fishAndChips;
+let seagulls = [];
+let featherParticles = [];
+let score = 0;
+let chipsHealth = 100;
+let gameRunning = false;
+let swatCooldown = 0;
+let comboCount = 0;
+let comboTimer = 0;
+let spawnTimer = 0;
+let spawnInterval = 3;
+let difficulty = 1;
+let seaPlane, skyDome;
+let buildings = [];
+let abbeyGroup;
+
+const keys = {};
+const playerSpeed = 8;
+const groundSize = 40;
+
+// ─── INIT ───
+function init() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x8899bb, 0.012);
+
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
+  camera.position.set(0, 12, 18);
+  camera.lookAt(0, 2, 0);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x6688aa);
+  document.body.appendChild(renderer.domElement);
+
+  clock = new THREE.Clock();
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0x8899bb, 0.6);
+  scene.add(ambient);
+
+  const sun = new THREE.DirectionalLight(0xffeedd, 1.2);
+  sun.position.set(20, 30, 10);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -30;
+  sun.shadow.camera.right = 30;
+  sun.shadow.camera.top = 30;
+  sun.shadow.camera.bottom = -30;
+  scene.add(sun);
+
+  const hemi = new THREE.HemisphereLight(0x88aacc, 0x445533, 0.4);
+  scene.add(hemi);
+
+  buildWhitby();
+  createPlayer();
+  createFishAndChips();
+
+  // Events
+  window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') e.preventDefault(); });
+  window.addEventListener('keyup', e => keys[e.code] = false);
+  window.addEventListener('resize', onResize);
+
+  // Mobile
+  setupMobile();
+
+  animate();
+}
+
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// ─── BUILD WHITBY ───
+function buildWhitby() {
+  // Ground — cobblestone harbour
+  const groundGeo = new THREE.PlaneGeometry(groundSize * 2, groundSize * 2, 20, 20);
+  // Add some vertex displacement for uneven ground
+  const posAttr = groundGeo.getAttribute('position');
+  for (let i = 0; i < posAttr.count; i++) {
+    const x = posAttr.getX(i), y = posAttr.getY(i);
+    posAttr.setZ(i, Math.sin(x * 0.5) * 0.1 + Math.cos(y * 0.7) * 0.08);
+  }
+  groundGeo.computeVertexNormals();
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: 0x665544, roughness: 0.95, metalness: 0.0
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Sea
+  const seaGeo = new THREE.PlaneGeometry(400, 400, 60, 60);
+  const seaMat = new THREE.MeshStandardMaterial({
+    color: 0x225577, roughness: 0.3, metalness: 0.1, transparent: true, opacity: 0.85
+  });
+  seaPlane = new THREE.Mesh(seaGeo, seaMat);
+  seaPlane.rotation.x = -Math.PI / 2;
+  seaPlane.position.set(0, -0.5, -60);
+  scene.add(seaPlane);
+
+  // Harbour wall
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0x556655, roughness: 0.9 });
+  const wall1 = new THREE.Mesh(new THREE.BoxGeometry(groundSize * 2, 3, 2), wallMat);
+  wall1.position.set(0, 1, -groundSize + 5);
+  wall1.castShadow = true; wall1.receiveShadow = true;
+  scene.add(wall1);
+
+  // Buildings along the harbour — Whitby style colourful rows
+  const houseColors = [0xcc8844, 0xddaa66, 0xaa6633, 0xeebb77, 0x997755, 0xbb7744, 0xccaa88, 0xdd9955];
+  const roofColors = [0x443322, 0x332211, 0x554433, 0x3a2a1a];
+
+  for (let i = -6; i <= 6; i++) {
+    const h = 4 + Math.random() * 5;
+    const w = 3 + Math.random() * 2;
+    const d = 4 + Math.random() * 2;
+    const x = i * 5.5 + (Math.random() - 0.5) * 1.5;
+    const z = -groundSize + 10 + (Math.random() - 0.5) * 2;
+
+    const houseMat = new THREE.MeshStandardMaterial({
+      color: houseColors[Math.floor(Math.random() * houseColors.length)],
+      roughness: 0.85
+    });
+
+    const house = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), houseMat);
+    house.position.set(x, h / 2, z);
+    house.castShadow = true; house.receiveShadow = true;
+    scene.add(house);
+
+    // Roof
+    const roofGeo = new THREE.ConeGeometry(w * 0.8, 2.5, 4);
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: roofColors[Math.floor(Math.random() * roofColors.length)],
+      roughness: 0.9
+    });
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.set(x, h + 1.2, z);
+    roof.rotation.y = Math.PI / 4;
+    roof.castShadow = true;
+    scene.add(roof);
+
+    // Windows
+    const winMat = new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0x332200, emissiveIntensity: 0.3 });
+    for (let row = 0; row < 2; row++) {
+      for (let col = -1; col <= 1; col += 2) {
+        const win = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.8), winMat);
+        win.position.set(x + col * 0.8, 2 + row * 2.2, z + d / 2 + 0.01);
+        scene.add(win);
+      }
+    }
+
+    buildings.push(house);
+  }
+
+  // Side buildings
+  for (let side = -1; side <= 1; side += 2) {
+    for (let i = 0; i < 4; i++) {
+      const h = 3 + Math.random() * 4;
+      const house = new THREE.Mesh(
+        new THREE.BoxGeometry(4, h, 4),
+        new THREE.MeshStandardMaterial({
+          color: houseColors[Math.floor(Math.random() * houseColors.length)],
+          roughness: 0.85
+        })
+      );
+      house.position.set(side * (groundSize - 5), h / 2, -10 + i * 8);
+      house.castShadow = true; house.receiveShadow = true;
+      scene.add(house);
+      buildings.push(house);
+    }
+  }
+
+  // Whitby Abbey on the cliff (background)
+  abbeyGroup = new THREE.Group();
+  const abbeyMat = new THREE.MeshStandardMaterial({ color: 0x998877, roughness: 0.95 });
+
+  // Cliff
+  const cliff = new THREE.Mesh(new THREE.BoxGeometry(30, 20, 15), new THREE.MeshStandardMaterial({ color: 0x556644, roughness: 1 }));
+  cliff.position.set(25, 5, -55);
+  scene.add(cliff);
+
+  // Abbey walls
+  const aw1 = new THREE.Mesh(new THREE.BoxGeometry(2, 14, 10), abbeyMat);
+  aw1.position.set(20, 22, -55);
+  aw1.castShadow = true;
+  abbeyGroup.add(aw1);
+
+  const aw2 = new THREE.Mesh(new THREE.BoxGeometry(2, 14, 10), abbeyMat);
+  aw2.position.set(30, 22, -55);
+  aw2.castShadow = true;
+  abbeyGroup.add(aw2);
+
+  // Abbey arch
+  const arch = new THREE.Mesh(new THREE.BoxGeometry(12, 2, 1), abbeyMat);
+  arch.position.set(25, 29, -55);
+  abbeyGroup.add(arch);
+
+  // Tower
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(3, 18, 3), abbeyMat);
+  tower.position.set(25, 24, -52);
+  tower.castShadow = true;
+  abbeyGroup.add(tower);
+
+  // Gothic window holes (dark boxes)
+  const holeMat = new THREE.MeshStandardMaterial({ color: 0x223344 });
+  for (let i = 0; i < 3; i++) {
+    const hole = new THREE.Mesh(new THREE.BoxGeometry(1, 3, 0.5), holeMat);
+    hole.position.set(20, 20 + i * 4, -50.5);
+    abbeyGroup.add(hole);
+  }
+
+  scene.add(abbeyGroup);
+
+  // Chip shop!
+  const shopGroup = new THREE.Group();
+  const shopBody = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 4), new THREE.MeshStandardMaterial({ color: 0xeeeedd, roughness: 0.8 }));
+  shopBody.position.y = 2;
+  shopBody.castShadow = true; shopBody.receiveShadow = true;
+  shopGroup.add(shopBody);
+
+  const shopRoof = new THREE.Mesh(new THREE.BoxGeometry(7, 0.5, 5), new THREE.MeshStandardMaterial({ color: 0x2244aa, roughness: 0.7 }));
+  shopRoof.position.y = 4.25;
+  shopGroup.add(shopRoof);
+
+  // Shop sign
+  const signGeo = new THREE.BoxGeometry(5, 1.2, 0.2);
+  const signMat = new THREE.MeshStandardMaterial({ color: 0x2244aa, emissive: 0x112244, emissiveIntensity: 0.3 });
+  const sign = new THREE.Mesh(signGeo, signMat);
+  sign.position.set(0, 4.8, 2.1);
+  shopGroup.add(sign);
+
+  // Sign text plane
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2244aa';
+  ctx.fillRect(0, 0, 512, 128);
+  ctx.fillStyle = '#ffd866';
+  ctx.font = 'bold 52px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("MAGPIE'S FISH & CHIPS", 256, 80);
+  const signTex = new THREE.CanvasTexture(canvas);
+  const signFace = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.2), new THREE.MeshBasicMaterial({ map: signTex }));
+  signFace.position.set(0, 4.8, 2.21);
+  shopGroup.add(signFace);
+
+  // Counter window
+  const counter = new THREE.Mesh(new THREE.PlaneGeometry(3, 1.5), new THREE.MeshStandardMaterial({ color: 0xffffcc, emissive: 0xffaa44, emissiveIntensity: 0.5 }));
+  counter.position.set(0, 2.5, 2.01);
+  shopGroup.add(counter);
+
+  shopGroup.position.set(-12, 0, 8);
+  scene.add(shopGroup);
+
+  // Bollards
+  const bollardMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.6 });
+  for (let i = -3; i <= 3; i++) {
+    const bollard = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 1.2, 8), bollardMat);
+    bollard.position.set(i * 4, 0.6, -groundSize + 7);
+    bollard.castShadow = true;
+    scene.add(bollard);
+  }
+
+  // Lampposts
+  const lampMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.3 });
+  for (let i = -2; i <= 2; i++) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 5, 8), lampMat);
+    pole.position.set(i * 12, 2.5, -5);
+    pole.castShadow = true;
+    scene.add(pole);
+
+    const lampLight = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshStandardMaterial({ color: 0xffeeaa, emissive: 0xffaa44, emissiveIntensity: 0.8 }));
+    lampLight.position.set(i * 12, 5.2, -5);
+    scene.add(lampLight);
+
+    const pLight = new THREE.PointLight(0xffaa44, 0.5, 12);
+    pLight.position.copy(lampLight.position);
+    scene.add(pLight);
+  }
+
+  // Benches
+  const benchMat = new THREE.MeshStandardMaterial({ color: 0x664422, roughness: 0.9 });
+  for (let x of [-8, 0, 8]) {
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.15, 0.6), benchMat);
+    seat.position.set(x, 0.7, 3);
+    seat.castShadow = true;
+    scene.add(seat);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 0.1), benchMat);
+    back.position.set(x, 1.1, 2.7);
+    scene.add(back);
+  }
+}
+
+// ─── PLAYER ───
+function createPlayer() {
+  player = new THREE.Group();
+
+  // Body
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.4, 0.5, 1.6, 8),
+    new THREE.MeshStandardMaterial({ color: 0x2255aa, roughness: 0.7 })
+  );
+  body.position.y = 1.5;
+  body.castShadow = true;
+  player.add(body);
+
+  // Head
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 12, 12),
+    new THREE.MeshStandardMaterial({ color: 0xffccaa, roughness: 0.6 })
+  );
+  head.position.y = 2.7;
+  head.castShadow = true;
+  player.add(head);
+
+  // Flat cap
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.5, 0.45, 0.15, 12),
+    new THREE.MeshStandardMaterial({ color: 0x443322, roughness: 0.9 })
+  );
+  cap.position.y = 3.0;
+  player.add(cap);
+
+  const capBrim = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.55, 0.55, 0.05, 12),
+    new THREE.MeshStandardMaterial({ color: 0x443322, roughness: 0.9 })
+  );
+  capBrim.position.set(0, 2.92, 0.15);
+  player.add(capBrim);
+
+  // Arms
+  const armMat = new THREE.MeshStandardMaterial({ color: 0x2255aa, roughness: 0.7 });
+  const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1, 6), armMat);
+  leftArm.position.set(-0.6, 1.8, 0.2);
+  leftArm.rotation.x = -0.5;
+  leftArm.rotation.z = 0.3;
+  player.add(leftArm);
+  player.leftArm = leftArm;
+
+  const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1, 6), armMat);
+  rightArm.position.set(0.6, 1.8, 0.2);
+  rightArm.rotation.x = -0.5;
+  rightArm.rotation.z = -0.3;
+  player.add(rightArm);
+  player.rightArm = rightArm;
+
+  // Legs
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
+  const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.8, 6), legMat);
+  leftLeg.position.set(-0.2, 0.4, 0);
+  player.add(leftLeg);
+  player.leftLeg = leftLeg;
+
+  const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.8, 6), legMat);
+  rightLeg.position.set(0.2, 0.4, 0);
+  player.add(rightLeg);
+  player.rightLeg = rightLeg;
+
+  player.position.set(0, 0, 5);
+  player.velocity = new THREE.Vector3();
+  player.swatting = false;
+  scene.add(player);
+}
+
+// ─── FISH AND CHIPS ───
+function createFishAndChips() {
+  fishAndChips = new THREE.Group();
+
+  // Paper wrapping (opened cone)
+  const paper = new THREE.Mesh(
+    new THREE.ConeGeometry(0.5, 0.6, 8, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xfff8ee, roughness: 0.8, side: THREE.DoubleSide })
+  );
+  paper.rotation.x = Math.PI;
+  paper.position.y = 0.1;
+  fishAndChips.add(paper);
+
+  // Chips
+  const chipMat = new THREE.MeshStandardMaterial({ color: 0xeebb44, roughness: 0.7 });
+  for (let i = 0; i < 8; i++) {
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.08), chipMat);
+    const angle = Math.random() * Math.PI * 2;
+    const r = Math.random() * 0.25;
+    chip.position.set(Math.cos(angle) * r, 0.3 + Math.random() * 0.15, Math.sin(angle) * r);
+    chip.rotation.set(Math.random() * 0.5, Math.random(), Math.random() * 0.5);
+    fishAndChips.add(chip);
+  }
+
+  // Fish piece
+  const fish = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.15, 0.2),
+    new THREE.MeshStandardMaterial({ color: 0xcc9933, roughness: 0.6 })
+  );
+  fish.position.set(0, 0.35, 0);
+  fish.rotation.y = 0.3;
+  fishAndChips.add(fish);
+
+  player.add(fishAndChips);
+  fishAndChips.position.set(0, 1.6, 0.5);
+}
+
+// ─── SEAGULL ───
+function createSeagull() {
+  const gull = new THREE.Group();
+
+  // Body
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(0.4, 8, 8),
+    new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.6 })
+  );
+  body.scale.set(1, 0.7, 1.4);
+  body.castShadow = true;
+  gull.add(body);
+
+  // Head
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 8, 8),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 })
+  );
+  head.position.set(0, 0.25, 0.4);
+  gull.add(head);
+
+  // Beak
+  const beak = new THREE.Mesh(
+    new THREE.ConeGeometry(0.06, 0.3, 4),
+    new THREE.MeshStandardMaterial({ color: 0xffaa00 })
+  );
+  beak.rotation.x = Math.PI / 2;
+  beak.position.set(0, 0.2, 0.65);
+  gull.add(beak);
+
+  // Eyes
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+  const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), eyeMat);
+  leftEye.position.set(-0.12, 0.32, 0.52);
+  gull.add(leftEye);
+  const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), eyeMat);
+  rightEye.position.set(0.12, 0.32, 0.52);
+  gull.add(rightEye);
+
+  // Wings
+  const wingMat = new THREE.MeshStandardMaterial({ color: 0xbbbbbb, roughness: 0.5, side: THREE.DoubleSide });
+  const wingGeo = new THREE.BufferGeometry();
+  const wingVerts = new Float32Array([
+    0, 0, -0.3,   0, 0, 0.3,   1.2, 0.1, 0
+  ]);
+  wingGeo.setAttribute('position', new THREE.BufferAttribute(wingVerts, 3));
+  wingGeo.computeVertexNormals();
+
+  const leftWing = new THREE.Mesh(wingGeo, wingMat);
+  leftWing.position.set(-0.2, 0.15, 0);
+  gull.add(leftWing);
+  gull.leftWing = leftWing;
+
+  const rightWingGeo = new THREE.BufferGeometry();
+  const rightWingVerts = new Float32Array([
+    0, 0, -0.3,   0, 0, 0.3,   -1.2, 0.1, 0
+  ]);
+  rightWingGeo.setAttribute('position', new THREE.BufferAttribute(rightWingVerts, 3));
+  rightWingGeo.computeVertexNormals();
+
+  const rightWing = new THREE.Mesh(rightWingGeo, wingMat);
+  rightWing.position.set(0.2, 0.15, 0);
+  gull.add(rightWing);
+  gull.rightWing = rightWing;
+
+  // Tail
+  const tail = new THREE.Mesh(
+    new THREE.ConeGeometry(0.12, 0.4, 4),
+    new THREE.MeshStandardMaterial({ color: 0xdddddd })
+  );
+  tail.rotation.x = -Math.PI / 4;
+  tail.position.set(0, 0.1, -0.55);
+  gull.add(tail);
+
+  // Red feet
+  const footMat = new THREE.MeshStandardMaterial({ color: 0xff6644 });
+  const lFoot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 4, 4), footMat);
+  lFoot.position.set(-0.12, -0.3, 0.1);
+  gull.add(lFoot);
+  const rFoot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 4, 4), footMat);
+  rFoot.position.set(0.12, -0.3, 0.1);
+  gull.add(rFoot);
+
+  // Spawn from random direction
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 30 + Math.random() * 15;
+  gull.position.set(
+    Math.cos(angle) * dist,
+    8 + Math.random() * 8,
+    Math.sin(angle) * dist
+  );
+
+  gull.state = 'circling'; // circling, diving, retreating, stunned
+  gull.circleAngle = Math.random() * Math.PI * 2;
+  gull.circleSpeed = 0.5 + Math.random() * 0.5;
+  gull.circleRadius = 8 + Math.random() * 6;
+  gull.diveTimer = 2 + Math.random() * 3;
+  gull.speed = 5 + Math.random() * 3 + difficulty * 0.5;
+  gull.wingPhase = Math.random() * Math.PI * 2;
+  gull.stunTimer = 0;
+  gull.swoopCry = false;
+
+  scene.add(gull);
+  seagulls.push(gull);
+}
+
+// ─── FEATHER BURST ───
+function spawnFeathers(pos) {
+  const featherMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, side: THREE.DoubleSide });
+  for (let i = 0; i < 8; i++) {
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.05), featherMat);
+    f.position.copy(pos);
+    f.velocity = new THREE.Vector3(
+      (Math.random() - 0.5) * 6,
+      Math.random() * 5 + 2,
+      (Math.random() - 0.5) * 6
+    );
+    f.life = 1.5;
+    f.rotSpeed = (Math.random() - 0.5) * 10;
+    scene.add(f);
+    featherParticles.push(f);
+  }
+}
+
+// ─── SWAT ───
+function doSwat() {
+  if (swatCooldown > 0 || !gameRunning) return;
+  player.swatting = true;
+  swatCooldown = 0.4;
+
+  // Animate arm
+  if (player.rightArm) {
+    player.rightArm.rotation.x = -1.8;
+    player.rightArm.rotation.z = -1.2;
+  }
+
+  // Check hits
+  const pPos = player.position.clone();
+  pPos.y += 2;
+  const swatRange = 3;
+  let hitAny = false;
+
+  for (const gull of seagulls) {
+    if (gull.state === 'stunned' || gull.state === 'retreating') continue;
+    const dist = gull.position.distanceTo(pPos);
+    if (dist < swatRange) {
+      gull.state = 'stunned';
+      gull.stunTimer = 1.5;
+      // Knock away
+      const dir = gull.position.clone().sub(pPos).normalize();
+      gull.knockVel = dir.multiplyScalar(12);
+      gull.knockVel.y = 5;
+      spawnFeathers(gull.position.clone());
+      hitAny = true;
+
+      comboCount++;
+      comboTimer = 2;
+      const bonus = comboCount > 1 ? comboCount : 1;
+      score += bonus;
+
+      showMessage(comboCount > 1 ? `${comboCount}x COMBO! +${bonus}` : 'SWATTED!', 0.8);
+    }
+  }
+
+  if (hitAny) {
+    document.getElementById('score').textContent = score;
+    if (comboCount > 1) {
+      const comboEl = document.getElementById('combo');
+      comboEl.textContent = `${comboCount}x COMBO!`;
+      comboEl.style.opacity = '1';
+    }
+  }
+}
+
+// ─── MESSAGE ───
+function showMessage(text, duration = 1.5) {
+  const el = document.getElementById('message');
+  el.textContent = text;
+  el.style.opacity = '1';
+  setTimeout(() => el.style.opacity = '0', duration * 1000);
+}
+
+// ─── MOBILE ───
+function setupMobile() {
+  const addTouch = (id, key) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('touchstart', e => { e.preventDefault(); keys[key] = true; });
+    btn.addEventListener('touchend', e => { e.preventDefault(); keys[key] = false; });
+  };
+  addTouch('btn-left', 'ArrowLeft');
+  addTouch('btn-right', 'ArrowRight');
+  addTouch('btn-up', 'ArrowUp');
+  addTouch('btn-down', 'ArrowDown');
+  const swatBtn = document.getElementById('btn-swat');
+  if (swatBtn) {
+    swatBtn.addEventListener('touchstart', e => { e.preventDefault(); doSwat(); });
+  }
+}
+
+// ─── ANIMATE SEA ───
+function animateSea(t) {
+  if (!seaPlane) return;
+  const pos = seaPlane.geometry.getAttribute('position');
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    pos.setY(i, Math.sin(x * 0.15 + t * 1.2) * 0.4 + Math.cos(z * 0.12 + t * 0.8) * 0.3);
+  }
+  pos.needsUpdate = true;
+}
+
+// ─── GAME LOOP ───
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.getElapsedTime();
+
+  if (!gameRunning) {
+    animateSea(t);
+    renderer.render(scene, camera);
+    return;
+  }
+
+  // ── Player movement
+  let moveX = 0, moveZ = 0;
+  if (keys['KeyW'] || keys['ArrowUp']) moveZ = -1;
+  if (keys['KeyS'] || keys['ArrowDown']) moveZ = 1;
+  if (keys['KeyA'] || keys['ArrowLeft']) moveX = -1;
+  if (keys['KeyD'] || keys['ArrowRight']) moveX = 1;
+  if (keys['Space']) doSwat();
+
+  const moveVec = new THREE.Vector3(moveX, 0, moveZ);
+  if (moveVec.length() > 0) moveVec.normalize();
+
+  player.position.x += moveVec.x * playerSpeed * dt;
+  player.position.z += moveVec.z * playerSpeed * dt;
+
+  // Clamp to play area
+  player.position.x = Math.max(-groundSize + 3, Math.min(groundSize - 3, player.position.x));
+  player.position.z = Math.max(-groundSize + 8, Math.min(groundSize - 3, player.position.z));
+
+  // Walk animation
+  if (moveVec.length() > 0) {
+    const walkT = t * 8;
+    if (player.leftLeg) player.leftLeg.rotation.x = Math.sin(walkT) * 0.4;
+    if (player.rightLeg) player.rightLeg.rotation.x = -Math.sin(walkT) * 0.4;
+    // Face movement direction
+    const targetAngle = Math.atan2(moveVec.x, moveVec.z);
+    player.rotation.y += (targetAngle - player.rotation.y) * 5 * dt;
+  } else {
+    if (player.leftLeg) player.leftLeg.rotation.x *= 0.9;
+    if (player.rightLeg) player.rightLeg.rotation.x *= 0.9;
+  }
+
+  // Swat cooldown / arm reset
+  if (swatCooldown > 0) {
+    swatCooldown -= dt;
+    if (swatCooldown <= 0) {
+      player.swatting = false;
+      if (player.rightArm) {
+        player.rightArm.rotation.x = -0.5;
+        player.rightArm.rotation.z = -0.3;
+      }
+    }
+  }
+
+  // Combo timer
+  if (comboTimer > 0) {
+    comboTimer -= dt;
+    if (comboTimer <= 0) {
+      comboCount = 0;
+      document.getElementById('combo').style.opacity = '0';
+    }
+  }
+
+  // Camera follow
+  camera.position.x += (player.position.x * 0.5 - camera.position.x) * 2 * dt;
+  camera.position.z += (player.position.z + 18 - camera.position.z) * 2 * dt;
+  camera.lookAt(player.position.x * 0.5, 2, player.position.z - 5);
+
+  // ── Spawn seagulls
+  spawnTimer -= dt;
+  if (spawnTimer <= 0 && seagulls.length < 8 + Math.floor(difficulty)) {
+    createSeagull();
+    spawnTimer = spawnInterval / difficulty;
+  }
+
+  // Difficulty ramp
+  difficulty = 1 + score * 0.05;
+  if (difficulty > 5) difficulty = 5;
+
+  // ── Update seagulls
+  const playerWorldPos = new THREE.Vector3();
+  player.getWorldPosition(playerWorldPos);
+  playerWorldPos.y += 2;
+
+  for (let i = seagulls.length - 1; i >= 0; i--) {
+    const gull = seagulls[i];
+    gull.wingPhase += dt * 8;
+
+    // Wing flap
+    if (gull.leftWing) gull.leftWing.rotation.z = Math.sin(gull.wingPhase) * 0.6;
+    if (gull.rightWing) gull.rightWing.rotation.z = -Math.sin(gull.wingPhase) * 0.6;
+
+    if (gull.state === 'circling') {
+      gull.circleAngle += gull.circleSpeed * dt;
+      const targetX = playerWorldPos.x + Math.cos(gull.circleAngle) * gull.circleRadius;
+      const targetZ = playerWorldPos.z + Math.sin(gull.circleAngle) * gull.circleRadius;
+      const targetY = 7 + Math.sin(t * 0.5 + i) * 1.5;
+
+      gull.position.x += (targetX - gull.position.x) * 2 * dt;
+      gull.position.z += (targetZ - gull.position.z) * 2 * dt;
+      gull.position.y += (targetY - gull.position.y) * 2 * dt;
+
+      // Face direction
+      const moveDir = new THREE.Vector3(targetX - gull.position.x, 0, targetZ - gull.position.z);
+      if (moveDir.length() > 0.01) {
+        gull.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+      }
+
+      gull.diveTimer -= dt;
+      if (gull.diveTimer <= 0) {
+        gull.state = 'diving';
+        gull.swoopCry = false;
+      }
+    }
+
+    else if (gull.state === 'diving') {
+      const toPlayer = playerWorldPos.clone().sub(gull.position);
+      const dist = toPlayer.length();
+
+      if (dist > 0.1) {
+        toPlayer.normalize();
+        gull.position.add(toPlayer.multiplyScalar(gull.speed * dt));
+      }
+
+      // Face player
+      gull.rotation.y = Math.atan2(
+        playerWorldPos.x - gull.position.x,
+        playerWorldPos.z - gull.position.z
+      );
+
+      // Diving tilt
+      gull.rotation.x = 0.3;
+
+      // Check collision with player chips
+      if (dist < 1.5) {
+        chipsHealth -= (15 + difficulty * 3) * dt;
+        document.getElementById('chips-bar').style.width = Math.max(0, chipsHealth) + '%';
+
+        // Flash red
+        if (Math.floor(t * 10) % 2 === 0) {
+          document.getElementById('chips-bar').style.background = 'linear-gradient(90deg, #ff2222, #ff6644)';
+        } else {
+          document.getElementById('chips-bar').style.background = 'linear-gradient(90deg, #ff6b35, #ffd866)';
+        }
+
+        if (chipsHealth <= 0) {
+          gameOver();
+          return;
+        }
+
+        // After nibbling, retreat
+        if (Math.random() < 0.02) {
+          gull.state = 'retreating';
+        }
+      }
+    }
+
+    else if (gull.state === 'stunned') {
+      if (gull.knockVel) {
+        gull.position.add(gull.knockVel.clone().multiplyScalar(dt));
+        gull.knockVel.y -= 15 * dt;
+        gull.rotation.z += 10 * dt;
+        gull.rotation.x += 5 * dt;
+      }
+      gull.stunTimer -= dt;
+      if (gull.stunTimer <= 0) {
+        gull.state = 'retreating';
+        gull.rotation.z = 0;
+        gull.rotation.x = 0;
+      }
+    }
+
+    else if (gull.state === 'retreating') {
+      const awayDir = gull.position.clone().sub(playerWorldPos).normalize();
+      awayDir.y = 0.5;
+      gull.position.add(awayDir.multiplyScalar(10 * dt));
+
+      gull.rotation.y = Math.atan2(awayDir.x, awayDir.z);
+      gull.rotation.x = 0;
+
+      // Remove when far enough
+      if (gull.position.distanceTo(playerWorldPos) > 45) {
+        scene.remove(gull);
+        seagulls.splice(i, 1);
+      }
+    }
+  }
+
+  // ── Feather particles
+  for (let i = featherParticles.length - 1; i >= 0; i--) {
+    const f = featherParticles[i];
+    f.position.add(f.velocity.clone().multiplyScalar(dt));
+    f.velocity.y -= 8 * dt;
+    f.rotation.z += f.rotSpeed * dt;
+    f.life -= dt;
+    f.material.opacity = f.life;
+    f.material.transparent = true;
+    if (f.life <= 0) {
+      scene.remove(f);
+      featherParticles.splice(i, 1);
+    }
+  }
+
+  // Animate sea
+  animateSea(t);
+
+  // Bob fish and chips
+  if (fishAndChips) {
+    fishAndChips.rotation.y = Math.sin(t * 2) * 0.05;
+    fishAndChips.position.y = 1.6 + Math.sin(t * 3) * 0.02;
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ─── GAME FLOW ───
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  gameRunning = true;
+  score = 0;
+  chipsHealth = 100;
+  difficulty = 1;
+  spawnTimer = 1;
+  comboCount = 0;
+  document.getElementById('score').textContent = '0';
+  document.getElementById('chips-bar').style.width = '100%';
+  document.getElementById('chips-bar').style.background = 'linear-gradient(90deg, #ff6b35, #ffd866)';
+  showMessage("PROTECT YER CHIPS!", 2);
+}
+
+function gameOver() {
+  gameRunning = false;
+  document.getElementById('game-over').style.display = 'flex';
+  document.getElementById('final-score').textContent = score;
+
+  // Clear seagulls
+  for (const g of seagulls) scene.remove(g);
+  seagulls = [];
+}
+
+function restartGame() {
+  document.getElementById('game-over').style.display = 'none';
+  player.position.set(0, 0, 5);
+  player.rotation.y = 0;
+  chipsHealth = 100;
+  score = 0;
+  difficulty = 1;
+  spawnTimer = 1;
+  comboCount = 0;
+  document.getElementById('score').textContent = '0';
+  document.getElementById('chips-bar').style.width = '100%';
+  document.getElementById('chips-bar').style.background = 'linear-gradient(90deg, #ff6b35, #ffd866)';
+  gameRunning = true;
+  showMessage("ROUND TWO — GO!", 2);
+}
+
+// GO
+init();
+</script>
+</body>
+</html>
