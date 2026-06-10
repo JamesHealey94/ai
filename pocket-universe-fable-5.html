@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#050510">
+<title>Pocket Universe — a gravity sandbox</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #050510;
+    overscroll-behavior: none;
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  #c { display: block; width: 100%; height: 100%; }
+
+  #ui {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    display: flex; gap: 8px;
+    z-index: 10;
+  }
+  .btn {
+    min-width: 44px; height: 44px;
+    padding: 0 12px;
+    border: 1px solid rgba(160, 180, 255, 0.25);
+    border-radius: 12px;
+    background: rgba(15, 18, 40, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #cdd6ff;
+    font-size: 17px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .btn:active { background: rgba(70, 90, 180, 0.5); transform: scale(0.94); }
+
+  #stats {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(15, 18, 40, 0.55);
+    border: 1px solid rgba(160, 180, 255, 0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #aab4e8;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+  }
+  #stats b { color: #fff; font-weight: 700; }
+
+  #toasts {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 64px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .toast {
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(40, 50, 110, 0.75);
+    border: 1px solid rgba(170, 190, 255, 0.35);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    animation: toastIn 0.35s cubic-bezier(0.2, 1.4, 0.4, 1), toastOut 0.5s ease 2.6s forwards;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-14px) scale(0.85); } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(-10px); } }
+
+  #intro {
+    position: fixed; inset: 0;
+    z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px;
+    background: radial-gradient(ellipse at 50% 40%, rgba(30, 35, 90, 0.55), rgba(5, 5, 16, 0.92) 70%);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    text-align: center;
+    padding: 24px;
+    transition: opacity 0.6s ease;
+  }
+  #intro.hidden { opacity: 0; pointer-events: none; }
+  #intro h1 {
+    font-size: clamp(34px, 9vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(120deg, #9db4ff, #e8b3ff 50%, #ffd9a0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  #intro p {
+    color: #b9c2ee;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 320px;
+  }
+  #intro .tap {
+    margin-top: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px 30px;
+    border-radius: 999px;
+    border: 1px solid rgba(170, 190, 255, 0.5);
+    background: rgba(60, 75, 170, 0.45);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(140, 160, 255, 0.45); }
+    50% { transform: scale(1.04); box-shadow: 0 0 0 14px rgba(140, 160, 255, 0); }
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <button class="btn" id="btnSound" aria-label="Toggle sound">🔊</button>
+  <button class="btn" id="btnWarp" aria-label="Time warp">1×</button>
+  <button class="btn" id="btnStars" aria-label="Star mode">★</button>
+  <button class="btn" id="btnReset" aria-label="Reset">↺</button>
+</div>
+
+<div id="stats"></div>
+<div id="toasts"></div>
+
+<div id="intro">
+  <h1>Pocket Universe</h1>
+  <p><b>Drag and release</b> to fling a planet into the void. Watch its predicted path as you aim. Build a stable solar system — or let worlds collide.</p>
+  <div class="tap">Tap to begin</div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Canvas ----------
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+
+  const starsCanvas = document.createElement('canvas');
+  const starsCtx = starsCanvas.getContext('2d');
+  let twinklers = [];
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildStarfield();
+    layoutSuns();
+  }
+
+  function buildStarfield() {
+    starsCanvas.width = W * DPR;
+    starsCanvas.height = H * DPR;
+    starsCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    starsCtx.clearRect(0, 0, W, H);
+    const n = Math.floor((W * H) / 4500);
+    for (let i = 0; i < n; i++) {
+      const x = Math.random() * W, y = Math.random() * H;
+      const r = Math.random() * 1.1 + 0.2;
+      const a = Math.random() * 0.55 + 0.1;
+      starsCtx.fillStyle = `rgba(${200 + Math.random() * 55 | 0}, ${200 + Math.random() * 55 | 0}, 255, ${a})`;
+      starsCtx.beginPath();
+      starsCtx.arc(x, y, r, 0, Math.PI * 2);
+      starsCtx.fill();
+    }
+    twinklers = [];
+    for (let i = 0; i < 14; i++) {
+      twinklers.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: Math.random() * 1.3 + 0.7,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 1.5
+      });
+    }
+  }
+
+  // ---------- World state ----------
+  const SUN_GM = 2.4e6;           // gravitational parameter of a sun
+  const MAX_PLANETS = 14;
+  const MAX_PARTICLES = 350;
+
+  let suns = [];                  // {x, y, r, gm} (+ orbit data in binary mode)
+  let planets = [];
+  let particles = [];
+  let rings = [];                 // celebration rings
+  let starMode = 0;               // 0 = single sun, 1 = binary
+  let binaryAngle = 0;
+  let warpIndex = 0;
+  const WARPS = [1, 2, 4];
+  let totalOrbits = 0;
+  let merges = 0;
+  let best = parseInt(localStorage.getItem('pocketUniverseBest') || '0', 10);
+  let running = false;
+  let elapsed = 0;
+
+  const seen = {};               // one-time achievements
+
+  function sunRadius() {
+    return Math.max(16, Math.min(W, H) * 0.05);
+  }
+
+  function layoutSuns() {
+    const cx = W / 2, cy = H / 2, r = sunRadius();
+    if (starMode === 0) {
+      suns = [{ x: cx, y: cy, r, gm: SUN_GM, hue: 45 }];
+    } else {
+      const sep = Math.min(W, H) * 0.36;
+      suns = [
+        { x: 0, y: 0, r: r * 0.8, gm: SUN_GM * 0.7, hue: 35, orbitR: sep / 2, phase: 0 },
+        { x: 0, y: 0, r: r * 0.8, gm: SUN_GM * 0.7, hue: 200, orbitR: sep / 2, phase: Math.PI }
+      ];
+      // circular two-body orbit: omega^2 = (gm1 + gm2) / sep^3
+      const omega = Math.sqrt((suns[0].gm + suns[1].gm) / Math.pow(sep, 3));
+      suns.omega = omega;
+      positionBinary();
+    }
+  }
+
+  function positionBinary() {
+    if (starMode !== 1) return;
+    const cx = W / 2, cy = H / 2;
+    for (const s of suns) {
+      const a = binaryAngle + s.phase;
+      s.x = cx + Math.cos(a) * s.orbitR;
+      s.y = cy + Math.sin(a) * s.orbitR;
+    }
+  }
+
+  function spawnPlanet(x, y, vx, vy, r) {
+    if (planets.length >= MAX_PLANETS) planets.shift();
+    planets.push({
+      x, y, vx, vy,
+      r: r || 5 + Math.random() * 4,
+      hue: Math.random() * 360,
+      trail: [],
+      orbitAcc: 0,
+      prevAngle: null,
+      orbits: 0,
+      age: 0
+    });
+  }
+
+  function planetGM(p) {
+    return 28 * p.r * p.r * p.r;  // toy mass scaling, enough for gentle planet-planet pull
+  }
+
+  // ---------- Physics ----------
+  function accelAt(x, y, ignore) {
+    let ax = 0, ay = 0;
+    for (const s of suns) {
+      const dx = s.x - x, dy = s.y - y;
+      const d2 = dx * dx + dy * dy + 80;
+      const inv = s.gm / (d2 * Math.sqrt(d2));
+      ax += dx * inv; ay += dy * inv;
+    }
+    for (const p of planets) {
+      if (p === ignore) continue;
+      const dx = p.x - x, dy = p.y - y;
+      const d2 = dx * dx + dy * dy + 200;
+      const inv = planetGM(p) / (d2 * Math.sqrt(d2));
+      ax += dx * inv; ay += dy * inv;
+    }
+    return [ax, ay];
+  }
+
+  function physicsStep(dt) {
+    binaryAngle += (suns.omega || 0) * dt;
+    positionBinary();
+
+    for (const p of planets) {
+      const [ax, ay] = accelAt(p.x, p.y, p);
+      p.vx += ax * dt; p.vy += ay * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.age += dt;
+    }
+
+    // sun collisions (tidal destruction)
+    for (let i = planets.length - 1; i >= 0; i--) {
+      const p = planets[i];
+      for (const s of suns) {
+        const dx = p.x - s.x, dy = p.y - s.y;
+        if (dx * dx + dy * dy < Math.pow(s.r + p.r * 0.5, 2)) {
+          destroyPlanet(i, s.hue);
+          break;
+        }
+      }
+    }
+
+    // planet-planet merges
+    for (let i = planets.length - 1; i >= 0; i--) {
+      for (let j = i - 1; j >= 0; j--) {
+        const a = planets[i], b = planets[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const rr = a.r + b.r;
+        if (dx * dx + dy * dy < rr * rr * 0.7) {
+          mergePlanets(i, j);
+          break;
+        }
+      }
+    }
+
+    // escape: drop planets that drift far away
+    const cx = W / 2, cy = H / 2;
+    const limit = Math.max(W, H) * 2.2;
+    for (let i = planets.length - 1; i >= 0; i--) {
+      const p = planets[i];
+      if (Math.abs(p.x - cx) > limit || Math.abs(p.y - cy) > limit) planets.splice(i, 1);
+    }
+  }
+
+  function trackOrbits() {
+    for (const p of planets) {
+      let nearest = suns[0], nd = Infinity;
+      for (const s of suns) {
+        const d = (s.x - p.x) ** 2 + (s.y - p.y) ** 2;
+        if (d < nd) { nd = d; nearest = s; }
+      }
+      const angle = Math.atan2(p.y - nearest.y, p.x - nearest.x);
+      if (p.prevAngle !== null) {
+        let da = angle - p.prevAngle;
+        if (da > Math.PI) da -= Math.PI * 2;
+        if (da < -Math.PI) da += Math.PI * 2;
+        p.orbitAcc += da;
+        if (Math.abs(p.orbitAcc) >= Math.PI * 2) {
+          p.orbitAcc = 0;
+          p.orbits++;
+          totalOrbits++;
+          rings.push({ x: p.x, y: p.y, r: p.r + 4, life: 1, hue: p.hue });
+          chime(p.orbits);
+          achieve('firstOrbit', 'Stable orbit ✓');
+          if (p.orbits === 10) achieve('ancient' + p.hue.toFixed(0), 'Ancient world 🪐');
+          if (totalOrbits > best) {
+            best = totalOrbits;
+            localStorage.setItem('pocketUniverseBest', String(best));
+          }
+        }
+      }
+      p.prevAngle = angle;
+    }
+  }
+
+  function destroyPlanet(i, sunHue) {
+    const p = planets[i];
+    planets.splice(i, 1);
+    burst(p.x, p.y, p.hue, Math.min(30, 12 + p.r * 2), 90 + p.r * 8);
+    burst(p.x, p.y, sunHue, 10, 160);
+    crashSound();
+    vibrate(40);
+  }
+
+  function mergePlanets(i, j) {
+    const a = planets[i], b = planets[j];
+    const ma = a.r ** 3, mb = b.r ** 3, m = ma + mb;
+    const merged = {
+      x: (a.x * ma + b.x * mb) / m,
+      y: (a.y * ma + b.y * mb) / m,
+      vx: (a.vx * ma + b.vx * mb) / m,
+      vy: (a.vy * ma + b.vy * mb) / m,
+      r: Math.min(24, Math.cbrt(m)),
+      hue: (a.hue * ma + b.hue * mb) / m,
+      trail: [],
+      orbitAcc: 0, prevAngle: null,
+      orbits: Math.max(a.orbits, b.orbits),
+      age: 0
+    };
+    planets.splice(i, 1);
+    planets.splice(j, 1);
+    planets.push(merged);
+    merges++;
+    burst(merged.x, merged.y, merged.hue, 26, 130);
+    rings.push({ x: merged.x, y: merged.y, r: merged.r + 6, life: 1, hue: merged.hue });
+    crashSound(true);
+    vibrate([20, 40, 20]);
+    achieve('merge', 'Worlds collide 💥');
+  }
+
+  function burst(x, y, hue, count, speed) {
+    for (let k = 0; k < count; k++) {
+      if (particles.length >= MAX_PARTICLES) particles.shift();
+      const a = Math.random() * Math.PI * 2;
+      const v = speed * (0.3 + Math.random() * 0.7);
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+        life: 0.6 + Math.random() * 0.9,
+        maxLife: 1.5,
+        hue: hue + (Math.random() * 40 - 20),
+        size: 1 + Math.random() * 2.5
+      });
+    }
+  }
+
+  // ---------- Trajectory prediction ----------
+  function predictPath(x, y, vx, vy) {
+    const pts = [];
+    let px = x, py = y, pvx = vx, pvy = vy;
+    const dt = 1 / 60;
+    for (let i = 0; i < 260; i++) {
+      let ax = 0, ay = 0;
+      for (const s of suns) {
+        const dx = s.x - px, dy = s.y - py;
+        const d2 = dx * dx + dy * dy + 80;
+        const inv = s.gm / (d2 * Math.sqrt(d2));
+        ax += dx * inv; ay += dy * inv;
+      }
+      pvx += ax * dt; pvy += ay * dt;
+      px += pvx * dt; py += pvy * dt;
+      let hitSun = false;
+      for (const s of suns) {
+        const dx = px - s.x, dy = py - s.y;
+        if (dx * dx + dy * dy < s.r * s.r) { hitSun = true; break; }
+      }
+      if (i % 4 === 0) pts.push([px, py, hitSun]);
+      if (hitSun) break;
+    }
+    return pts;
+  }
+
+  // ---------- Input ----------
+  let drag = null;
+  const LAUNCH_K = 3.0;
+  const MAX_SPEED = 650;
+
+  function launchVelocity(d) {
+    let vx = (d.cx - d.sx) * LAUNCH_K;
+    let vy = (d.cy - d.sy) * LAUNCH_K;
+    const sp = Math.hypot(vx, vy);
+    if (sp > MAX_SPEED) { vx *= MAX_SPEED / sp; vy *= MAX_SPEED / sp; }
+    return [vx, vy];
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!running) return;
+    if (drag && drag.id !== e.pointerId) return;
+    drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, cx: e.clientX, cy: e.clientY };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (drag && drag.id === e.pointerId) { drag.cx = e.clientX; drag.cy = e.clientY; }
+  });
+  function endDrag(e) {
+    if (!drag || drag.id !== e.pointerId) return;
+    const [vx, vy] = launchVelocity(drag);
+    if (Math.hypot(vx, vy) > 30) {
+      spawnPlanet(drag.sx, drag.sy, vx, vy);
+      launchSound();
+      vibrate(12);
+      achieve('firstLaunch', 'Cosmic gardener 🌱');
+      if (planets.length >= 3) achieve('tri', 'Tri-system! ✨');
+      if (planets.length >= 7) achieve('seven', 'Crowded cosmos 🌌');
+    }
+    drag = null;
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', (e) => { if (drag && drag.id === e.pointerId) drag = null; });
+
+  function vibrate(pattern) {
+    if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (_) {} }
+  }
+
+  // ---------- Audio ----------
+  let actx = null, master = null, soundOn = true;
+  const SCALE = [220, 261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25, 784];
+
+  function initAudio() {
+    if (actx) return;
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      master = actx.createGain();
+      master.gain.value = soundOn ? 1 : 0;
+      master.connect(actx.destination);
+
+      // ambient drone: two detuned sines through a gentle lowpass
+      const droneGain = actx.createGain();
+      droneGain.gain.value = 0.035;
+      const lp = actx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 320;
+      for (const f of [55, 55.4, 110.3]) {
+        const o = actx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = f;
+        o.connect(lp);
+        o.start();
+      }
+      lp.connect(droneGain);
+      droneGain.connect(master);
+    } catch (_) { actx = null; }
+  }
+
+  function chime(step) {
+    if (!actx || !soundOn) return;
+    const t = actx.currentTime;
+    const freq = SCALE[step % SCALE.length];
+    const o = actx.createOscillator();
+    o.type = 'triangle';
+    o.frequency.value = freq;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.3);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + 1.4);
+  }
+
+  function launchSound() {
+    if (!actx || !soundOn) return;
+    const t = actx.currentTime;
+    const o = actx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(190, t);
+    o.frequency.exponentialRampToValueAtTime(70, t + 0.18);
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + 0.25);
+  }
+
+  function crashSound(soft) {
+    if (!actx || !soundOn) return;
+    const t = actx.currentTime;
+    const dur = 0.35;
+    const buf = actx.createBuffer(1, actx.sampleRate * dur, actx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+    }
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    const lp = actx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = soft ? 1200 : 700;
+    const g = actx.createGain();
+    g.gain.value = soft ? 0.16 : 0.22;
+    src.connect(lp); lp.connect(g); g.connect(master);
+    src.start(t);
+  }
+
+  // ---------- Achievements / toasts ----------
+  const toastsEl = document.getElementById('toasts');
+  function achieve(key, text) {
+    if (seen[key]) return;
+    seen[key] = true;
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = text;
+    toastsEl.appendChild(el);
+    setTimeout(() => el.remove(), 3300);
+  }
+
+  // ---------- Rendering ----------
+  function draw(t) {
+    ctx.fillStyle = '#050510';
+    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(starsCanvas, 0, 0, W, H);
+
+    for (const tw of twinklers) {
+      const a = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(t * tw.speed + tw.phase));
+      ctx.fillStyle = `rgba(220, 230, 255, ${a})`;
+      ctx.beginPath();
+      ctx.arc(tw.x, tw.y, tw.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = 'lighter';
+
+    // trails
+    for (const p of planets) {
+      const n = p.trail.length;
+      for (let i = 1; i < n; i++) {
+        const a = (i / n) * 0.5;
+        ctx.strokeStyle = `hsla(${p.hue}, 90%, 65%, ${a})`;
+        ctx.lineWidth = (i / n) * p.r * 0.7 + 0.4;
+        ctx.beginPath();
+        ctx.moveTo(p.trail[i - 1][0], p.trail[i - 1][1]);
+        ctx.lineTo(p.trail[i][0], p.trail[i][1]);
+        ctx.stroke();
+      }
+    }
+
+    // suns
+    for (const s of suns) {
+      const pulse = 1 + 0.05 * Math.sin(t * 2.2 + s.hue);
+      const R = s.r * pulse;
+      let grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, R * 3.2);
+      grad.addColorStop(0, `hsla(${s.hue}, 100%, 72%, 0.5)`);
+      grad.addColorStop(0.35, `hsla(${s.hue}, 95%, 60%, 0.12)`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, R * 3.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      grad = ctx.createRadialGradient(s.x - R * 0.2, s.y - R * 0.2, 0, s.x, s.y, R);
+      grad.addColorStop(0, '#fff8e8');
+      grad.addColorStop(0.55, `hsl(${s.hue}, 100%, 70%)`);
+      grad.addColorStop(1, `hsl(${s.hue}, 95%, 52%)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, R, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // planets
+    for (const p of planets) {
+      const grad = ctx.createRadialGradient(p.x - p.r * 0.3, p.y - p.r * 0.3, 0, p.x, p.y, p.r);
+      grad.addColorStop(0, `hsl(${p.hue}, 85%, 80%)`);
+      grad.addColorStop(0.7, `hsl(${p.hue}, 80%, 55%)`);
+      grad.addColorStop(1, `hsl(${p.hue}, 75%, 35%)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      // soft glow
+      ctx.fillStyle = `hsla(${p.hue}, 90%, 65%, 0.12)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // particles
+    for (const pa of particles) {
+      const a = Math.max(0, pa.life / pa.maxLife);
+      ctx.fillStyle = `hsla(${pa.hue}, 95%, 68%, ${a})`;
+      ctx.beginPath();
+      ctx.arc(pa.x, pa.y, pa.size * a + 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // orbit-complete rings
+    for (const r of rings) {
+      ctx.strokeStyle = `hsla(${r.hue}, 90%, 70%, ${r.life * 0.7})`;
+      ctx.lineWidth = 2 * r.life;
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+
+    // aim indicator + predicted path
+    if (drag) {
+      const [vx, vy] = launchVelocity(drag);
+      if (Math.hypot(vx, vy) > 30) {
+        const pts = predictPath(drag.sx, drag.sy, vx, vy);
+        for (let i = 0; i < pts.length; i++) {
+          const [px, py, hit] = pts[i];
+          const a = 0.85 * (1 - i / pts.length);
+          ctx.fillStyle = hit ? `rgba(255, 110, 80, ${a})` : `rgba(180, 200, 255, ${a})`;
+          ctx.beginPath();
+          ctx.arc(px, py, hit ? 3.4 : 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // launch point
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(drag.sx, drag.sy, 8, 0, Math.PI * 2);
+        ctx.stroke();
+        // drag line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.moveTo(drag.sx, drag.sy);
+        ctx.lineTo(drag.cx, drag.cy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  // ---------- Stats ----------
+  const statsEl = document.getElementById('stats');
+  let statsTimer = 0;
+  function updateStats(dt) {
+    statsTimer -= dt;
+    if (statsTimer > 0) return;
+    statsTimer = 0.25;
+    statsEl.innerHTML =
+      `🪐 <b>${planets.length}</b> &nbsp; orbits <b>${totalOrbits}</b> &nbsp; best <b>${best}</b>`;
+  }
+
+  // ---------- Main loop ----------
+  let lastT = 0;
+  function frame(ms) {
+    requestAnimationFrame(frame);
+    const t = ms / 1000;
+    let dt = Math.min(t - lastT, 1 / 30);
+    lastT = t;
+    if (!running || document.hidden) { draw(t); return; }
+
+    const warp = WARPS[warpIndex];
+    const total = dt * warp;
+    const steps = Math.max(2, Math.ceil(total * 130));
+    const h = total / steps;
+    for (let i = 0; i < steps; i++) physicsStep(h);
+    trackOrbits();
+
+    for (const p of planets) {
+      p.trail.push([p.x, p.y]);
+      if (p.trail.length > 80) p.trail.shift();
+    }
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const pa = particles[i];
+      pa.life -= total;
+      if (pa.life <= 0) { particles.splice(i, 1); continue; }
+      pa.x += pa.vx * total; pa.y += pa.vy * total;
+      pa.vx *= 0.985; pa.vy *= 0.985;
+    }
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i];
+      r.life -= total * 1.6;
+      r.r += total * 90;
+      if (r.life <= 0) rings.splice(i, 1);
+    }
+
+    elapsed += total;
+    updateStats(dt);
+    draw(t);
+  }
+
+  // ---------- UI ----------
+  const ui = document.getElementById('ui');
+  ui.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+  const btnSound = document.getElementById('btnSound');
+  btnSound.addEventListener('click', () => {
+    soundOn = !soundOn;
+    btnSound.textContent = soundOn ? '🔊' : '🔇';
+    if (master) master.gain.value = soundOn ? 1 : 0;
+  });
+
+  const btnWarp = document.getElementById('btnWarp');
+  btnWarp.addEventListener('click', () => {
+    warpIndex = (warpIndex + 1) % WARPS.length;
+    btnWarp.textContent = WARPS[warpIndex] + '×';
+  });
+
+  const btnStars = document.getElementById('btnStars');
+  btnStars.addEventListener('click', () => {
+    starMode = (starMode + 1) % 2;
+    btnStars.textContent = starMode === 0 ? '★' : '★★';
+    binaryAngle = 0;
+    layoutSuns();
+    if (starMode === 1) achieve('binary', 'Binary stars unlocked 🌟');
+  });
+
+  document.getElementById('btnReset').addEventListener('click', () => {
+    planets = [];
+    particles = [];
+    rings = [];
+    totalOrbits = 0;
+    merges = 0;
+    seedDemoPlanet();
+  });
+
+  function seedDemoPlanet() {
+    const s = suns[0];
+    const d = Math.min(W, H) * 0.3;
+    const v = Math.sqrt(s.gm / d);
+    spawnPlanet(s.x + d, s.y, 0, -v, 7);
+  }
+
+  // ---------- Intro ----------
+  const intro = document.getElementById('intro');
+  intro.addEventListener('pointerup', () => {
+    if (running) return;
+    running = true;
+    intro.classList.add('hidden');
+    initAudio();
+    if (actx && actx.state === 'suspended') actx.resume();
+    seedDemoPlanet();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (actx) {
+      if (document.hidden) actx.suspend();
+      else if (running && soundOn) actx.resume();
+    }
+  });
+
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame((ms) => { lastT = ms / 1000; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
