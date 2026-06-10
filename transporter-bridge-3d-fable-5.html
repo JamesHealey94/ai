@@ -1,0 +1,1056 @@
+<!-- Created with AI (Claude Fable 5) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tees Transporter Bridge · Middlesbrough — 3D</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    background: #0b1622;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    touch-action: none;
+  }
+  #titleCard {
+    position: absolute;
+    top: calc(12px + env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(8, 20, 34, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(120, 180, 230, 0.25);
+    border-radius: 12px;
+    padding: 10px 18px;
+    color: #eaf3fb;
+    text-align: center;
+    pointer-events: none;
+    max-width: min(92vw, 520px);
+  }
+  #titleCard h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: #8fc4ee;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #titleCard p {
+    font-size: 12px;
+    color: #b8cfe2;
+    line-height: 1.45;
+  }
+  #buttons {
+    position: absolute;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  #buttons button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #eaf3fb;
+    background: rgba(20, 48, 80, 0.82);
+    border: 1px solid rgba(130, 190, 240, 0.4);
+    border-radius: 22px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s;
+  }
+  #buttons button:active {
+    background: rgba(45, 95, 150, 0.95);
+  }
+  #hint {
+    position: absolute;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(200, 220, 240, 0.55);
+    font-size: 11px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div id="titleCard">
+  <h1>Tees Transporter Bridge &middot; Middlesbrough</h1>
+  <p>Opened 1911 &middot; 259&thinsp;m long &middot; 69&thinsp;m high &middot; still operational</p>
+</div>
+<div id="hint">drag to orbit &middot; pinch / scroll to zoom</div>
+<div id="buttons">
+  <button id="btnGondola">Pause gondola</button>
+  <button id="btnNight">Night</button>
+  <button id="btnReset">Reset camera</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------
+  // Renderer / scene / camera
+  // ---------------------------------------------------------------
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  var scene = new THREE.Scene();
+
+  var camera = new THREE.PerspectiveCamera(
+    52, window.innerWidth / window.innerHeight, 0.5, 1600
+  );
+
+  // ---------------------------------------------------------------
+  // Sky gradient textures (day / night)
+  // ---------------------------------------------------------------
+  function makeSky(stops) {
+    var cv = document.createElement('canvas');
+    cv.width = 2; cv.height = 256;
+    var cx = cv.getContext('2d');
+    var g = cx.createLinearGradient(0, 0, 0, 256);
+    for (var i = 0; i < stops.length; i++) {
+      g.addColorStop(stops[i][0], stops[i][1]);
+    }
+    cx.fillStyle = g;
+    cx.fillRect(0, 0, 2, 256);
+    var tex = new THREE.CanvasTexture(cv);
+    return tex;
+  }
+
+  var skyDay = makeSky([
+    [0.0, '#3d7ab8'],
+    [0.45, '#7fb2da'],
+    [0.75, '#c8dcea'],
+    [1.0, '#dde8ee']
+  ]);
+  var skyNight = makeSky([
+    [0.0, '#020610'],
+    [0.5, '#08152b'],
+    [0.8, '#13263e'],
+    [1.0, '#243a52']
+  ]);
+
+  scene.background = skyDay;
+  scene.fog = new THREE.Fog(0xc3d8e8, 220, 950);
+
+  // ---------------------------------------------------------------
+  // Lights
+  // ---------------------------------------------------------------
+  var hemi = new THREE.HemisphereLight(0xcfe4f5, 0x4a5a52, 0.85);
+  scene.add(hemi);
+
+  var sun = new THREE.DirectionalLight(0xfff2dd, 0.95);
+  sun.position.set(140, 190, 110);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -170;
+  sun.shadow.camera.right = 170;
+  sun.shadow.camera.top = 110;
+  sun.shadow.camera.bottom = -40;
+  sun.shadow.camera.near = 50;
+  sun.shadow.camera.far = 520;
+  sun.shadow.bias = -0.0015;
+  scene.add(sun);
+
+  // Night point lights (kept off during the day, <= 3 total)
+  var lampLightA = new THREE.PointLight(0xffc878, 0, 160, 2);
+  lampLightA.position.set(-80, 66, 0);
+  var lampLightB = new THREE.PointLight(0xffc878, 0, 160, 2);
+  lampLightB.position.set(80, 66, 0);
+  var lampLightC = new THREE.PointLight(0xffd9a0, 0, 130, 2);
+  lampLightC.position.set(0, 60, 0);
+  scene.add(lampLightA, lampLightB, lampLightC);
+
+  // ---------------------------------------------------------------
+  // Materials
+  // ---------------------------------------------------------------
+  var BRIDGE_BLUE = 0x1d63a8;
+  var matSteel = new THREE.MeshLambertMaterial({ color: BRIDGE_BLUE });
+  var matSteelDark = new THREE.MeshLambertMaterial({ color: 0x174e85 });
+  var matCable = new THREE.MeshLambertMaterial({ color: 0x2c3b4a });
+  var matDeck = new THREE.MeshLambertMaterial({ color: 0x5a626b });
+  var matConcrete = new THREE.MeshLambertMaterial({ color: 0x9a988c });
+  var matRoad = new THREE.MeshLambertMaterial({ color: 0x474c52 });
+  var matGrass = new THREE.MeshLambertMaterial({ color: 0x5d7a4e });
+  var matMud = new THREE.MeshLambertMaterial({ color: 0x6e6353 });
+
+  // ---------------------------------------------------------------
+  // Lattice strut system (one InstancedMesh for the whole bridge)
+  // ---------------------------------------------------------------
+  var strutList = []; // {ax..bz, t}
+  var _vA = new THREE.Vector3();
+  var _vB = new THREE.Vector3();
+  var _vD = new THREE.Vector3();
+  var _q = new THREE.Quaternion();
+  var _UP = new THREE.Vector3(0, 1, 0);
+  var _m = new THREE.Matrix4();
+  var _s = new THREE.Vector3();
+  var _p = new THREE.Vector3();
+
+  function strut(ax, ay, az, bx, by, bz, t) {
+    strutList.push([ax, ay, az, bx, by, bz, t]);
+  }
+
+  function buildStrutMesh(list, material) {
+    var geo = new THREE.BoxGeometry(1, 1, 1);
+    var mesh = new THREE.InstancedMesh(geo, material, list.length);
+    for (var i = 0; i < list.length; i++) {
+      var d = list[i];
+      _vA.set(d[0], d[1], d[2]);
+      _vB.set(d[3], d[4], d[5]);
+      _vD.subVectors(_vB, _vA);
+      var len = _vD.length();
+      _vD.normalize();
+      _q.setFromUnitVectors(_UP, _vD);
+      _p.addVectors(_vA, _vB).multiplyScalar(0.5);
+      _s.set(d[6], len, d[6]);
+      _m.compose(_p, _q, _s);
+      mesh.setMatrixAt(i, _m);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
+    return mesh;
+  }
+
+  // Interpolate between two [x,y,z] points
+  function lerp3(a, b, t) {
+    return [
+      a[0] + (b[0] - a[0]) * t,
+      a[1] + (b[1] - a[1]) * t,
+      a[2] + (b[2] - a[2]) * t
+    ];
+  }
+
+  // ---------------------------------------------------------------
+  // Bridge dimensions (scene units roughly = metres)
+  // ---------------------------------------------------------------
+  var WATER_Y = 0;
+  var QUAY_Y = 2;          // bank / quay top
+  var RIVER_HALF = 70;     // river from x=-70 to x=+70
+  var TOWER_X = 84;        // tower base centre
+  var TOWER_TOP_X = 76;    // tower top centre (leans inward)
+  var TOWER_TOP_Y = 64;
+  var BOOM_BOT = 56.5;
+  var BOOM_TOP = 63;
+  var BOOM_HALF = 122;     // boom extends past towers (cantilever ends)
+  var BOOM_Z = 3.4;        // half width of boom truss
+  var TRAVEL = 64;         // trolley travel limit |x|
+
+  // ---------------------------------------------------------------
+  // Towers — tapering cross-braced lattice pylons leaning inward
+  // ---------------------------------------------------------------
+  function buildTower(side) {
+    // side = +1 (east bank) or -1 (west bank)
+    var bx = side * TOWER_X;
+    var tx = side * TOWER_TOP_X;
+    var hbX = 10, hbZ = 8.5;   // half extents at base
+    var htX = 2.3, htZ = 3.0;  // half extents at top
+    var panels = 9;
+    var y0 = QUAY_Y, y1 = TOWER_TOP_Y;
+
+    // Corner columns: [outer+z, outer-z, inner+z, inner-z]
+    var bot = [
+      [bx + side * hbX, y0,  hbZ],
+      [bx + side * hbX, y0, -hbZ],
+      [bx - side * hbX, y0,  hbZ],
+      [bx - side * hbX, y0, -hbZ]
+    ];
+    var top = [
+      [tx + side * htX, y1,  htZ],
+      [tx + side * htX, y1, -htZ],
+      [tx - side * htX, y1,  htZ],
+      [tx - side * htX, y1, -htZ]
+    ];
+
+    // Faces as corner-index pairs (4 faces of the pylon)
+    var faces = [[0, 1], [2, 3], [0, 2], [1, 3]];
+    var i, f, t0, t1;
+
+    for (i = 0; i < panels; i++) {
+      t0 = i / panels;
+      t1 = (i + 1) / panels;
+      var c0 = [], c1 = [];
+      for (var k = 0; k < 4; k++) {
+        c0.push(lerp3(bot[k], top[k], t0));
+        c1.push(lerp3(bot[k], top[k], t1));
+      }
+      // chords (main corner legs)
+      for (k = 0; k < 4; k++) {
+        strut(c0[k][0], c0[k][1], c0[k][2], c1[k][0], c1[k][1], c1[k][2], 0.62);
+      }
+      // horizontal ring at top of panel
+      strut(c1[0][0], c1[0][1], c1[0][2], c1[1][0], c1[1][1], c1[1][2], 0.34);
+      strut(c1[2][0], c1[2][1], c1[2][2], c1[3][0], c1[3][1], c1[3][2], 0.34);
+      strut(c1[0][0], c1[0][1], c1[0][2], c1[2][0], c1[2][1], c1[2][2], 0.34);
+      strut(c1[1][0], c1[1][1], c1[1][2], c1[3][0], c1[3][1], c1[3][2], 0.34);
+      // X cross-bracing on each face
+      for (f = 0; f < 4; f++) {
+        var a = faces[f][0], b = faces[f][1];
+        strut(c0[a][0], c0[a][1], c0[a][2], c1[b][0], c1[b][1], c1[b][2], 0.26);
+        strut(c0[b][0], c0[b][1], c0[b][2], c1[a][0], c1[a][1], c1[a][2], 0.26);
+      }
+      // internal plan diagonal every other panel
+      if (i % 2 === 0) {
+        strut(c1[0][0], c1[0][1], c1[0][2], c1[3][0], c1[3][1], c1[3][2], 0.22);
+      } else {
+        strut(c1[1][0], c1[1][1], c1[1][2], c1[2][0], c1[2][1], c1[2][2], 0.22);
+      }
+      // mid-height secondary horizontals on the wide faces (lower panels)
+      if (i < 4) {
+        var mh0 = lerp3(c0[0], c1[0], 0.5);
+        var mh1 = lerp3(c0[1], c1[1], 0.5);
+        var mh2 = lerp3(c0[2], c1[2], 0.5);
+        var mh3 = lerp3(c0[3], c1[3], 0.5);
+        strut(mh0[0], mh0[1], mh0[2], mh1[0], mh1[1], mh1[2], 0.22);
+        strut(mh2[0], mh2[1], mh2[2], mh3[0], mh3[1], mh3[2], 0.22);
+      }
+    }
+
+    // Saddle frame on top, supporting the boom
+    strut(tx - 3, y1, 3.2, tx + 3, y1, 3.2, 0.5);
+    strut(tx - 3, y1, -3.2, tx + 3, y1, -3.2, 0.5);
+    strut(tx, y1, -3.2, tx, y1 + 1.4, 0, 0.4);
+    strut(tx, y1, 3.2, tx, y1 + 1.4, 0, 0.4);
+
+    // Concrete plinths under the four legs
+    for (i = 0; i < 4; i++) {
+      var pl = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.6, 4.6), matConcrete);
+      pl.position.set(bot[i][0], QUAY_Y - 1.2, bot[i][2]);
+      pl.castShadow = true;
+      pl.receiveShadow = true;
+      scene.add(pl);
+    }
+  }
+
+  buildTower(1);
+  buildTower(-1);
+
+  // ---------------------------------------------------------------
+  // Boom — long horizontal cantilever lattice truss across the top
+  // ---------------------------------------------------------------
+  (function buildBoom() {
+    var panels = 40;
+    var x0 = -BOOM_HALF, x1 = BOOM_HALF;
+    var step = (x1 - x0) / panels;
+    var yB = BOOM_BOT, yT = BOOM_TOP, z = BOOM_Z;
+    var i, xa, xb;
+
+    for (i = 0; i < panels; i++) {
+      xa = x0 + step * i;
+      xb = xa + step;
+      // chords: top pair + bottom pair
+      strut(xa, yT, z, xb, yT, z, 0.5);
+      strut(xa, yT, -z, xb, yT, -z, 0.5);
+      strut(xa, yB, z, xb, yB, z, 0.5);
+      strut(xa, yB, -z, xb, yB, -z, 0.5);
+      // verticals at panel end
+      strut(xb, yB, z, xb, yT, z, 0.3);
+      strut(xb, yB, -z, xb, yT, -z, 0.3);
+      // side-face diagonals (alternate direction, classic Pratt look)
+      if (i % 2 === 0) {
+        strut(xa, yB, z, xb, yT, z, 0.26);
+        strut(xa, yB, -z, xb, yT, -z, 0.26);
+      } else {
+        strut(xa, yT, z, xb, yB, z, 0.26);
+        strut(xa, yT, -z, xb, yB, -z, 0.26);
+      }
+      // laterals top & bottom at panel end
+      strut(xb, yT, -z, xb, yT, z, 0.28);
+      strut(xb, yB, -z, xb, yB, z, 0.28);
+      // plan bracing zig-zag on top plane
+      if (i % 2 === 0) {
+        strut(xa, yT, -z, xb, yT, z, 0.2);
+      } else {
+        strut(xa, yT, z, xb, yT, -z, 0.2);
+      }
+    }
+    // end verticals at x0
+    strut(x0, yB, z, x0, yT, z, 0.3);
+    strut(x0, yB, -z, x0, yT, -z, 0.3);
+    strut(x0, yT, -z, x0, yT, z, 0.28);
+    strut(x0, yB, -z, x0, yB, z, 0.28);
+
+    // Cantilever anchor stays at each end down to ground anchors
+    [-1, 1].forEach(function (s) {
+      var ex = s * BOOM_HALF;
+      var ax = s * (BOOM_HALF + 14);
+      strut(ex, yB, 2.4, ax, QUAY_Y, 2.4, 0.34);
+      strut(ex, yB, -2.4, ax, QUAY_Y, -2.4, 0.34);
+      var anchor = new THREE.Mesh(new THREE.BoxGeometry(6, 3.5, 9), matConcrete);
+      anchor.position.set(ax, QUAY_Y - 0.4, 0);
+      anchor.castShadow = true;
+      scene.add(anchor);
+    });
+
+    // Winder house perched on the boom near the east tower
+    var house = new THREE.Mesh(new THREE.BoxGeometry(9, 3.2, 5.4), matSteelDark);
+    house.position.set(TOWER_TOP_X - 12, yT + 1.6, 0);
+    house.castShadow = true;
+    scene.add(house);
+    var roof = new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.6, 6), matCable);
+    roof.position.set(TOWER_TOP_X - 12, yT + 3.4, 0);
+    scene.add(roof);
+
+    // Walkway handrail along the top of the boom
+    for (i = 0; i <= panels; i += 2) {
+      xa = x0 + step * i;
+      strut(xa, yT, 0, xa, yT + 1.1, 0, 0.12);
+    }
+    strut(x0, yT + 1.1, 0, x1, yT + 1.1, 0, 0.12);
+  })();
+
+  // Build the single instanced mesh holding every lattice strut
+  var latticeMesh = buildStrutMesh(strutList, matSteel);
+  scene.add(latticeMesh);
+
+  // ---------------------------------------------------------------
+  // Travelling carriage: trolley + suspension cables + gondola
+  // ---------------------------------------------------------------
+  var carriage = new THREE.Group();
+  scene.add(carriage);
+
+  (function buildCarriage() {
+    // --- trolley frame under the boom ---
+    var trolley = new THREE.Group();
+    var tBody = new THREE.Mesh(new THREE.BoxGeometry(15, 1.4, 5.6), matSteelDark);
+    tBody.position.y = BOOM_BOT - 1.1;
+    tBody.castShadow = true;
+    trolley.add(tBody);
+
+    var wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.5, 12);
+    wheelGeo.rotateX(Math.PI / 2);
+    for (var i = 0; i < 4; i++) {
+      for (var j = 0; j < 2; j++) {
+        var w = new THREE.Mesh(wheelGeo, matCable);
+        w.position.set(-6 + i * 4, BOOM_BOT - 0.2, j === 0 ? 2.6 : -2.6);
+        trolley.add(w);
+      }
+    }
+    carriage.add(trolley);
+
+    // --- suspension cables: trolley down to gondola frame ---
+    var cableTopY = BOOM_BOT - 1.8;
+    var cableBotY = 8.6;
+    var nCables = 7;
+    var cgeo = new THREE.CylinderGeometry(0.07, 0.07, 1, 5);
+    for (i = 0; i < nCables; i++) {
+      var cx = -6.6 + i * 2.2;       // attachment along trolley
+      var gx = -9.0 + i * 3.0;       // splays out to gondola edge
+      for (j = 0; j < 2; j++) {
+        var z0 = j === 0 ? 2.2 : -2.2;
+        var z1 = j === 0 ? 4.0 : -4.0;
+        var dx = gx - cx, dy = cableBotY - cableTopY, dz = z1 - z0;
+        var len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        var cab = new THREE.Mesh(cgeo, matCable);
+        cab.scale.y = len;
+        cab.position.set((cx + gx) / 2, (cableTopY + cableBotY) / 2, (z0 + z1) / 2);
+        cab.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          new THREE.Vector3(dx, dy, dz).normalize()
+        );
+        carriage.add(cab);
+      }
+    }
+
+    // --- gondola platform just above the water ---
+    var gondola = new THREE.Group();
+    gondola.position.y = 0;
+    carriage.add(gondola);
+
+    var deck = new THREE.Mesh(new THREE.BoxGeometry(20, 0.7, 9.6), matDeck);
+    deck.position.y = QUAY_Y - 0.1;
+    deck.castShadow = true;
+    deck.receiveShadow = true;
+    gondola.add(deck);
+
+    var skirt = new THREE.Mesh(new THREE.BoxGeometry(20, 1.0, 9.6), matSteel);
+    skirt.position.y = QUAY_Y - 0.95;
+    gondola.add(skirt);
+
+    // overhead spreader frame the cables attach to
+    var sprGeo = new THREE.BoxGeometry(19.5, 0.45, 0.45);
+    var sprA = new THREE.Mesh(sprGeo, matSteel);
+    sprA.position.set(0, cableBotY, 4.0);
+    gondola.add(sprA);
+    var sprB = new THREE.Mesh(sprGeo, matSteel);
+    sprB.position.set(0, cableBotY, -4.0);
+    gondola.add(sprB);
+
+    // corner hangers from spreader frame down to deck
+    var hangGeo = new THREE.BoxGeometry(0.28, cableBotY - QUAY_Y, 0.28);
+    [[-9.4, 4.0], [9.4, 4.0], [-9.4, -4.0], [9.4, -4.0],
+     [0, 4.0], [0, -4.0]].forEach(function (pz) {
+      var h = new THREE.Mesh(hangGeo, matSteel);
+      h.position.set(pz[0], (cableBotY + QUAY_Y) / 2, pz[1]);
+      gondola.add(h);
+    });
+
+    // railings along both long (z) sides
+    var postGeo = new THREE.BoxGeometry(0.14, 1.15, 0.14);
+    var railGeo = new THREE.BoxGeometry(19.6, 0.1, 0.1);
+    [4.55, -4.55].forEach(function (z) {
+      for (var p = 0; p <= 10; p++) {
+        var post = new THREE.Mesh(postGeo, matSteel);
+        post.position.set(-9.5 + p * 1.9, QUAY_Y + 0.62, z);
+        gondola.add(post);
+      }
+      var railT = new THREE.Mesh(railGeo, matSteel);
+      railT.position.set(0, QUAY_Y + 1.2, z);
+      gondola.add(railT);
+      var railM = new THREE.Mesh(railGeo, matSteel);
+      railM.position.set(0, QUAY_Y + 0.7, z);
+      gondola.add(railM);
+    });
+
+    // small operator cabin on the gondola
+    var cab2 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.4, 2.2),
+      new THREE.MeshLambertMaterial({ color: 0xd8d3c4 }));
+    cab2.position.set(8.2, QUAY_Y + 1.55, -3.0);
+    cab2.castShadow = true;
+    gondola.add(cab2);
+
+    carriage.userData.gondola = gondola;
+  })();
+
+  // ---------------------------------------------------------------
+  // Low-poly cars
+  // ---------------------------------------------------------------
+  var carBodyGeo = new THREE.BoxGeometry(4.2, 1.1, 1.9);
+  var carCabGeo = new THREE.BoxGeometry(2.2, 0.9, 1.7);
+  var carWheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.34, 10);
+  carWheelGeo.rotateX(Math.PI / 2);
+  var carWheelMat = new THREE.MeshLambertMaterial({ color: 0x16181c });
+
+  function makeCar(color) {
+    var g = new THREE.Group();
+    var body = new THREE.Mesh(carBodyGeo,
+      new THREE.MeshLambertMaterial({ color: color }));
+    body.position.y = 0.95;
+    body.castShadow = true;
+    g.add(body);
+    var cab = new THREE.Mesh(carCabGeo,
+      new THREE.MeshLambertMaterial({ color: 0xbcd6e8 }));
+    cab.position.set(-0.3, 1.85, 0);
+    g.add(cab);
+    [[-1.4, 0.95], [1.4, 0.95], [-1.4, -0.95], [1.4, -0.95]].forEach(function (w) {
+      var wh = new THREE.Mesh(carWheelGeo, carWheelMat);
+      wh.position.set(w[0], 0.42, w[1]);
+      g.add(wh);
+    });
+    return g;
+  }
+
+  // Two cars riding on the gondola
+  var gondolaGroup = carriage.userData.gondola;
+  var carA = makeCar(0xb3382f);
+  carA.position.set(-4.2, QUAY_Y + 0.25, 1.6);
+  gondolaGroup.add(carA);
+  var carB = makeCar(0x2e7d4f);
+  carB.position.set(2.6, QUAY_Y + 0.25, 1.6);
+  gondolaGroup.add(carB);
+
+  // Queued cars waiting on each bank approach
+  var queueWest = makeCar(0xc7a23a);
+  queueWest.position.set(-96, QUAY_Y + 0.25, 1.6);
+  scene.add(queueWest);
+  var queueEast = makeCar(0x4a5fa8);
+  queueEast.rotation.y = Math.PI;
+  queueEast.position.set(96, QUAY_Y + 0.25, -1.6);
+  scene.add(queueEast);
+
+  // ---------------------------------------------------------------
+  // Environment: river, banks, roads, buildings
+  // ---------------------------------------------------------------
+  var waterGeo = new THREE.PlaneGeometry(RIVER_HALF * 2 + 24, 760, 36, 72);
+  waterGeo.rotateX(-Math.PI / 2);
+  var waterBase = waterGeo.attributes.position.array.slice();
+  var water = new THREE.Mesh(waterGeo, new THREE.MeshPhongMaterial({
+    color: 0x2b4f5e,
+    specular: 0x88aabb,
+    shininess: 70,
+    transparent: true,
+    opacity: 0.94
+  }));
+  water.position.y = WATER_Y;
+  water.receiveShadow = true;
+  scene.add(water);
+
+  // Banks (raised ground each side of the river)
+  function makeBank(side) {
+    var bank = new THREE.Mesh(new THREE.BoxGeometry(220, QUAY_Y + 2, 760), matGrass);
+    bank.position.set(side * (RIVER_HALF + 110), (QUAY_Y - 2) / 2, 0);
+    bank.receiveShadow = true;
+    scene.add(bank);
+    // quay wall + apron near the water
+    var quay = new THREE.Mesh(new THREE.BoxGeometry(26, QUAY_Y + 2.4, 130), matConcrete);
+    quay.position.set(side * (RIVER_HALF + 12), (QUAY_Y - 2.2) / 2, 0);
+    quay.receiveShadow = true;
+    scene.add(quay);
+  }
+  makeBank(1);
+  makeBank(-1);
+
+  // mud flats at the river edge
+  [-1, 1].forEach(function (s) {
+    var mud = new THREE.Mesh(new THREE.BoxGeometry(8, 0.8, 760), matMud);
+    mud.position.set(s * (RIVER_HALF - 2), 0.15, 0);
+    scene.add(mud);
+  });
+
+  // Road approaches leading to the gondola landings
+  [-1, 1].forEach(function (s) {
+    var road = new THREE.Mesh(new THREE.BoxGeometry(118, 0.3, 9.6), matRoad);
+    road.position.set(s * (RIVER_HALF + 59), QUAY_Y + 0.02, 0);
+    road.receiveShadow = true;
+    scene.add(road);
+    // landing ramp down to gondola deck level
+    var ramp = new THREE.Mesh(new THREE.BoxGeometry(8, 0.5, 9.6), matRoad);
+    ramp.position.set(s * (RIVER_HALF - 4), QUAY_Y - 0.18, 0);
+    ramp.rotation.z = s * 0.045;
+    scene.add(ramp);
+    // centre line dashes
+    var dashGeo = new THREE.BoxGeometry(2.4, 0.06, 0.3);
+    var dashMat = new THREE.MeshBasicMaterial({ color: 0xcfd4d8 });
+    for (var d = 0; d < 9; d++) {
+      var dash = new THREE.Mesh(dashGeo, dashMat);
+      dash.position.set(s * (RIVER_HALF + 16 + d * 11), QUAY_Y + 0.2, 0);
+      scene.add(dash);
+    }
+  });
+
+  // Simple quayside / industrial buildings
+  var bldGeo = new THREE.BoxGeometry(1, 1, 1);
+  var bldMats = [
+    new THREE.MeshLambertMaterial({ color: 0x8a4a3a }),
+    new THREE.MeshLambertMaterial({ color: 0x9b9384 }),
+    new THREE.MeshLambertMaterial({ color: 0x6b7a85 }),
+    new THREE.MeshLambertMaterial({ color: 0xa8826a })
+  ];
+  var roofMat = new THREE.MeshLambertMaterial({ color: 0x4a4f55 });
+  var buildings = [
+    // [x, z, w, h, d, matIndex]
+    [-118, 36, 26, 12, 18, 0],
+    [-104, -42, 18, 9, 14, 1],
+    [-150, -20, 30, 16, 22, 2],
+    [-138, 70, 20, 8, 26, 3],
+    [-178, 30, 24, 20, 18, 1],
+    [118, 34, 24, 11, 16, 1],
+    [108, -44, 16, 8, 14, 3],
+    [148, -24, 32, 18, 24, 0],
+    [140, 66, 18, 9, 22, 2],
+    [180, 18, 26, 22, 20, 2],
+    [165, -64, 20, 7, 16, 1],
+    [-165, -62, 22, 10, 16, 3]
+  ];
+  buildings.forEach(function (b) {
+    var m = new THREE.Mesh(bldGeo, bldMats[b[5]]);
+    m.scale.set(b[2], b[3], b[4]);
+    m.position.set(b[0], QUAY_Y + b[3] / 2, b[1]);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    scene.add(m);
+    var r = new THREE.Mesh(bldGeo, roofMat);
+    r.scale.set(b[2] + 1, 0.8, b[4] + 1);
+    r.position.set(b[0], QUAY_Y + b[3] + 0.4, b[1]);
+    scene.add(r);
+  });
+
+  // A couple of chimneys for the industrial Teesside skyline
+  var chimGeo = new THREE.CylinderGeometry(1.3, 1.9, 1, 10);
+  [[-150, -20, 30], [180, 18, 34], [148, -24, 26]].forEach(function (c) {
+    var ch = new THREE.Mesh(chimGeo, bldMats[1]);
+    ch.scale.y = c[2];
+    ch.position.set(c[0] + 6, QUAY_Y + c[2] / 2, c[1] - 4);
+    ch.castShadow = true;
+    scene.add(ch);
+  });
+
+  // Small moored boat on the river
+  var boat = new THREE.Group();
+  var hull = new THREE.Mesh(new THREE.BoxGeometry(11, 1.6, 3.6),
+    new THREE.MeshLambertMaterial({ color: 0x303a44 }));
+  hull.position.y = 0.6;
+  boat.add(hull);
+  var whse = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.6, 2.4),
+    new THREE.MeshLambertMaterial({ color: 0xd0cbbb }));
+  whse.position.set(-2, 2.0, 0);
+  boat.add(whse);
+  boat.position.set(28, 0, 86);
+  boat.rotation.y = 0.5;
+  scene.add(boat);
+
+  // ---------------------------------------------------------------
+  // Night lamps (emissive instanced dots along boom + towers)
+  // ---------------------------------------------------------------
+  var lampPositions = [];
+  for (var lx = -BOOM_HALF + 4; lx <= BOOM_HALF - 4; lx += 10) {
+    lampPositions.push([lx, BOOM_BOT - 0.6, 0]);
+    lampPositions.push([lx + 5, BOOM_TOP + 0.6, 0]);
+  }
+  [-1, 1].forEach(function (s) {
+    for (var ly = 8; ly < TOWER_TOP_Y; ly += 8) {
+      var t = (ly - QUAY_Y) / (TOWER_TOP_Y - QUAY_Y);
+      var cx = s * (TOWER_X + (TOWER_TOP_X - TOWER_X) * t);
+      var cz = 8.5 + (3.0 - 8.5) * t;
+      lampPositions.push([cx, ly, cz]);
+      lampPositions.push([cx, ly, -cz]);
+    }
+  });
+  var lampMesh = null;
+  (function buildLamps() {
+    var g = new THREE.SphereGeometry(0.42, 6, 5);
+    var mat = new THREE.MeshBasicMaterial({ color: 0xffc66e });
+    lampMesh = new THREE.InstancedMesh(g, mat, lampPositions.length);
+    var mm = new THREE.Matrix4();
+    for (var i = 0; i < lampPositions.length; i++) {
+      mm.makeTranslation(
+        lampPositions[i][0], lampPositions[i][1], lampPositions[i][2]
+      );
+      lampMesh.setMatrixAt(i, mm);
+    }
+    lampMesh.instanceMatrix.needsUpdate = true;
+    lampMesh.visible = false;
+    scene.add(lampMesh);
+  })();
+
+  // ---------------------------------------------------------------
+  // Custom touch-friendly orbit camera
+  // ---------------------------------------------------------------
+  var DEFAULT_VIEW = { az: 0.55, pol: 1.18, dist: 210 };
+  var orbit = {
+    target: new THREE.Vector3(0, 26, 0),
+    az: DEFAULT_VIEW.az,
+    pol: DEFAULT_VIEW.pol,
+    dist: DEFAULT_VIEW.dist,
+    velAz: 0,
+    velPol: 0,
+    minDist: 35,
+    maxDist: 520,
+    minPol: 0.12,
+    maxPol: 1.53,
+    lastInput: 0
+  };
+
+  function applyCamera() {
+    orbit.pol = Math.max(orbit.minPol, Math.min(orbit.maxPol, orbit.pol));
+    orbit.dist = Math.max(orbit.minDist, Math.min(orbit.maxDist, orbit.dist));
+    var sp = Math.sin(orbit.pol), cp = Math.cos(orbit.pol);
+    camera.position.set(
+      orbit.target.x + orbit.dist * sp * Math.sin(orbit.az),
+      orbit.target.y + orbit.dist * cp,
+      orbit.target.z + orbit.dist * sp * Math.cos(orbit.az)
+    );
+    camera.lookAt(orbit.target);
+  }
+
+  var dragging = false;
+  var pinch = false;
+  var lastX = 0, lastY = 0, lastPinchDist = 0;
+
+  function noteInput() {
+    orbit.lastInput = performance.now();
+  }
+
+  function rotateBy(dx, dy) {
+    var kx = -dx * 0.0055;
+    var ky = -dy * 0.0042;
+    orbit.az += kx;
+    orbit.pol += ky;
+    orbit.velAz = kx;
+    orbit.velPol = ky;
+  }
+
+  var cvs = renderer.domElement;
+
+  cvs.addEventListener('mousedown', function (e) {
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    orbit.velAz = orbit.velPol = 0;
+    noteInput();
+  });
+  window.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    rotateBy(e.clientX - lastX, e.clientY - lastY);
+    lastX = e.clientX; lastY = e.clientY;
+    noteInput();
+  });
+  window.addEventListener('mouseup', function () { dragging = false; });
+
+  cvs.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    orbit.dist *= (e.deltaY > 0 ? 1.1 : 0.9);
+    noteInput();
+  }, { passive: false });
+
+  cvs.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+    noteInput();
+    if (e.touches.length === 1) {
+      dragging = true;
+      pinch = false;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+      orbit.velAz = orbit.velPol = 0;
+    } else if (e.touches.length === 2) {
+      dragging = false;
+      pinch = true;
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist = Math.sqrt(dx * dx + dy * dy);
+    }
+  }, { passive: false });
+
+  cvs.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+    noteInput();
+    if (pinch && e.touches.length === 2) {
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (lastPinchDist > 0) {
+        orbit.dist *= lastPinchDist / d;
+      }
+      lastPinchDist = d;
+    } else if (dragging && e.touches.length === 1) {
+      rotateBy(
+        e.touches[0].clientX - lastX,
+        e.touches[0].clientY - lastY
+      );
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  cvs.addEventListener('touchend', function (e) {
+    if (e.touches.length === 0) {
+      dragging = false;
+      pinch = false;
+    } else if (e.touches.length === 1) {
+      pinch = false;
+      dragging = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    }
+    noteInput();
+  });
+
+  // ---------------------------------------------------------------
+  // UI buttons
+  // ---------------------------------------------------------------
+  var gondolaRunning = true;
+  var night = false;
+
+  var btnGondola = document.getElementById('btnGondola');
+  var btnNight = document.getElementById('btnNight');
+  var btnReset = document.getElementById('btnReset');
+
+  btnGondola.addEventListener('click', function () {
+    gondolaRunning = !gondolaRunning;
+    btnGondola.textContent = gondolaRunning ? 'Pause gondola' : 'Play gondola';
+  });
+
+  btnNight.addEventListener('click', function () {
+    night = !night;
+    btnNight.textContent = night ? 'Day' : 'Night';
+    if (night) {
+      scene.background = skyNight;
+      scene.fog.color.setHex(0x0a1626);
+      scene.fog.near = 160;
+      scene.fog.far = 820;
+      hemi.intensity = 0.22;
+      hemi.color.setHex(0x4a6a96);
+      hemi.groundColor.setHex(0x101820);
+      sun.intensity = 0.1;
+      sun.color.setHex(0xa8c4e8);
+      lampLightA.intensity = 1.2;
+      lampLightB.intensity = 1.2;
+      lampLightC.intensity = 0.8;
+      lampMesh.visible = true;
+    } else {
+      scene.background = skyDay;
+      scene.fog.color.setHex(0xc3d8e8);
+      scene.fog.near = 220;
+      scene.fog.far = 950;
+      hemi.intensity = 0.85;
+      hemi.color.setHex(0xcfe4f5);
+      hemi.groundColor.setHex(0x4a5a52);
+      sun.intensity = 0.95;
+      sun.color.setHex(0xfff2dd);
+      lampLightA.intensity = 0;
+      lampLightB.intensity = 0;
+      lampLightC.intensity = 0;
+      lampMesh.visible = false;
+    }
+  });
+
+  btnReset.addEventListener('click', function () {
+    orbit.az = DEFAULT_VIEW.az;
+    orbit.pol = DEFAULT_VIEW.pol;
+    orbit.dist = DEFAULT_VIEW.dist;
+    orbit.velAz = orbit.velPol = 0;
+    noteInput();
+  });
+
+  // ---------------------------------------------------------------
+  // Gondola crossing state machine
+  // ---------------------------------------------------------------
+  var CROSS_TIME = 14;   // seconds bank to bank
+  var DOCK_TIME = 4.5;   // pause at each bank
+  var crossing = {
+    state: 'crossing',   // 'crossing' | 'docked'
+    dir: 1,              // +1 travelling east, -1 west
+    t: 0.35              // progress 0..1 (or dock timer)
+  };
+
+  function easeInOut(t) {
+    return 0.5 - 0.5 * Math.cos(Math.PI * t);
+  }
+
+  function updateCrossing(dt) {
+    if (!gondolaRunning) return;
+    if (crossing.state === 'crossing') {
+      crossing.t += dt / CROSS_TIME;
+      if (crossing.t >= 1) {
+        crossing.t = 0;
+        crossing.state = 'docked';
+      }
+    } else {
+      crossing.t += dt / DOCK_TIME;
+      if (crossing.t >= 1) {
+        crossing.t = 0;
+        crossing.state = 'crossing';
+        crossing.dir = -crossing.dir;
+      }
+    }
+
+    var x;
+    if (crossing.state === 'crossing') {
+      var e = easeInOut(crossing.t);
+      x = crossing.dir === 1
+        ? -TRAVEL + 2 * TRAVEL * e
+        : TRAVEL - 2 * TRAVEL * e;
+    } else {
+      x = crossing.dir === 1 ? TRAVEL : -TRAVEL;
+    }
+    carriage.position.x = x;
+
+    // queued cars creep forward toward the landing while docked
+    var dockEase = crossing.state === 'docked'
+      ? Math.sin(Math.PI * Math.min(crossing.t, 1)) : 0;
+    queueWest.position.x = -96 +
+      (crossing.state === 'docked' && crossing.dir === -1 ? dockEase * 6 : 0);
+    queueEast.position.x = 96 -
+      (crossing.state === 'docked' && crossing.dir === 1 ? dockEase * 6 : 0);
+
+    // gentle gondola sway while moving
+    var sway = crossing.state === 'crossing'
+      ? Math.sin(crossing.t * Math.PI) * crossing.dir : 0;
+    carriage.rotation.z = sway * 0.004;
+  }
+
+  // ---------------------------------------------------------------
+  // Water ripple
+  // ---------------------------------------------------------------
+  function updateWater(time) {
+    var pos = waterGeo.attributes.position;
+    var arr = pos.array;
+    for (var i = 0; i < arr.length; i += 3) {
+      var x = waterBase[i];
+      var z = waterBase[i + 2];
+      arr[i + 1] = waterBase[i + 1] +
+        Math.sin(x * 0.18 + time * 1.1) * 0.14 +
+        Math.sin(z * 0.07 + time * 0.7) * 0.18 +
+        Math.sin((x + z) * 0.05 + time * 0.5) * 0.1;
+    }
+    pos.needsUpdate = true;
+  }
+
+  // ---------------------------------------------------------------
+  // Main loop (paused when tab hidden)
+  // ---------------------------------------------------------------
+  var clock = new THREE.Clock();
+  var elapsed = 0;
+  var rafId = null;
+  var hidden = false;
+
+  function animate() {
+    rafId = requestAnimationFrame(animate);
+    var dt = Math.min(clock.getDelta(), 0.1);
+    elapsed += dt;
+
+    updateCrossing(dt);
+    updateWater(elapsed);
+
+    // inertia
+    if (!dragging) {
+      orbit.az += orbit.velAz;
+      orbit.pol += orbit.velPol;
+      orbit.velAz *= 0.92;
+      orbit.velPol *= 0.92;
+      if (Math.abs(orbit.velAz) < 0.00001) orbit.velAz = 0;
+      if (Math.abs(orbit.velPol) < 0.00001) orbit.velPol = 0;
+    }
+
+    // slow auto-rotate after a few seconds idle
+    if (!dragging && !pinch &&
+        performance.now() - orbit.lastInput > 5000) {
+      orbit.az += 0.04 * dt;
+    }
+
+    // bob the boat
+    boat.position.y = Math.sin(elapsed * 0.8) * 0.18;
+    boat.rotation.x = Math.sin(elapsed * 0.6) * 0.012;
+
+    applyCamera();
+    renderer.render(scene, camera);
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    hidden = document.hidden;
+    if (hidden) {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    } else if (rafId === null) {
+      clock.getDelta(); // swallow the gap
+      animate();
+    }
+  });
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  applyCamera();
+  animate();
+})();
+</script>
+</body>
+</html>
