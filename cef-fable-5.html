@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="CEF - City Electrical Factors. The UK's leading electrical wholesaler. Cable, lighting, switches, sockets and more at trade prices.">
+<title>CEF | City Electrical Factors - Electrical Wholesaler</title>
+<style>
+/* ============================================================
+   CEF.co.uk recreation — mobile-first, single file, no assets
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #009639;
+  --green-dark: #007a2f;
+  --green-darker: #005f24;
+  --green-deep: #00481c;
+  --green-tint: #e6f6ec;
+  --ink: #1d1d1b;
+  --slate: #4a4f4d;
+  --mist: #6f7572;
+  --line: #dfe3e1;
+  --paper: #f4f6f5;
+  --white: #ffffff;
+  --amber: #ffb500;
+  --red: #d6332f;
+  --shadow-sm: 0 1px 3px rgba(10, 30, 18, 0.12);
+  --shadow-md: 0 6px 18px rgba(10, 30, 18, 0.14);
+  --shadow-lg: 0 16px 40px rgba(10, 30, 18, 0.22);
+  --radius: 8px;
+  --wrap: 1240px;
+  --tap: 44px;
+  --font: "Helvetica Neue", Helvetica, Arial, "Segoe UI", system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--white);
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, select { font-family: inherit; font-size: inherit; }
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- Utility bar ---------- */
+.util-bar {
+  background: var(--green-deep);
+  color: #d7ecdd;
+  font-size: 0.78rem;
+}
+.util-bar .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+}
+.util-left, .util-right { display: flex; align-items: center; gap: 18px; }
+.util-bar a, .util-bar .util-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #d7ecdd;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-height: 36px;
+}
+.util-bar a:hover { color: var(--white); text-decoration: underline; }
+.util-bar svg { width: 14px; height: 14px; flex: none; }
+.util-stores strong { color: var(--white); }
+.util-hide-s { display: none; }
+
+/* ---------- Header ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--green);
+  color: var(--white);
+  box-shadow: var(--shadow-md);
+  padding-top: env(safe-area-inset-top);
+}
+.header-main {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 64px;
+  padding-top: 8px;
+}
+.burger {
+  width: var(--tap);
+  height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+.burger:active { background: rgba(255,255,255,0.18); }
+.burger svg { width: 26px; height: 26px; }
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 2px 4px;
+}
+.logo svg { height: 40px; width: auto; }
+
+.header-tools {
+  grid-column: 4;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  justify-self: end;
+}
+.tool-btn {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: var(--white);
+}
+.tool-btn:hover, .tool-btn:active { background: rgba(255,255,255,0.16); }
+.tool-btn svg { width: 24px; height: 24px; }
+.tool-btn .tool-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.02em; display: none; }
+
+.basket-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  background: var(--amber);
+  color: var(--ink);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px var(--green);
+}
+.basket-count.pop { animation: pop 0.45s cubic-bezier(0.2, 2.4, 0.4, 1); }
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.6); }
+  100% { transform: scale(1); }
+}
+
+/* VAT toggle */
+.vat-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0,0,0,0.22);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  min-height: 34px;
+}
+.vat-toggle button {
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.8);
+  min-height: 28px;
+  transition: background 0.18s, color 0.18s;
+}
+.vat-toggle button[aria-pressed="true"] {
+  background: var(--white);
+  color: var(--green-darker);
+}
+.vat-toggle.on-light { background: #e3e8e5; }
+.vat-toggle.on-light button { color: var(--slate); }
+.vat-toggle.on-light button[aria-pressed="true"] { background: var(--green); color: var(--white); }
+.header-vat { display: none; }
+
+/* Search */
+.search-row {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: 2px 0 12px;
+}
+.search-form {
+  position: relative;
+  display: flex;
+  background: var(--white);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+.search-form input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  padding: 0 16px;
+  height: 46px;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: transparent;
+}
+.search-form input::placeholder { color: var(--mist); }
+.search-clear {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  color: var(--mist);
+}
+.search-clear.show { display: inline-flex; }
+.search-clear svg { width: 16px; height: 16px; }
+.search-submit {
+  width: 56px;
+  background: var(--ink);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-submit:hover { background: var(--green-deep); }
+.search-submit svg { width: 20px; height: 20px; }
+
+/* ---------- Category nav (desktop) ---------- */
+.cat-nav {
+  display: none;
+  background: var(--green-darker);
+}
+.cat-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.cat-nav a {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border-bottom: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cat-nav a:hover { background: rgba(255,255,255,0.12); border-bottom-color: var(--amber); }
+
+/* ---------- Mobile nav drawer ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 24, 16, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  z-index: 80;
+}
+.overlay.show { opacity: 1; pointer-events: auto; }
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(86vw, 340px);
+  background: var(--white);
+  z-index: 90;
+  transform: translateX(-105%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-drawer.open { transform: translateX(0); }
+.drawer-head {
+  background: var(--green);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(10px + env(safe-area-inset-top)) 8px 10px 16px;
+}
+.drawer-head svg.mini-logo { height: 30px; width: auto; }
+.drawer-close {
+  width: var(--tap);
+  height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+.drawer-close:active { background: rgba(255,255,255,0.2); }
+.drawer-close svg { width: 22px; height: 22px; }
+.drawer-body { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
+.drawer-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mist);
+  padding: 16px 16px 6px;
+}
+.drawer-body a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 4px 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--paper);
+}
+.drawer-body a:active { background: var(--green-tint); }
+.drawer-body a svg { width: 22px; height: 22px; color: var(--green); flex: none; }
+.drawer-body a .chev { margin-left: auto; color: var(--line); width: 16px; height: 16px; }
+.drawer-foot {
+  border-top: 1px solid var(--line);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--slate);
+}
+
+/* ---------- Hero ---------- */
+.hero { background: var(--paper); padding: 14px 0 8px; }
+.hero-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  background: linear-gradient(118deg, var(--green-deep) 0%, var(--green-darker) 42%, var(--green) 100%);
+  color: var(--white);
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 26px 22px;
+  box-shadow: var(--shadow-md);
+}
+.hero-banner::after {
+  content: "";
+  position: absolute;
+  right: -90px;
+  top: -90px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+.hero-copy { position: relative; z-index: 1; max-width: 560px; }
+.hero-kicker {
+  display: inline-block;
+  background: var(--amber);
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+.hero-copy h1 {
+  font-size: clamp(1.55rem, 5.4vw, 2.6rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+.hero-copy p { color: #d2ecda; font-size: 0.95rem; margin-bottom: 18px; max-width: 46ch; }
+.hero-ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-amber { background: var(--amber); color: var(--ink); box-shadow: var(--shadow-sm); }
+.btn-amber:hover { background: #ffc533; }
+.btn-ghost { border: 2px solid rgba(255,255,255,0.7); color: var(--white); }
+.btn-ghost:hover { background: rgba(255,255,255,0.12); }
+.btn-green { background: var(--green); color: var(--white); }
+.btn-green:hover { background: var(--green-dark); }
+.hero-art { display: none; position: relative; z-index: 1; }
+.hero-art svg { width: 100%; max-width: 320px; height: auto; margin-left: auto; }
+
+/* USP strip */
+.usp-strip { background: var(--paper); padding: 10px 0 18px; }
+.usp-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.usp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-height: 56px;
+}
+.usp svg { width: 26px; height: 26px; color: var(--green); flex: none; }
+.usp strong { display: block; font-size: 0.86rem; }
+.usp span { font-size: 0.76rem; color: var(--mist); }
+
+/* ---------- Sections ---------- */
+.section { padding: 30px 0; }
+.section.alt { background: var(--paper); }
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.section-head h2 {
+  font-size: clamp(1.25rem, 4vw, 1.7rem);
+  letter-spacing: -0.01em;
+}
+.section-head h2 .accent { color: var(--green); }
+.section-head .sub { font-size: 0.85rem; color: var(--mist); }
+.see-all {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--green-darker);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--tap);
+}
+.see-all:hover { text-decoration: underline; }
+.see-all svg { width: 14px; height: 14px; }
+
+/* Category tiles */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.cat-tile {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  min-height: 124px;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.cat-tile:hover {
+  border-color: var(--green);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.cat-tile .cat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--green-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cat-tile .cat-icon svg { width: 30px; height: 30px; }
+.cat-tile .cat-name { font-size: 0.8rem; font-weight: 700; line-height: 1.25; }
+.cat-tile .cat-count { font-size: 0.7rem; color: var(--mist); }
+
+/* Toolbar above products */
+.grid-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.result-note {
+  font-size: 0.82rem;
+  color: var(--slate);
+  background: var(--green-tint);
+  border: 1px solid #bfe5cc;
+  border-radius: 999px;
+  padding: 7px 14px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.result-note.show { display: inline-flex; }
+.result-note strong { color: var(--green-darker); }
+.result-note button {
+  font-weight: 800;
+  color: var(--green-darker);
+  text-decoration: underline;
+  min-height: 30px;
+}
+
+/* Product cards */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.product-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.product-card:hover { box-shadow: var(--shadow-md); border-color: #c3cdc7; }
+.product-fig {
+  position: relative;
+  background: linear-gradient(180deg, #fbfcfb, #eef2ef);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+  min-height: 118px;
+}
+.product-fig svg { width: 76px; height: 76px; }
+.badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.badge-deal { background: var(--red); color: var(--white); }
+.badge-new { background: var(--green); color: var(--white); }
+.badge-bulk { background: var(--ink); color: var(--white); }
+.product-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 10px 12px 12px;
+  gap: 4px;
+}
+.product-brand {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--green-darker);
+}
+.product-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: 2.6em;
+}
+.product-code { font-size: 0.68rem; color: var(--mist); }
+.product-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.product-stock::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.product-stock.low { color: #a85e00; }
+.product-stock.low::before { background: var(--amber); }
+.price-block { margin-top: auto; padding-top: 6px; }
+.price-was {
+  font-size: 0.72rem;
+  color: var(--mist);
+  text-decoration: line-through;
+}
+.price-now {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.15;
+}
+.price-now.is-deal { color: var(--red); }
+.price-alt { font-size: 0.68rem; color: var(--mist); }
+.add-btn {
+  margin-top: 9px;
+  min-height: var(--tap);
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--white);
+  font-weight: 800;
+  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: background 0.15s, transform 0.12s;
+}
+.add-btn svg { width: 16px; height: 16px; }
+.add-btn:hover { background: var(--green-dark); }
+.add-btn:active { transform: scale(0.96); }
+.add-btn.added { background: var(--ink); }
+
+.empty-state {
+  display: none;
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--mist);
+}
+.empty-state.show { display: block; }
+.empty-state svg { width: 56px; height: 56px; margin: 0 auto 12px; color: var(--line); }
+.empty-state strong { display: block; color: var(--slate); font-size: 1.05rem; margin-bottom: 4px; }
+
+/* Deals carousel */
+.deal-rail-wrap { position: relative; }
+.deal-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 78%;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--green) var(--line);
+}
+.deal-rail > * { scroll-snap-align: start; }
+.rail-btn {
+  display: none;
+  position: absolute;
+  top: 42%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  color: var(--green-darker);
+}
+.rail-btn:hover { background: var(--green-tint); }
+.rail-btn svg { width: 18px; height: 18px; }
+.rail-prev { left: -10px; }
+.rail-next { right: -10px; }
+
+/* Trade banner */
+.trade-banner {
+  display: grid;
+  gap: 16px;
+  background: var(--ink);
+  color: var(--white);
+  border-radius: 14px;
+  padding: 26px 22px;
+  overflow: hidden;
+  position: relative;
+}
+.trade-banner::before {
+  content: "";
+  position: absolute;
+  left: -60px;
+  bottom: -90px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(0, 150, 57, 0.35);
+}
+.trade-banner h2 { font-size: clamp(1.3rem, 4.4vw, 1.8rem); position: relative; }
+.trade-banner p { color: #c9cdc9; font-size: 0.92rem; max-width: 58ch; position: relative; }
+.trade-points { display: grid; gap: 8px; position: relative; }
+.trade-points li { display: flex; gap: 9px; font-size: 0.86rem; align-items: flex-start; }
+.trade-points svg { width: 18px; height: 18px; color: var(--amber); flex: none; margin-top: 2px; }
+.trade-banner .btn { justify-self: start; position: relative; }
+
+/* Brand strip */
+.brand-strip { border-block: 1px solid var(--line); padding: 22px 0; }
+.brand-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+}
+.brand-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--slate);
+  background: var(--white);
+  transition: color 0.15s, border-color 0.15s;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+}
+.brand-chip:hover { color: var(--green-darker); border-color: var(--green); }
+
+/* Newsletter */
+.newsletter {
+  background: linear-gradient(115deg, var(--green-darker), var(--green));
+  color: var(--white);
+  padding: 34px 0;
+}
+.newsletter-inner {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+}
+.newsletter h2 { font-size: clamp(1.25rem, 4.2vw, 1.6rem); margin-bottom: 6px; }
+.newsletter p { color: #d2ecda; font-size: 0.9rem; }
+.newsletter-form { display: flex; flex-direction: column; gap: 9px; }
+.newsletter-form input {
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  padding: 0 18px;
+  font-size: 0.92rem;
+  outline: 3px solid transparent;
+}
+.newsletter-form input:focus { outline-color: var(--amber); }
+.newsletter-msg { font-size: 0.84rem; font-weight: 700; color: var(--amber); min-height: 1.2em; }
+
+/* ---------- Footer ---------- */
+.site-footer { background: #14211a; color: #b9c4bd; font-size: 0.85rem; }
+.footer-cols {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  padding: 26px 0 18px;
+}
+.footer-col h3 {
+  color: var(--white);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.footer-col > button.foot-acc {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  border-bottom: 1px solid #23332a;
+  color: var(--white);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: left;
+}
+.foot-acc svg { width: 14px; height: 14px; transition: transform 0.2s; }
+.footer-col.open .foot-acc svg { transform: rotate(180deg); }
+.footer-col ul { display: none; padding: 6px 0 12px; }
+.footer-col.open ul { display: block; }
+.footer-col li a {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  color: #b9c4bd;
+}
+.footer-col li a:hover { color: var(--white); text-decoration: underline; }
+.footer-meta {
+  border-top: 1px solid #23332a;
+  padding: 18px 0 calc(18px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.footer-brandline { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.footer-brandline svg { height: 30px; width: auto; }
+.pay-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.pay-chip {
+  background: #1d2e24;
+  border: 1px solid #2a3f32;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #d7e2db;
+}
+.footer-legal { font-size: 0.74rem; color: #7e8d84; line-height: 1.6; }
+.footer-legal a { text-decoration: underline; }
+
+/* ---------- Mini basket drawer ---------- */
+.basket-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: min(92vw, 400px);
+  background: var(--white);
+  z-index: 90;
+  transform: translateX(105%);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+.basket-drawer.open { transform: translateX(0); }
+.basket-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 10px 12px 18px;
+  background: var(--green);
+  color: var(--white);
+}
+.basket-head h2 { font-size: 1.05rem; display: flex; align-items: center; gap: 9px; }
+.basket-head h2 svg { width: 21px; height: 21px; }
+.basket-items {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 14px;
+}
+.basket-empty { text-align: center; color: var(--mist); padding: 48px 18px; }
+.basket-empty svg { width: 54px; height: 54px; margin: 0 auto 12px; color: var(--line); }
+.basket-line {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 11px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--paper);
+}
+.basket-line .line-fig {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.basket-line .line-fig svg { width: 38px; height: 38px; }
+.line-name { font-size: 0.8rem; font-weight: 600; line-height: 1.3; }
+.line-unit { font-size: 0.7rem; color: var(--mist); margin-top: 2px; }
+.line-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+.line-total { font-weight: 800; font-size: 0.9rem; }
+.qty-ctl {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.qty-ctl button {
+  width: 36px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--green-darker);
+}
+.qty-ctl button:hover { background: var(--green-tint); }
+.qty-ctl .qty-val {
+  min-width: 28px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.line-remove {
+  font-size: 0.7rem;
+  color: var(--mist);
+  text-decoration: underline;
+  min-height: 28px;
+}
+.line-remove:hover { color: var(--red); }
+.basket-foot {
+  border-top: 1px solid var(--line);
+  padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
+  background: var(--paper);
+}
+.basket-totals { display: grid; gap: 5px; margin-bottom: 12px; font-size: 0.85rem; }
+.basket-totals .row { display: flex; justify-content: space-between; color: var(--slate); }
+.basket-totals .row.grand {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  border-top: 1px dashed var(--line);
+  padding-top: 7px;
+  margin-top: 3px;
+}
+.basket-foot .btn { width: 100%; }
+.basket-foot .vat-note { text-align: center; font-size: 0.7rem; color: var(--mist); margin-top: 9px; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 16px);
+  background: var(--ink);
+  color: var(--white);
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 11px 20px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 90vw;
+}
+.toast svg { width: 16px; height: 16px; color: #59d98c; flex: none; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Breakpoints ---------- */
+@media (min-width: 480px) {
+  .product-grid { gap: 12px; }
+  .deal-rail { grid-auto-columns: 46%; }
+}
+
+@media (min-width: 640px) {
+  .util-hide-s { display: inline-flex; }
+  .cat-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
+  .usp-grid { grid-template-columns: repeat(3, 1fr); }
+  .deal-rail { grid-auto-columns: 32%; }
+  .newsletter-form { flex-direction: row; }
+  .newsletter-form input { flex: 1; }
+  .footer-cols { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .footer-col > button.foot-acc { border: none; min-height: 0; pointer-events: none; margin-bottom: 8px; }
+  .foot-acc svg { display: none; }
+  .footer-col ul { display: block; padding: 0; }
+  .trade-banner { grid-template-columns: 1.4fr 1fr; align-items: center; padding: 34px 30px; }
+}
+
+@media (min-width: 900px) {
+  .burger { display: none; }
+  .header-main {
+    grid-template-columns: auto 1fr auto;
+    gap: 22px;
+    min-height: 76px;
+    padding: 0;
+  }
+  .logo svg { height: 46px; }
+  .search-row {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 0;
+    max-width: 620px;
+    width: 100%;
+    justify-self: center;
+  }
+  .header-tools { grid-column: 3; gap: 6px; }
+  .tool-btn .tool-label { display: block; }
+  .header-vat { display: inline-flex; margin-right: 6px; }
+  .cat-nav { display: block; }
+  .hero-banner { grid-template-columns: 1.2fr 0.8fr; align-items: center; padding: 40px 44px; }
+  .hero-art { display: block; }
+  .cat-grid { grid-template-columns: repeat(5, 1fr); }
+  .product-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .deal-rail { grid-auto-columns: 24%; }
+  .rail-btn { display: inline-flex; }
+  .footer-cols { grid-template-columns: repeat(4, 1fr); }
+  .section { padding: 44px 0; }
+  .footer-meta { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+
+@media (min-width: 1100px) {
+  .cat-grid { grid-template-columns: repeat(9, 1fr); }
+  .cat-tile { padding: 14px 6px; }
+  .cat-tile .cat-name { font-size: 0.72rem; }
+  .deal-rail { grid-auto-columns: 23.5%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== UTILITY BAR ===================== -->
+<div class="util-bar">
+  <div class="wrap">
+    <div class="util-left">
+      <a href="#stores" class="util-stores">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        Find a store &nbsp;<strong>390+ UK stores</strong>
+      </a>
+      <a href="#help" class="util-hide-s">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.9v2a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 4.2 2 2 0 0 1 5.1 2h2a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1l-.85.86a16 16 0 0 0 6.1 6.1l.85-.86a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7a2 2 0 0 1 1.65 2.05z"/></svg>
+        0800 002 9090
+      </a>
+    </div>
+    <div class="util-right">
+      <a href="#trade" class="util-hide-s">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        Open a trade account
+      </a>
+      <a href="#track">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 17h4V5H2v12h2"/><path d="M14 8h4l4 4v5h-2"/><circle cx="7" cy="17.5" r="2"/><circle cx="18" cy="17.5" r="2"/></svg>
+        Track order
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <div class="wrap header-main">
+    <button class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <a class="logo" href="#" aria-label="CEF - City Electrical Factors, home">
+      <svg viewBox="0 0 168 56" role="img" aria-hidden="true">
+        <rect x="1" y="1" width="166" height="54" rx="9" fill="#ffffff"/>
+        <rect x="1" y="1" width="166" height="54" rx="9" fill="none" stroke="#005f24" stroke-width="2"/>
+        <text x="14" y="38" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="900" font-style="italic" fill="#009639" letter-spacing="1">cef</text>
+        <path d="M86 12l-9 18h7l-4 14 13-19h-8l6-13z" fill="#ffb500" stroke="#005f24" stroke-width="1.4" stroke-linejoin="round"/>
+        <text x="100" y="22" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="800" fill="#005f24">CITY</text>
+        <text x="100" y="34" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="800" fill="#005f24">ELECTRICAL</text>
+        <text x="100" y="46" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="800" fill="#005f24">FACTORS</text>
+      </svg>
+    </a>
+
+    <div class="header-tools">
+      <div class="vat-toggle header-vat" role="group" aria-label="Price display">
+        <button type="button" data-vat="ex" aria-pressed="true">ex VAT</button>
+        <button type="button" data-vat="inc" aria-pressed="false">inc VAT</button>
+      </div>
+      <a class="tool-btn" href="#signin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+        <span class="tool-label">Sign in</span>
+      </a>
+      <button class="tool-btn" id="basketBtn" aria-label="Open basket" aria-controls="basketDrawer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M2.5 3.5h3l2.6 12h10.4l2.5-8.5H6.2"/></svg>
+        <span class="tool-label">Basket</span>
+        <span class="basket-count" id="basketCount" hidden>0</span>
+      </button>
+    </div>
+
+    <div class="search-row">
+      <form class="search-form" id="searchForm" role="search">
+        <label class="visually-hidden" for="searchInput">Search products</label>
+        <input type="search" id="searchInput" placeholder="Search 30,000+ products, e.g. twin &amp; earth, consumer unit..." autocomplete="off" enterkeyhint="search">
+        <button type="button" class="search-clear" id="searchClear" aria-label="Clear search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
+        <button type="submit" class="search-submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M21 21l-5.5-5.5"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <nav class="cat-nav" aria-label="Product categories">
+    <div class="wrap">
+      <ul id="catNavList"></ul>
+    </div>
+  </nav>
+</header>
+
+<!-- ===================== MOBILE NAV DRAWER ===================== -->
+<div class="overlay" id="overlay" hidden></div>
+
+<aside class="nav-drawer" id="navDrawer" aria-label="Menu" aria-hidden="true">
+  <div class="drawer-head">
+    <svg class="mini-logo" viewBox="0 0 90 40" aria-hidden="true">
+      <rect x="1" y="1" width="88" height="38" rx="7" fill="#ffffff"/>
+      <text x="12" y="29" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="900" font-style="italic" fill="#009639">cef</text>
+      <path d="M66 7l-7 13h5l-3 11 10-14h-6l4.5-10z" fill="#ffb500"/>
+    </svg>
+    <button class="drawer-close" id="navClose" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <p class="drawer-title">Shop by category</p>
+    <nav aria-label="Categories" id="drawerCats"></nav>
+    <p class="drawer-title">Your account</p>
+    <nav aria-label="Account">
+      <a href="#signin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>Sign in / Register<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a href="#trade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Open a trade account<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a href="#stores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>Find a store (390+)<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <a href="#track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 17h4V5H2v12h2"/><path d="M14 8h4l4 4v5h-2"/><circle cx="7" cy="17.5" r="2"/><circle cx="18" cy="17.5" r="2"/></svg>Track your order<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+    </nav>
+  </div>
+  <div class="drawer-foot">
+    <span>Show prices</span>
+    <div class="vat-toggle on-light" role="group" aria-label="Price display">
+      <button type="button" data-vat="ex" aria-pressed="true">ex VAT</button>
+      <button type="button" data-vat="inc" aria-pressed="false">inc VAT</button>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-banner">
+        <div class="hero-copy">
+          <span class="hero-kicker">June trade event &middot; ends 30/06</span>
+          <h1>Everything electrical, at real trade prices</h1>
+          <p>Over 30,000 products in stock across 390+ UK stores. Order online before 8pm for next-day delivery, or click &amp; collect in as little as 30 minutes.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-amber" href="#deals">Shop the deals</a>
+            <a class="btn btn-ghost" href="#trade">Open a trade account</a>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 320 220">
+            <circle cx="160" cy="110" r="96" fill="rgba(255,255,255,0.08)"/>
+            <circle cx="160" cy="110" r="72" fill="rgba(255,255,255,0.08)"/>
+            <g transform="translate(104 36)">
+              <path d="M56 8a44 44 0 0 0-24 81c4 3 7 9 7 14h34c0-5 3-11 7-14A44 44 0 0 0 56 8z" fill="#ffe9a8" stroke="#ffb500" stroke-width="4"/>
+              <path d="M44 60l8-18h12l-8 14h12l-18 26 5-22z" fill="#009639"/>
+              <rect x="40" y="106" width="32" height="8" rx="4" fill="#cfd8d2"/>
+              <rect x="42" y="118" width="28" height="8" rx="4" fill="#cfd8d2"/>
+              <rect x="46" y="130" width="20" height="9" rx="4.5" fill="#9aa8a0"/>
+            </g>
+            <g stroke="#7fd6a0" stroke-width="4" stroke-linecap="round">
+              <path d="M40 56l16 10M280 56l-16 10M30 130h22M290 130h-22M64 188l14-12M256 188l-14-12"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== USP STRIP ===================== -->
+  <section class="usp-strip" aria-label="Why shop with CEF">
+    <div class="wrap usp-grid">
+      <div class="usp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        <div><strong>390+ stores nationwide</strong><span>Click &amp; collect in 30 minutes</span></div>
+      </div>
+      <div class="usp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 17h4V5H2v12h2"/><path d="M14 8h4l4 4v5h-2"/><circle cx="7" cy="17.5" r="2"/><circle cx="18" cy="17.5" r="2"/></svg>
+        <div><strong>Free next-day delivery</strong><span>On orders over &pound;45 ex VAT</span></div>
+      </div>
+      <div class="usp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2l7 3v6c0 5-3 8.4-7 11-4-2.6-7-6-7-11V5z"/><path d="M9 12l2 2 4-4.5"/></svg>
+        <div><strong>Trade credit accounts</strong><span>Up to 60 days to pay</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SHOP BY CATEGORY ===================== -->
+  <section class="section" id="categories">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Shop by <span class="accent">category</span></h2>
+        <a class="see-all" href="#categories">All categories
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      </div>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== PRODUCTS ===================== -->
+  <section class="section alt" id="products">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2>Trade <span class="accent">essentials</span></h2>
+          <p class="sub">Best sellers, restocked daily in every branch</p>
+        </div>
+        <div class="vat-toggle on-light" role="group" aria-label="Price display">
+          <button type="button" data-vat="ex" aria-pressed="true">ex VAT</button>
+          <button type="button" data-vat="inc" aria-pressed="false">inc VAT</button>
+        </div>
+      </div>
+      <div class="grid-toolbar">
+        <p class="result-note" id="resultNote" role="status">
+          <span id="resultText"></span>
+          <button type="button" id="resultClear">Clear</button>
+        </p>
+      </div>
+      <div class="product-grid" id="productGrid"></div>
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M21 21l-5.5-5.5M8 10.5h5"/></svg>
+        <strong>No products found</strong>
+        We couldn't match anything to your search. Try "cable", "socket" or "LED".
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DEALS ===================== -->
+  <section class="section" id="deals">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2>Deals of the <span class="accent">month</span></h2>
+          <p class="sub">Limited stock &mdash; while it lasts</p>
+        </div>
+        <a class="see-all" href="#deals">All deals
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      </div>
+      <div class="deal-rail-wrap">
+        <button class="rail-btn rail-prev" id="railPrev" aria-label="Scroll deals back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="deal-rail product-rail" id="dealRail" tabindex="0" aria-label="Deal products carousel"></div>
+        <button class="rail-btn rail-next" id="railNext" aria-label="Scroll deals forward">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TRADE ACCOUNT BANNER ===================== -->
+  <section class="section alt" id="trade">
+    <div class="wrap">
+      <div class="trade-banner">
+        <div>
+          <h2>Work in the trade? Get a CEF credit account</h2>
+          <p>Manage jobs, save quotes, and pay monthly. Apply online in minutes &mdash; most applications approved the same day.</p>
+        </div>
+        <div>
+          <ul class="trade-points">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Up to 60 days interest-free credit</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Dedicated account manager at your local branch</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Exclusive trade pricing and bulk discounts</li>
+          </ul>
+        </div>
+        <a class="btn btn-green" href="#trade">Apply for an account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== BRANDS ===================== -->
+  <section class="brand-strip" aria-label="Brands stocked">
+    <div class="wrap">
+      <div class="section-head" style="justify-content:center; text-align:center;">
+        <h2 style="width:100%;">Top brands, <span class="accent">always in stock</span></h2>
+      </div>
+      <div class="brand-row">
+        <a class="brand-chip" href="#">MK Electric</a>
+        <a class="brand-chip" href="#">Schneider Electric</a>
+        <a class="brand-chip" href="#">Hager</a>
+        <a class="brand-chip" href="#">Wylex</a>
+        <a class="brand-chip" href="#">Philips</a>
+        <a class="brand-chip" href="#">Aico</a>
+        <a class="brand-chip" href="#">Thorn</a>
+        <a class="brand-chip" href="#">Dimplex</a>
+        <a class="brand-chip" href="#">CK Tools</a>
+        <a class="brand-chip" href="#">Hive</a>
+        <a class="brand-chip" href="#">Prysmian</a>
+        <a class="brand-chip" href="#">Click Scolmore</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NEWSLETTER ===================== -->
+  <section class="newsletter" id="signup">
+    <div class="wrap newsletter-inner">
+      <div>
+        <h2>Get trade deals straight to your inbox</h2>
+        <p>Weekly offers, new lines and branch events. No spam, unsubscribe anytime.</p>
+      </div>
+      <div>
+        <form class="newsletter-form" id="newsletterForm" novalidate>
+          <label class="visually-hidden" for="newsletterEmail">Email address</label>
+          <input type="email" id="newsletterEmail" placeholder="you@company.co.uk" required>
+          <button class="btn btn-amber" type="submit">Sign me up</button>
+        </form>
+        <p class="newsletter-msg" id="newsletterMsg" role="status"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="wrap footer-cols">
+    <div class="footer-col">
+      <button class="foot-acc" type="button" aria-expanded="false"><h3>Customer service</h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <ul>
+        <li><a href="#help">Contact us</a></li>
+        <li><a href="#help">Delivery information</a></li>
+        <li><a href="#help">Returns &amp; refunds</a></li>
+        <li><a href="#track">Track your order</a></li>
+        <li><a href="#help">Help centre &amp; FAQs</a></li>
+        <li><a href="#help">Product recalls</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <button class="foot-acc" type="button" aria-expanded="false"><h3>About CEF</h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <ul>
+        <li><a href="#">Our story since 1951</a></li>
+        <li><a href="#stores">Store finder</a></li>
+        <li><a href="#">Careers at CEF</a></li>
+        <li><a href="#">Sustainability</a></li>
+        <li><a href="#">CEF in the community</a></li>
+        <li><a href="#">News &amp; press</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <button class="foot-acc" type="button" aria-expanded="false"><h3>Services</h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <ul>
+        <li><a href="#trade">Trade credit accounts</a></li>
+        <li><a href="#">Click &amp; collect</a></li>
+        <li><a href="#">Quotes &amp; bulk pricing</a></li>
+        <li><a href="#">Cable cutting service</a></li>
+        <li><a href="#">Lighting design</a></li>
+        <li><a href="#">WEEE &amp; lamp recycling</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <button class="foot-acc" type="button" aria-expanded="false"><h3>Legal</h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <ul>
+        <li><a href="#">Terms &amp; conditions</a></li>
+        <li><a href="#">Privacy policy</a></li>
+        <li><a href="#">Cookie policy</a></li>
+        <li><a href="#">Modern slavery statement</a></li>
+        <li><a href="#">Accessibility</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap footer-meta">
+    <div class="footer-brandline">
+      <svg viewBox="0 0 90 40" aria-hidden="true">
+        <rect x="1" y="1" width="88" height="38" rx="7" fill="#ffffff"/>
+        <text x="12" y="29" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="900" font-style="italic" fill="#009639">cef</text>
+        <path d="M66 7l-7 13h5l-3 11 10-14h-6l4.5-10z" fill="#ffb500"/>
+      </svg>
+      <div class="pay-row" aria-label="Payment methods">
+        <span class="pay-chip">VISA</span>
+        <span class="pay-chip">Mastercard</span>
+        <span class="pay-chip">Amex</span>
+        <span class="pay-chip">PayPal</span>
+        <span class="pay-chip">Apple&nbsp;Pay</span>
+      </div>
+    </div>
+    <p class="footer-legal">
+      &copy; 2026 City Electrical Factors Ltd. All rights reserved. Registered in England.
+      This page is an unofficial single-file recreation built for a coding experiment and is
+      <a href="#">not affiliated with CEF</a>. Prices shown are illustrative.
+    </p>
+  </div>
+</footer>
+
+<!-- ===================== MINI BASKET DRAWER ===================== -->
+<aside class="basket-drawer" id="basketDrawer" aria-label="Basket" aria-hidden="true">
+  <div class="basket-head">
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M2.5 3.5h3l2.6 12h10.4l2.5-8.5H6.2"/></svg>
+      Your basket <span id="basketHeadCount"></span>
+    </h2>
+    <button class="drawer-close" id="basketClose" aria-label="Close basket">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+  </div>
+  <div class="basket-items" id="basketItems"></div>
+  <div class="basket-foot">
+    <div class="basket-totals">
+      <div class="row"><span>Subtotal (ex VAT)</span><span id="totalEx">&pound;0.00</span></div>
+      <div class="row"><span>VAT @ 20%</span><span id="totalVat">&pound;0.00</span></div>
+      <div class="row grand"><span id="grandLabel">Total (ex VAT)</span><span id="grandTotal">&pound;0.00</span></div>
+    </div>
+    <button class="btn btn-amber" id="checkoutBtn" type="button">Go to checkout</button>
+    <p class="vat-note">Free delivery on orders over &pound;45 ex VAT</p>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+  <span id="toastText"></span>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     DATA
+     ============================================================ */
+  var VAT_RATE = 0.2;
+
+  // Tiny inline SVG icon library (all original drawings, 64x64 grid)
+  var ICONS = {
+    cable: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="#e8eef0" stroke="#5b6770" stroke-width="3"/><circle cx="32" cy="32" r="14" fill="#9aa8b0" stroke="#5b6770" stroke-width="3"/><circle cx="32" cy="32" r="5" fill="#5b6770"/><path d="M32 10v-6M32 60v-6M10 32H4M60 32h-6" stroke="#5b6770" stroke-width="3" stroke-linecap="round"/><path d="M46 46c8 4 12 9 12 14" fill="none" stroke="#9aa8b0" stroke-width="5" stroke-linecap="round"/><path d="M46 46c8 4 12 9 12 14" fill="none" stroke="#c8d2d6" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 6"/></svg>',
+    teCable: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="24" width="40" height="16" rx="8" fill="#c8d2d6" stroke="#5b6770" stroke-width="3"/><path d="M46 32h6" stroke="#5b6770" stroke-width="3"/><circle cx="55" cy="27" r="3.5" fill="#8a4b2a"/><circle cx="55" cy="37" r="3.5" fill="#3a76c4"/><circle cx="60" cy="32" r="3" fill="#2f9e44"/><circle cx="60" cy="32" r="3" fill="none" stroke="#f3c623" stroke-width="1.4" stroke-dasharray="2 2"/></svg>',
+    swa: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="22" width="44" height="20" rx="10" fill="#33414a"/><path d="M8 24l8 16M16 24l8 16M24 24l8 16M32 24l8 16M40 24l6 12" stroke="#7d8d96" stroke-width="3" stroke-linecap="round"/><circle cx="54" cy="26" r="4" fill="#8a4b2a"/><circle cx="58" cy="34" r="4" fill="#3a76c4"/><circle cx="52" cy="40" r="4" fill="#8d8d8d"/></svg>',
+    socket: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="10" width="52" height="44" rx="6" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><rect x="12" y="18" width="18" height="22" rx="3" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><rect x="34" y="18" width="18" height="22" rx="3" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><rect x="19.5" y="21" width="3" height="7" fill="#5b6770"/><rect x="15.5" y="31" width="3" height="6" transform="rotate(-90 17 34)" fill="#5b6770"/><rect x="23.5" y="31" width="3" height="6" transform="rotate(-90 25 34)" fill="#5b6770"/><rect x="41.5" y="21" width="3" height="7" fill="#5b6770"/><rect x="37.5" y="31" width="3" height="6" transform="rotate(-90 39 34)" fill="#5b6770"/><rect x="45.5" y="31" width="3" height="6" transform="rotate(-90 47 34)" fill="#5b6770"/><rect x="14" y="45" width="10" height="5" rx="2" fill="#d6402f"/><rect x="40" y="45" width="10" height="5" rx="2" fill="#d6402f"/></svg>',
+    switchPlate: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="8" width="36" height="48" rx="6" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><rect x="26" y="20" width="12" height="24" rx="3" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><rect x="28" y="22" width="8" height="11" rx="2" fill="#009639"/><circle cx="32" cy="14" r="1.8" fill="#9aa8a0"/><circle cx="32" cy="50" r="1.8" fill="#9aa8a0"/></svg>',
+    consumerUnit: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="12" width="52" height="40" rx="5" fill="#f4f6f5" stroke="#5b6770" stroke-width="3"/><rect x="6" y="12" width="52" height="11" rx="5" fill="#dfe5e2"/><g fill="#fff" stroke="#5b6770" stroke-width="2"><rect x="12" y="28" width="7" height="18" rx="1.5"/><rect x="21" y="28" width="7" height="18" rx="1.5"/><rect x="30" y="28" width="7" height="18" rx="1.5"/><rect x="39" y="28" width="7" height="18" rx="1.5"/><rect x="48" y="28" width="7" height="18" rx="1.5"/></g><g fill="#d6402f"><rect x="14" y="30" width="3" height="6" rx="1"/><rect x="23" y="30" width="3" height="6" rx="1"/></g><g fill="#009639"><rect x="32" y="38" width="3" height="6" rx="1"/><rect x="41" y="38" width="3" height="6" rx="1"/><rect x="50" y="38" width="3" height="6" rx="1"/></g></svg>',
+    bulb: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6a18 18 0 0 0-10 33c2 1.5 3.5 4 3.5 7h13c0-3 1.5-5.5 3.5-7A18 18 0 0 0 32 6z" fill="#ffe9a8" stroke="#e0a800" stroke-width="3"/><path d="M28 33l4-9h5l-4 7h6l-10 13 3-11z" fill="#e0a800"/><rect x="26" y="48" width="12" height="4" rx="2" fill="#9aa8a0"/><rect x="27" y="53.5" width="10" height="4" rx="2" fill="#9aa8a0"/></svg>',
+    downlight: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="28" r="20" fill="#e8ecea" stroke="#9aa8a0" stroke-width="3"/><circle cx="32" cy="28" r="12" fill="#fff7da" stroke="#e0a800" stroke-width="3"/><circle cx="32" cy="28" r="5" fill="#ffe9a8"/><path d="M18 50l4 6M46 50l-4 6M32 52v8" stroke="#e0a800" stroke-width="3" stroke-linecap="round"/></svg>',
+    floodlight: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="14" width="36" height="26" rx="4" fill="#33414a"/><rect x="14" y="18" width="28" height="18" rx="2" fill="#fff7da" stroke="#e0a800" stroke-width="2"/><path d="M46 20l10-5M46 27h12M46 34l10 5" stroke="#e0a800" stroke-width="3" stroke-linecap="round"/><path d="M22 40l-6 14M34 40l6 14" stroke="#5b6770" stroke-width="4" stroke-linecap="round"/></svg>',
+    smokeAlarm: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><circle cx="32" cy="32" r="15" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><path d="M21 32a11 11 0 0 1 22 0M25 32a7 7 0 0 1 14 0" fill="none" stroke="#9aa8a0" stroke-width="2.4" stroke-linecap="round"/><circle cx="32" cy="40" r="3" fill="#d6402f"/></svg>',
+    heater: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="16" width="48" height="32" rx="5" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><path d="M16 22v20M24 22v20M32 22v20M40 22v20M48 22v20" stroke="#dfe5e2" stroke-width="4" stroke-linecap="round"/><path d="M22 8c-2 3 2 4 0 7M32 8c-2 3 2 4 0 7M42 8c-2 3 2 4 0 7" fill="none" stroke="#d6402f" stroke-width="2.6" stroke-linecap="round"/><rect x="44" y="50" width="10" height="5" rx="2" fill="#5b6770"/></svg>',
+    fan: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="8" width="48" height="48" rx="8" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><circle cx="32" cy="32" r="17" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><path d="M32 32c-2-8 1-13 6-15 2 5 1 11-6 15zm0 0c8-2 13 1 15 6-5 2-11 1-15-6zm0 0c2 8-1 13-6 15-2-5-1-11 6-15zm0 0c-8 2-13-1-15-6 5-2 11-1 15 6z" fill="#7fb8d6"/><circle cx="32" cy="32" r="4" fill="#5b6770"/></svg>',
+    tools: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 10l6-2 22 24-6 6L12 16z" fill="#f3c623" stroke="#b8860b" stroke-width="2.4"/><path d="M40 36l12 12-5 5-12-12" fill="#5b6770"/><path d="M44 8a10 10 0 0 0-13 13L10 42a6 6 0 0 0 8.5 8.5L40 29a10 10 0 0 0 13-13l-7 6-5-5z" fill="#d04f2c" stroke="#8f3318" stroke-width="2" opacity="0.92"/></svg>',
+    thermostat: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="24" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><circle cx="32" cy="32" r="16" fill="#14211a"/><text x="32" y="36.5" font-family="Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#7fd6a0">21.5&#176;</text><path d="M22 44a14 14 0 0 0 20 0" fill="none" stroke="#009639" stroke-width="3" stroke-linecap="round"/></svg>',
+    evCharger: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="16" y="6" width="32" height="46" rx="7" fill="#f4f6f5" stroke="#5b6770" stroke-width="3"/><rect x="22" y="12" width="20" height="14" rx="3" fill="#14211a"/><path d="M31 14l-4 6h4l-3 6 7-8h-4l3-4z" fill="#7fd6a0"/><circle cx="32" cy="38" r="6" fill="#dfe5e2" stroke="#5b6770" stroke-width="2"/><path d="M48 30h6c3 0 4 2 4 5v14" fill="none" stroke="#5b6770" stroke-width="3" stroke-linecap="round"/><rect x="54" y="49" width="8" height="9" rx="2" fill="#009639"/></svg>',
+    rcbo: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="20" y="6" width="24" height="52" rx="4" fill="#fbfbf9" stroke="#5b6770" stroke-width="3"/><rect x="27" y="14" width="10" height="14" rx="2" fill="#eef1ed" stroke="#5b6770" stroke-width="2"/><rect x="29" y="16" width="6" height="7" rx="1.5" fill="#009639"/><text x="32" y="40" font-family="Arial, sans-serif" font-size="8" font-weight="700" text-anchor="middle" fill="#5b6770">B40</text><circle cx="32" cy="48" r="3.4" fill="none" stroke="#d6402f" stroke-width="2"/><rect x="30.7" y="44.7" width="2.6" height="4" fill="#d6402f"/></svg>',
+    spur: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="10" width="40" height="44" rx="5" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><rect x="20" y="18" width="24" height="12" rx="2" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><rect x="23" y="21" width="8" height="6" rx="1.5" fill="#d6402f"/><rect x="35" y="21" width="6" height="6" rx="1.5" fill="#5b6770"/><rect x="24" y="38" width="16" height="8" rx="2" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/></svg>',
+    cctv: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 18l34-8 4 14-34 8z" fill="#5b6770"/><rect x="40" y="12" width="14" height="14" rx="3" transform="rotate(-12 47 19)" fill="#33414a"/><circle cx="49" cy="19" r="4" fill="#7fb8d6"/><path d="M20 30l-2 16h-8" fill="none" stroke="#5b6770" stroke-width="4" stroke-linecap="round"/><path d="M50 34c4 4 4 10 0 14M55 30c6 6 6 16 0 22" fill="none" stroke="#d6402f" stroke-width="2.6" stroke-linecap="round"/></svg>',
+    solar: '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="48" cy="14" r="7" fill="#ffe9a8" stroke="#e0a800" stroke-width="2.6"/><path d="M48 3v4M59 14h-4M55.5 6.5l-3 3" stroke="#e0a800" stroke-width="2.4" stroke-linecap="round"/><path d="M14 26h32l8 24H6z" fill="#2b5d8c" stroke="#1d4263" stroke-width="2.6"/><path d="M19 26l-4 24M30 26l0 24M41 26l4 24M10 38h41" stroke="#7fb8d6" stroke-width="2"/><rect x="24" y="52" width="16" height="6" rx="2" fill="#5b6770"/></svg>',
+    trunking: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 40l24-24h12l-24 24z" fill="#dfe5e2" stroke="#9aa8a0" stroke-width="2.6"/><path d="M20 52l24-24h12L32 52z" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="2.6"/><path d="M8 40l12 12M44 16l12 12" stroke="#9aa8a0" stroke-width="2.6"/></svg>',
+    smartPlug: '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="10" width="36" height="44" rx="10" fill="#fbfbf9" stroke="#9aa8a0" stroke-width="3"/><circle cx="32" cy="28" r="11" fill="#eef1ed" stroke="#9aa8a0" stroke-width="2"/><rect x="30.5" y="20" width="3" height="7" fill="#5b6770"/><rect x="25" y="30" width="3" height="5" transform="rotate(-90 26.5 32.5)" fill="#5b6770"/><rect x="35" y="30" width="3" height="5" transform="rotate(-90 36.5 32.5)" fill="#5b6770"/><path d="M24 46c4-4 12-4 16 0M28 50c2-2 6-2 8 0" fill="none" stroke="#009639" stroke-width="2.6" stroke-linecap="round"/></svg>'
+  };
+
+  var CATEGORIES = [
+    { name: 'Cable & Cable Management', icon: 'cable', count: '4,200+' },
+    { name: 'Lighting', icon: 'bulb', count: '6,800+' },
+    { name: 'Switches & Sockets', icon: 'socket', count: '3,100+' },
+    { name: 'Circuit Protection', icon: 'consumerUnit', count: '2,400+' },
+    { name: 'Fire & Security', icon: 'smokeAlarm', count: '1,900+' },
+    { name: 'Heating & Ventilation', icon: 'heater', count: '2,700+' },
+    { name: 'Tools & Fixings', icon: 'tools', count: '5,300+' },
+    { name: 'Smart Home', icon: 'thermostat', count: '950+' },
+    { name: 'Renewables & EV', icon: 'evCharger', count: '780+' }
+  ];
+
+  // Prices stored EX VAT (GBP)
+  var PRODUCTS = [
+    { id: 'p1',  brand: 'Pitacs',     name: 'Twin & Earth Cable 6242Y 2.5mm² 100m Grey',          code: 'CAB6242Y25', price: 58.32,  was: 72.90,  icon: 'teCable',     badge: 'deal', stock: 'In stock' },
+    { id: 'p2',  brand: 'MK Electric',name: 'MK Logic Plus 13A Double Switched Socket White',          code: 'MKK2747WHI', price: 6.85,   was: null,   icon: 'socket',      badge: null,   stock: 'In stock' },
+    { id: 'p3',  brand: 'Wylex',      name: 'Wylex 10-Way High Integrity Consumer Unit 100A',          code: 'WYLNMFS10',  price: 74.99,  was: 94.50,  icon: 'consumerUnit',badge: 'deal', stock: 'In stock' },
+    { id: 'p4',  brand: 'Philips',    name: 'Philips CorePro 8.5W LED GLS Lamp BC B22 2700K',          code: 'PHCP85B22',  price: 2.49,   was: null,   icon: 'bulb',        badge: 'bulk', stock: 'In stock' },
+    { id: 'p5',  brand: 'Thorn',      name: 'Thorn Leopard 30W LED Floodlight IP65 Black',             code: 'THLEO30B',   price: 24.60,  was: 32.80,  icon: 'floodlight',  badge: 'deal', stock: 'Low stock' },
+    { id: 'p6',  brand: 'Click',      name: 'Click Mode 10AX 2-Gang 2-Way Plate Switch',               code: 'CLCMA012',   price: 3.20,   was: null,   icon: 'switchPlate', badge: null,   stock: 'In stock' },
+    { id: 'p7',  brand: 'Aico',       name: 'Aico Ei3016 Mains Optical Smoke Alarm + 10yr Battery',    code: 'AIEI3016',   price: 24.50,  was: null,   icon: 'smokeAlarm',  badge: null,   stock: 'In stock' },
+    { id: 'p8',  brand: 'Dimplex',    name: 'Dimplex 2kW Panel Heater with 24hr Timer White',          code: 'DXPLX200E',  price: 69.99,  was: 84.99,  icon: 'heater',      badge: 'deal', stock: 'In stock' },
+    { id: 'p9',  brand: 'CK Tools',   name: 'CK Tools VDE Slim Screwdriver Set 1000V 6-Piece',         code: 'CKT49183',   price: 29.95,  was: null,   icon: 'tools',       badge: 'new',  stock: 'In stock' },
+    { id: 'p10', brand: 'Prysmian',   name: 'SWA Armoured Cable 6943X 3-Core 2.5mm² 50m',          code: 'SWA6943X50', price: 64.50,  was: null,   icon: 'swa',         badge: null,   stock: 'In stock' },
+    { id: 'p11', brand: 'Hive',       name: 'Hive Active Heating Smart Thermostat V3',                 code: 'HIVTSTAT3',  price: 119.00, was: 145.00, icon: 'thermostat',  badge: 'deal', stock: 'In stock' },
+    { id: 'p12', brand: 'Rolec',      name: 'Rolec WallPod EV Charger 7.4kW Type 2 Tethered',          code: 'ROLEVWP74',  price: 379.00, was: 449.00, icon: 'evCharger',   badge: 'deal', stock: 'Low stock' },
+    { id: 'p13', brand: 'Knightsbridge', name: 'Fire-Rated GU10 Downlight IP65 Brushed Chrome',        code: 'KNVFRDLBC',  price: 7.95,   was: null,   icon: 'downlight',   badge: 'bulk', stock: 'In stock' },
+    { id: 'p14', brand: 'Schneider',  name: 'Schneider Easy9 40A 30mA Type B RCBO',                    code: 'SNE9R40B',   price: 18.75,  was: null,   icon: 'rcbo',        badge: null,   stock: 'In stock' },
+    { id: 'p15', brand: 'Manrose',    name: 'Manrose 100mm Bathroom Extractor Fan with Timer',         code: 'MAN100T',    price: 16.20,  was: 21.40,  icon: 'fan',         badge: 'deal', stock: 'In stock' },
+    { id: 'p16', brand: 'Deta',       name: 'Deta 13A Switched Fused Connection Unit + Neon',          code: 'DETS1300',   price: 4.10,   was: null,   icon: 'spur',        badge: null,   stock: 'In stock' },
+    { id: 'p17', brand: 'ESP',        name: 'ESP 4-Camera 1080p CCTV Kit with 1TB DVR',                code: 'ESPCCTV4K',  price: 189.00, was: 229.00, icon: 'cctv',        badge: 'deal', stock: 'In stock' },
+    { id: 'p18', brand: 'JA Solar',   name: '425W Mono Solar Panel All-Black MC4',                     code: 'JAS425AB',   price: 92.00,  was: null,   icon: 'solar',       badge: 'new',  stock: 'In stock' },
+    { id: 'p19', brand: 'Marshall Tufflex', name: 'Mini Trunking 25x16mm 3m White (Pack of 10)',       code: 'MTMT2516',   price: 13.40,  was: null,   icon: 'trunking',    badge: 'bulk', stock: 'In stock' },
+    { id: 'p20', brand: 'TCP',        name: 'TCP Smart WiFi Plug 13A (Twin Pack)',                     code: 'TCPSP13X2',  price: 14.95,  was: 19.95,  icon: 'smartPlug',   badge: 'deal', stock: 'In stock' }
+  ];
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var state = {
+    vatInc: false,                   // false = ex VAT, true = inc VAT
+    basket: {},                      // id -> qty
+    query: ''
+  };
+
+  /* ============================================================
+     HELPERS
+     ============================================================ */
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  function money(n) {
+    return '£' + n.toFixed(2);
+  }
+  function displayPrice(ex) {
+    return state.vatInc ? ex * (1 + VAT_RATE) : ex;
+  }
+  function vatLabel() {
+    return state.vatInc ? 'inc VAT' : 'ex VAT';
+  }
+  function altVatLabel() {
+    return state.vatInc ? 'ex VAT' : 'inc VAT';
+  }
+  function altPrice(ex) {
+    return state.vatInc ? ex : ex * (1 + VAT_RATE);
+  }
+  function findProduct(id) {
+    for (var i = 0; i < PRODUCTS.length; i++) {
+      if (PRODUCTS[i].id === id) return PRODUCTS[i];
+    }
+    return null;
+  }
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ============================================================
+     RENDER: nav + categories
+     ============================================================ */
+  function renderNavs() {
+    var navHtml = '';
+    var drawerHtml = '';
+    CATEGORIES.forEach(function (c) {
+      navHtml += '<li><a href="#products">' + escapeHtml(c.name) + '</a></li>';
+      drawerHtml +=
+        '<a href="#products" data-close-drawer>' + ICONS[c.icon] +
+        escapeHtml(c.name) +
+        '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>';
+    });
+    $('#catNavList').innerHTML = navHtml;
+    $('#drawerCats').innerHTML = drawerHtml;
+
+    var tiles = '';
+    CATEGORIES.forEach(function (c) {
+      tiles +=
+        '<a class="cat-tile" href="#products">' +
+          '<span class="cat-icon">' + ICONS[c.icon] + '</span>' +
+          '<span class="cat-name">' + escapeHtml(c.name) + '</span>' +
+          '<span class="cat-count">' + escapeHtml(c.count) + ' products</span>' +
+        '</a>';
+    });
+    $('#catGrid').innerHTML = tiles;
+  }
+
+  /* ============================================================
+     RENDER: product cards
+     ============================================================ */
+  function badgeHtml(p) {
+    if (p.badge === 'deal') return '<span class="badge badge-deal">Deal</span>';
+    if (p.badge === 'new') return '<span class="badge badge-new">New</span>';
+    if (p.badge === 'bulk') return '<span class="badge badge-bulk">Bulk buy</span>';
+    return '';
+  }
+
+  function productCard(p) {
+    var now = displayPrice(p.price);
+    var alt = altPrice(p.price);
+    var wasHtml = '';
+    if (p.was) {
+      wasHtml = '<span class="price-was">Was ' + money(displayPrice(p.was)) + '</span> ';
+    }
+    var lowClass = p.stock === 'Low stock' ? ' low' : '';
+    return (
+      '<article class="product-card" data-id="' + p.id + '">' +
+        '<div class="product-fig">' + badgeHtml(p) + ICONS[p.icon] + '</div>' +
+        '<div class="product-body">' +
+          '<span class="product-brand">' + escapeHtml(p.brand) + '</span>' +
+          '<h3 class="product-name">' + escapeHtml(p.name) + '</h3>' +
+          '<span class="product-code">Code: ' + escapeHtml(p.code) + '</span>' +
+          '<span class="product-stock' + lowClass + '">' + escapeHtml(p.stock) + '</span>' +
+          '<div class="price-block">' +
+            wasHtml +
+            '<div class="price-now' + (p.was ? ' is-deal' : '') + '" data-price-now>' + money(now) +
+              ' <small style="font-size:0.62rem;font-weight:700;color:var(--mist);">' + vatLabel() + '</small></div>' +
+            '<div class="price-alt" data-price-alt>' + money(alt) + ' ' + altVatLabel() + '</div>' +
+          '</div>' +
+          '<button class="add-btn" type="button" data-add="' + p.id + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>' +
+            'Add to basket' +
+          '</button>' +
+        '</div>' +
+      '</article>'
+    );
+  }
+
+  function matchesQuery(p, q) {
+    if (!q) return true;
+    var hay = (p.name + ' ' + p.brand + ' ' + p.code).toLowerCase();
+    var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    for (var i = 0; i < terms.length; i++) {
+      if (hay.indexOf(terms[i]) === -1) return false;
+    }
+    return true;
+  }
+
+  function renderProducts() {
+    var grid = $('#productGrid');
+    var q = state.query.trim();
+    var shown = PRODUCTS.filter(function (p) { return matchesQuery(p, q); });
+    var html = '';
+    shown.forEach(function (p) { html += productCard(p); });
+    grid.innerHTML = html;
+
+    $('#emptyState').classList.toggle('show', shown.length === 0);
+
+    var note = $('#resultNote');
+    if (q) {
+      $('#resultText').innerHTML =
+        '<strong>' + shown.length + '</strong>&nbsp;result' + (shown.length === 1 ? '' : 's') +
+        ' for &ldquo;' + escapeHtml(q) + '&rdquo;';
+      note.classList.add('show');
+    } else {
+      note.classList.remove('show');
+    }
+  }
+
+  function renderDeals() {
+    var html = '';
+    PRODUCTS.filter(function (p) { return p.badge === 'deal'; })
+      .forEach(function (p) { html += productCard(p); });
+    $('#dealRail').innerHTML = html;
+  }
+
+  /* ============================================================
+     BASKET
+     ============================================================ */
+  function basketQty() {
+    var t = 0;
+    for (var k in state.basket) { if (state.basket.hasOwnProperty(k)) t += state.basket[k]; }
+    return t;
+  }
+
+  function basketSubtotalEx() {
+    var t = 0;
+    for (var k in state.basket) {
+      if (!state.basket.hasOwnProperty(k)) continue;
+      var p = findProduct(k);
+      if (p) t += p.price * state.basket[k];
+    }
+    return t;
+  }
+
+  function renderBasketBadge(animate) {
+    var badge = $('#basketCount');
+    var qty = basketQty();
+    badge.textContent = qty;
+    badge.hidden = qty === 0;
+    if (animate && qty > 0) {
+      badge.classList.remove('pop');
+      // restart animation
+      void badge.offsetWidth;
+      badge.classList.add('pop');
+    }
+  }
+
+  function renderBasketDrawer() {
+    var box = $('#basketItems');
+    var qty = basketQty();
+    $('#basketHeadCount').textContent = qty ? '(' + qty + ')' : '';
+
+    if (qty === 0) {
+      box.innerHTML =
+        '<div class="basket-empty">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M2.5 3.5h3l2.6 12h10.4l2.5-8.5H6.2"/></svg>' +
+          '<strong>Your basket is empty</strong><br>Add some trade essentials to get started.' +
+        '</div>';
+    } else {
+      var html = '';
+      for (var k in state.basket) {
+        if (!state.basket.hasOwnProperty(k)) continue;
+        var p = findProduct(k);
+        if (!p) continue;
+        var q = state.basket[k];
+        var unit = displayPrice(p.price);
+        html +=
+          '<div class="basket-line" data-line="' + p.id + '">' +
+            '<div class="line-fig">' + ICONS[p.icon] + '</div>' +
+            '<div>' +
+              '<p class="line-name">' + escapeHtml(p.name) + '</p>' +
+              '<p class="line-unit">' + money(unit) + ' each ' + vatLabel() + '</p>' +
+              '<div class="qty-ctl" style="margin-top:7px;">' +
+                '<button type="button" data-dec="' + p.id + '" aria-label="Decrease quantity">&minus;</button>' +
+                '<span class="qty-val">' + q + '</span>' +
+                '<button type="button" data-inc="' + p.id + '" aria-label="Increase quantity">+</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="line-right">' +
+              '<span class="line-total">' + money(unit * q) + '</span>' +
+              '<button class="line-remove" type="button" data-remove="' + p.id + '">Remove</button>' +
+            '</div>' +
+          '</div>';
+      }
+      box.innerHTML = html;
+    }
+
+    var ex = basketSubtotalEx();
+    var vat = ex * VAT_RATE;
+    $('#totalEx').textContent = money(ex);
+    $('#totalVat').textContent = money(vat);
+    $('#grandLabel').textContent = 'Total (' + vatLabel() + ')';
+    $('#grandTotal').textContent = money(state.vatInc ? ex + vat : ex);
+  }
+
+  function addToBasket(id, btn) {
+    state.basket[id] = (state.basket[id] || 0) + 1;
+    renderBasketBadge(true);
+    renderBasketDrawer();
+
+    if (btn) {
+      var original = btn.innerHTML;
+      btn.classList.add('added');
+      btn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Added';
+      btn.disabled = true;
+      window.setTimeout(function () {
+        btn.classList.remove('added');
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }, 900);
+    }
+    var p = findProduct(id);
+    showToast((p ? p.brand : 'Item') + ' added to basket');
+  }
+
+  function changeQty(id, delta) {
+    if (!state.basket[id]) return;
+    state.basket[id] += delta;
+    if (state.basket[id] <= 0) delete state.basket[id];
+    renderBasketBadge(false);
+    renderBasketDrawer();
+  }
+
+  function removeLine(id) {
+    delete state.basket[id];
+    renderBasketBadge(false);
+    renderBasketDrawer();
+  }
+
+  /* ============================================================
+     TOAST
+     ============================================================ */
+  var toastTimer = null;
+  function showToast(msg) {
+    var toast = $('#toast');
+    $('#toastText').textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () {
+      toast.classList.remove('show');
+    }, 2200);
+  }
+
+  /* ============================================================
+     DRAWERS (mobile nav + basket) & overlay
+     ============================================================ */
+  var navDrawer = $('#navDrawer');
+  var basketDrawer = $('#basketDrawer');
+  var overlay = $('#overlay');
+
+  function openDrawer(which) {
+    closeDrawers();
+    var el = which === 'nav' ? navDrawer : basketDrawer;
+    el.classList.add('open');
+    el.setAttribute('aria-hidden', 'false');
+    overlay.hidden = false;
+    // allow transition to register
+    window.requestAnimationFrame(function () { overlay.classList.add('show'); });
+    if (which === 'nav') $('#burgerBtn').setAttribute('aria-expanded', 'true');
+  }
+
+  function closeDrawers() {
+    [navDrawer, basketDrawer].forEach(function (el) {
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden', 'true');
+    });
+    overlay.classList.remove('show');
+    window.setTimeout(function () {
+      if (!overlay.classList.contains('show')) overlay.hidden = true;
+    }, 260);
+    $('#burgerBtn').setAttribute('aria-expanded', 'false');
+  }
+
+  /* ============================================================
+     VAT TOGGLE (multiple synced instances)
+     ============================================================ */
+  function setVat(inc) {
+    state.vatInc = inc;
+    $all('.vat-toggle').forEach(function (group) {
+      $all('button[data-vat]', group).forEach(function (b) {
+        var pressed = (b.getAttribute('data-vat') === 'inc') === inc;
+        b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      });
+    });
+    renderProducts();
+    renderDeals();
+    renderBasketDrawer();
+  }
+
+  /* ============================================================
+     EVENTS
+     ============================================================ */
+  function bindEvents() {
+    // Burger + drawer close
+    $('#burgerBtn').addEventListener('click', function () { openDrawer('nav'); });
+    $('#navClose').addEventListener('click', closeDrawers);
+    $('#basketBtn').addEventListener('click', function () { openDrawer('basket'); });
+    $('#basketClose').addEventListener('click', closeDrawers);
+    overlay.addEventListener('click', closeDrawers);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeDrawers();
+    });
+    $('#drawerCats').addEventListener('click', function (e) {
+      var link = e.target.closest('a');
+      if (link) closeDrawers();
+    });
+
+    // VAT toggles (event delegation across all instances)
+    document.addEventListener('click', function (e) {
+      var vbtn = e.target.closest('button[data-vat]');
+      if (vbtn) setVat(vbtn.getAttribute('data-vat') === 'inc');
+    });
+
+    // Add to basket / qty / remove (delegated)
+    document.addEventListener('click', function (e) {
+      var add = e.target.closest('[data-add]');
+      if (add) { addToBasket(add.getAttribute('data-add'), add); return; }
+      var inc = e.target.closest('[data-inc]');
+      if (inc) { changeQty(inc.getAttribute('data-inc'), 1); return; }
+      var dec = e.target.closest('[data-dec]');
+      if (dec) { changeQty(dec.getAttribute('data-dec'), -1); return; }
+      var rem = e.target.closest('[data-remove]');
+      if (rem) { removeLine(rem.getAttribute('data-remove')); return; }
+    });
+
+    // Search: live filter
+    var input = $('#searchInput');
+    var clearBtn = $('#searchClear');
+    var debounce = null;
+    input.addEventListener('input', function () {
+      clearBtn.classList.toggle('show', input.value.length > 0);
+      if (debounce) window.clearTimeout(debounce);
+      debounce = window.setTimeout(function () {
+        state.query = input.value;
+        renderProducts();
+      }, 120);
+    });
+    $('#searchForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      state.query = input.value;
+      renderProducts();
+      $('#products').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      input.blur();
+    });
+    function clearSearch() {
+      input.value = '';
+      state.query = '';
+      clearBtn.classList.remove('show');
+      renderProducts();
+    }
+    clearBtn.addEventListener('click', clearSearch);
+    $('#resultClear').addEventListener('click', clearSearch);
+
+    // Deal rail buttons
+    var rail = $('#dealRail');
+    function railStep() {
+      var card = rail.firstElementChild;
+      return card ? card.getBoundingClientRect().width + 12 : 280;
+    }
+    $('#railPrev').addEventListener('click', function () {
+      rail.scrollBy({ left: -railStep() * 2, behavior: 'smooth' });
+    });
+    $('#railNext').addEventListener('click', function () {
+      rail.scrollBy({ left: railStep() * 2, behavior: 'smooth' });
+    });
+
+    // Newsletter
+    $('#newsletterForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = $('#newsletterEmail');
+      var msg = $('#newsletterMsg');
+      var val = email.value.trim();
+      if (!val || val.indexOf('@') < 1 || val.indexOf('.') < 0) {
+        msg.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      msg.textContent = 'Thanks! Check your inbox to confirm your subscription.';
+      email.value = '';
+      showToast('Subscribed to CEF trade deals');
+    });
+
+    // Checkout (demo)
+    $('#checkoutBtn').addEventListener('click', function () {
+      if (basketQty() === 0) {
+        showToast('Your basket is empty');
+      } else {
+        showToast('Checkout is not available in this demo');
+      }
+    });
+
+    // Footer accordions (mobile only; CSS disables on desktop)
+    $all('.foot-acc').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var col = btn.parentElement;
+        var open = col.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    });
+  }
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+  renderNavs();
+  renderProducts();
+  renderDeals();
+  renderBasketBadge(false);
+  renderBasketDrawer();
+  bindEvents();
+})();
+</script>
+</body>
+</html>
