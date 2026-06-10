@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<!-- AI experiment — prompt: "Create a mobile-friendly game similar to Stick RPG" — model: Fable 5 -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#26303a">
+<title>Stickville — a tiny life</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body {
+    height:100%; overflow:hidden; touch-action:none;
+    user-select:none; -webkit-user-select:none;
+    background:#5f9755;
+    font-family:-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color:#f2efe8;
+  }
+  #wrap { position:fixed; inset:0; overflow:hidden; }
+  canvas { display:block; position:absolute; inset:0; }
+
+  /* ---------- top HUD ---------- */
+  #topbar {
+    position:absolute; left:0; right:0; top:0; z-index:10;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding:calc(8px + env(safe-area-inset-top)) 10px 0 10px;
+    pointer-events:none;
+  }
+  .chip {
+    background:rgba(25,31,38,.86); border-radius:12px;
+    padding:7px 12px; font-size:14px; font-weight:600; line-height:1.35;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+  }
+  .chip small { display:block; font-size:11px; font-weight:500; color:#aeb7c2; }
+  #moneyChip { text-align:right; }
+  #money { color:#7ddc9a; font-variant-numeric:tabular-nums; }
+
+  /* ---------- bottom stat bar ---------- */
+  #botbar {
+    position:absolute; left:0; right:0; bottom:0; z-index:10;
+    background:rgba(25,31,38,.92);
+    padding:9px 10px calc(9px + env(safe-area-inset-bottom)) 10px;
+    display:flex; gap:8px; align-items:center;
+  }
+  #statgrid { flex:1; display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
+  .stat { font-size:10px; font-weight:700; letter-spacing:.4px; color:#aeb7c2; }
+  .stat .lbl { display:flex; justify-content:space-between; margin-bottom:3px; }
+  .stat .lbl b { color:#e8edf2; font-variant-numeric:tabular-nums; }
+  .track { height:10px; background:#39424e; border-radius:5px; overflow:hidden; }
+  .fill { height:100%; border-radius:5px; width:50%; transition:width .25s; }
+  #f-en .fill { background:#f5c84c; }
+  #f-fd .fill { background:#ef8b54; }
+  #f-st .fill { background:#e26a6a; }
+  #f-in .fill { background:#62a9e8; }
+  #f-ch .fill { background:#c585dd; }
+  #menuBtn {
+    width:48px; height:48px; flex:0 0 48px; border:none; border-radius:12px;
+    background:#39424e; color:#e8edf2; font-size:21px; cursor:pointer;
+  }
+  #menuBtn:active { background:#4a5462; }
+
+  /* ---------- toasts ---------- */
+  #toasts {
+    position:absolute; top:calc(64px + env(safe-area-inset-top)); left:50%;
+    transform:translateX(-50%); z-index:30; width:min(86vw, 360px);
+    display:flex; flex-direction:column; gap:6px; pointer-events:none;
+  }
+  .toast {
+    background:#3b4757; color:#fff; border-radius:10px; padding:9px 13px;
+    font-size:13.5px; font-weight:600; text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,.3);
+    animation:tin .22s ease-out, tout .3s ease-in 2.4s forwards;
+  }
+  .toast.good { background:#2f7a4d; }
+  .toast.bad  { background:#a8443f; }
+  @keyframes tin  { from { opacity:0; transform:translateY(-10px); } }
+  @keyframes tout { to   { opacity:0; transform:translateY(-8px); } }
+
+  /* ---------- modal panel ---------- */
+  #panelWrap { position:absolute; inset:0; z-index:20; }
+  #panelWrap.hidden { display:none; }
+  #panelBack { position:absolute; inset:0; background:rgba(10,14,20,.55); }
+  #panel {
+    position:absolute; left:50%; bottom:0; transform:translateX(-50%);
+    width:min(100vw, 440px); max-height:78%;
+    background:#222a33; border-radius:18px 18px 0 0;
+    display:flex; flex-direction:column;
+    box-shadow:0 -6px 24px rgba(0,0,0,.45);
+    animation:pup .22s ease-out;
+  }
+  @keyframes pup { from { transform:translate(-50%, 30px); opacity:0; } }
+  #panelHead {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 16px 10px 16px; border-bottom:1px solid #313b46;
+  }
+  #panelTitle { font-size:19px; font-weight:800; }
+  #panelSub { font-size:12.5px; color:#9aa6b3; margin-top:2px; }
+  #panelClose {
+    width:44px; height:44px; border:none; border-radius:12px; flex:0 0 44px;
+    background:#39424e; color:#e8edf2; font-size:17px; cursor:pointer;
+  }
+  #panelBody {
+    overflow-y:auto; padding:12px 14px calc(14px + env(safe-area-inset-bottom)) 14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .ptext { font-size:13.5px; color:#c4ccd5; line-height:1.5; padding:2px 4px; }
+  .ptext b { color:#f2efe8; }
+  .pbtn {
+    min-height:52px; border:none; border-radius:12px; cursor:pointer;
+    background:#39424e; color:#f2efe8; text-align:left;
+    padding:9px 14px; font-size:15px; font-weight:700; width:100%;
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .pbtn:active { background:#4a5462; }
+  .pbtn small { display:block; font-size:11.5px; font-weight:500; color:#9aa6b3; margin-top:2px; }
+  .pbtn .tag { font-size:13px; font-weight:800; color:#7ddc9a; white-space:nowrap; }
+  .pbtn .tag.cost { color:#f0a35e; }
+  .pbtn.locked { opacity:.45; }
+  .pbtn.accent { background:#2f7a4d; }
+  .pbtn.accent:active { background:#398f5c; }
+  .pbtn.danger { background:#7a3b37; }
+  .row { display:flex; gap:8px; }
+  .row .pbtn { min-height:48px; justify-content:center; text-align:center; padding:6px 8px; }
+  .cards { font-size:21px; letter-spacing:2px; padding:4px 6px; }
+  .red { color:#ef7d7d; }
+
+  /* ---------- win banner ---------- */
+  #banner {
+    position:absolute; inset:0; z-index:40; display:flex;
+    align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    background:rgba(12,16,24,.82); text-align:center; padding:30px;
+  }
+  #banner.hidden { display:none; }
+  #banner h1 { font-size:30px; }
+  #banner p { color:#c4ccd5; font-size:15px; line-height:1.5; max-width:330px; }
+  #banner button {
+    min-height:52px; padding:0 30px; border:none; border-radius:14px;
+    background:#2f7a4d; color:#fff; font-size:17px; font-weight:800; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+
+  <div id="topbar">
+    <div class="chip"><span id="clock">Day 1 · 08:00</span><small id="jobLine">Unemployed</small></div>
+    <div class="chip" id="moneyChip"><span id="money">£100</span><small id="worth">Net worth £100</small></div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <div id="botbar">
+    <div id="statgrid">
+      <div class="stat" id="f-en"><div class="lbl"><span>ENERGY</span><b>100</b></div><div class="track"><div class="fill"></div></div></div>
+      <div class="stat" id="f-fd"><div class="lbl"><span>FOOD</span><b>100</b></div><div class="track"><div class="fill"></div></div></div>
+      <div class="stat" id="f-st"><div class="lbl"><span>STR</span><b>1</b></div><div class="track"><div class="fill"></div></div></div>
+      <div class="stat" id="f-in"><div class="lbl"><span>INT</span><b>1</b></div><div class="track"><div class="fill"></div></div></div>
+      <div class="stat" id="f-ch"><div class="lbl"><span>CHA</span><b>1</b></div><div class="track"><div class="fill"></div></div></div>
+    </div>
+    <button id="menuBtn" aria-label="Menu">☰</button>
+  </div>
+
+  <div id="panelWrap" class="hidden">
+    <div id="panelBack"></div>
+    <div id="panel">
+      <div id="panelHead">
+        <div><div id="panelTitle"></div><div id="panelSub"></div></div>
+        <button id="panelClose">✕</button>
+      </div>
+      <div id="panelBody"></div>
+    </div>
+  </div>
+
+  <div id="banner" class="hidden">
+    <h1 id="bannerTitle"></h1>
+    <p id="bannerText"></p>
+    <button id="bannerBtn">Continue</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* =========================================================
+   Stickville — a Stick-RPG-style life sim on one canvas.
+   ========================================================= */
+
+// ---------- constants ----------
+var HW = 32, HH = 16;             // iso half-tile
+var MAPW = 19, MAPH = 25;
+var GRASS = 0, PAVE = 1, ROAD = 2, SOLID = 3;
+var WALK_SPEED = 3.4;             // tiles / sec
+var MIN_PER_TILE = 2;             // game minutes per tile walked
+var SAVE_KEY = 'stickrpg-fable-5';
+var GOAL = 10000;
+
+var JOBS = [
+  { name:'Dishwasher',     pay:45,  req:{} },
+  { name:'Office Temp',    pay:95,  req:{int:15} },
+  { name:'Junior Manager', pay:180, req:{int:35, cha:25} },
+  { name:'Executive',      pay:330, req:{int:60, cha:45, str:20} },
+  { name:'CEO',            pay:600, req:{int:80, cha:65, str:35} }
+];
+
+var BUILDINGS = [
+  { id:'home',   name:'Home',             x:3,  y:1,  w:4, h:3, hpx:54,  c:'#e2725b', roof:'#a14a37', doorX:4,  open:null },
+  { id:'office', name:'Office',           x:12, y:1,  w:4, h:3, hpx:112, c:'#5b8bd6', roof:'#33598f', doorX:13, open:[7,22] },
+  { id:'gym',    name:'Gym',              x:3,  y:8,  w:4, h:3, hpx:62,  c:'#d6a23c', roof:'#8f6a1f', doorX:4,  open:[6,23] },
+  { id:'uni',    name:'University',       x:12, y:8,  w:4, h:3, hpx:80,  c:'#7a6bd6', roof:'#4c3f96', doorX:13, open:[8,22] },
+  { id:'store',  name:'Corner Store',     x:3,  y:14, w:4, h:3, hpx:50,  c:'#5bb98c', roof:'#2f7a57', doorX:4,  open:null },
+  { id:'bar',    name:'The Stick & Pint', x:12, y:14, w:4, h:3, hpx:58,  c:'#c25ba8', roof:'#7d2f6a', doorX:13, open:[17,26] },
+  { id:'bank',   name:'Bank',             x:3,  y:20, w:4, h:3, hpx:88,  c:'#8fa3b0', roof:'#56707f', doorX:4,  open:[9,18] },
+  { id:'casino', name:'Lucky Diamond',    x:12, y:20, w:4, h:3, hpx:98,  c:'#e05c5c', roof:'#8f2f2f', doorX:13, open:[12,28] }
+];
+BUILDINGS.forEach(function(b){ b.door = { x:b.doorX, y:b.y + b.h }; });
+
+var TREES = [[1,1],[8,2],[17,1],[10,5],[1,9],[17,11],[8,15],[10,13],[1,21],[17,19]];
+var LAMPS = [[8,5],[10,7],[8,13],[10,19],[1,17],[17,23]];
+
+// ---------- map ----------
+var map = [];
+(function buildMap(){
+  for (var y=0; y<MAPH; y++){
+    map[y] = [];
+    for (var x=0; x<MAPW; x++){
+      if (x===0 || x===MAPW-1 || y===0 || y===MAPH-1) map[y][x] = GRASS;
+      else if (x===9 || y===6 || y===12 || y===18)    map[y][x] = ROAD;
+      else                                            map[y][x] = PAVE;
+    }
+  }
+  BUILDINGS.forEach(function(b){
+    for (var y=b.y; y<b.y+b.h; y++)
+      for (var x=b.x; x<b.x+b.w; x++) map[y][x] = SOLID;
+  });
+  TREES.forEach(function(t){ map[t[1]][t[0]] = GRASS; });
+})();
+
+function inMap(x,y){ return x>=0 && y>=0 && x<MAPW && y<MAPH; }
+function walkable(x,y){
+  if (!inMap(x,y)) return false;
+  var t = map[y][x];
+  return t === PAVE || t === ROAD;
+}
+var doorLookup = {};
+BUILDINGS.forEach(function(b){ doorLookup[b.door.x + ',' + b.door.y] = b; });
+
+// ---------- state ----------
+var state = null;
+function freshState(){
+  return {
+    v:1, day:1, time:8*60, cash:100, bank:0,
+    str:1, int:1, cha:1, energy:100, hunger:20,
+    job:-1, penthouse:false, goalToasted:false, won:false,
+    px:4.5, py:4.5
+  };
+}
+function save(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function load(){
+  try {
+    var raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    var s = JSON.parse(raw);
+    if (!s || s.v !== 1) return null;
+    return s;
+  } catch(e){ return null; }
+}
+
+// ---------- helpers ----------
+function clamp(v,a,b){ return v < a ? a : (v > b ? b : v); }
+function fmtGBP(n){ return '£' + Math.round(n).toLocaleString('en-GB'); }
+function netWorth(){ return state.cash + state.bank + (state.penthouse ? GOAL : 0); }
+function hour(){ return state.time / 60; }
+function shade(hex, f){
+  var n = parseInt(hex.slice(1), 16);
+  var r = clamp(Math.round(((n>>16)&255) * f), 0, 255);
+  var g = clamp(Math.round(((n>>8)&255) * f), 0, 255);
+  var b = clamp(Math.round((n&255) * f), 0, 255);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+function isoX(wx,wy){ return (wx - wy) * HW; }
+function isoY(wx,wy){ return (wx + wy) * HH; }
+
+// ---------- DOM ----------
+function $(id){ return document.getElementById(id); }
+var cv = $('cv'), ctx = cv.getContext('2d');
+var toastsEl = $('toasts');
+
+function toast(msg, type){
+  var d = document.createElement('div');
+  d.className = 'toast' + (type ? ' ' + type : '');
+  d.textContent = msg;
+  toastsEl.appendChild(d);
+  while (toastsEl.children.length > 4) toastsEl.removeChild(toastsEl.firstChild);
+  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2900);
+}
+
+function updateHUD(){
+  var mm = Math.floor((state.time % 60) / 10) * 10;
+  var hh = Math.floor(state.time / 60) % 24;
+  $('clock').textContent = 'Day ' + state.day + ' · ' +
+    (hh<10?'0':'') + hh + ':' + (mm<10?'0':'') + mm;
+  $('jobLine').textContent = (state.job >= 0 ? JOBS[state.job].name : 'Unemployed') +
+    (state.penthouse ? ' · Penthouse 🏆' : '');
+  $('money').textContent = fmtGBP(state.cash);
+  $('worth').textContent = 'Bank ' + fmtGBP(state.bank) + ' · Worth ' + fmtGBP(netWorth());
+  setBar('f-en', state.energy, Math.round(state.energy));
+  setBar('f-fd', 100 - state.hunger, Math.round(100 - state.hunger));
+  setBar('f-st', state.str, state.str);
+  setBar('f-in', state.int, state.int);
+  setBar('f-ch', state.cha, state.cha);
+}
+function setBar(id, pct, label){
+  var el = $(id);
+  el.querySelector('.fill').style.width = clamp(pct,0,100) + '%';
+  el.querySelector('b').textContent = label;
+}
+
+// ---------- panel system ----------
+var panelWrap = $('panelWrap'), panelBody = $('panelBody');
+var currentBuilding = null, currentPanel = null;
+
+function showPanel(title, sub){
+  $('panelTitle').textContent = title;
+  $('panelSub').textContent = sub || '';
+  panelBody.innerHTML = '';
+  panelWrap.classList.remove('hidden');
+  return panelBody;
+}
+function closePanel(){
+  panelWrap.classList.add('hidden');
+  currentBuilding = null;
+  currentPanel = null;
+  bj = null;
+}
+$('panelClose').addEventListener('click', closePanel);
+$('panelBack').addEventListener('click', closePanel);
+
+function pText(body, html){
+  var d = document.createElement('div');
+  d.className = 'ptext';
+  d.innerHTML = html;
+  body.appendChild(d);
+  return d;
+}
+function pBtn(body, opts){
+  var b = document.createElement('button');
+  b.className = 'pbtn' + (opts.cls ? ' ' + opts.cls : '') + (opts.locked ? ' locked' : '');
+  var left = document.createElement('span');
+  left.innerHTML = opts.label + (opts.sub ? '<small>' + opts.sub + '</small>' : '');
+  b.appendChild(left);
+  if (opts.tag){
+    var t = document.createElement('span');
+    t.className = 'tag' + (opts.tagCost ? ' cost' : '');
+    t.textContent = opts.tag;
+    b.appendChild(t);
+  }
+  if (opts.locked){
+    b.addEventListener('click', function(){ if (opts.lockMsg) toast(opts.lockMsg, 'bad'); });
+  } else {
+    b.addEventListener('click', opts.onClick);
+  }
+  body.appendChild(b);
+  return b;
+}
+function pRow(body){
+  var r = document.createElement('div');
+  r.className = 'row';
+  body.appendChild(r);
+  return r;
+}
+
+// ---------- time, days, costs ----------
+// returns false if midnight forced a collapse (panel was closed)
+function spend(mins){
+  state.time += mins;
+  state.hunger = clamp(state.hunger + mins * 0.055, 0, 100);
+  if (state.time >= 24*60){ collapse(); return false; }
+  return true;
+}
+function applyInterest(){
+  if (state.bank > 0){
+    var gain = Math.floor(state.bank * 0.03);
+    if (gain > 0){ state.bank += gain; toast('Bank interest +' + fmtGBP(gain), 'good'); }
+  }
+}
+function newDay(){
+  state.day++;
+  state.time = 8*60;
+  applyInterest();
+  checkGoal();
+  save();
+}
+function collapse(){
+  closePanel();
+  newDay();
+  state.energy = 40;
+  state.hunger = clamp(state.hunger + 20, 0, 100);
+  toast('Midnight! You collapsed in the street and woke at 8:00 exhausted.', 'bad');
+  updateHUD();
+}
+function gainStat(key, amt){
+  var hungry = state.hunger >= 80;
+  if (hungry) amt = Math.max(1, Math.floor(amt/2));
+  var before = state[key];
+  state[key] = clamp(state[key] + amt, 0, 100);
+  var got = state[key] - before;
+  var names = { str:'Strength', int:'Intelligence', cha:'Charm' };
+  if (got > 0) toast('+' + got + ' ' + names[key] + (hungry ? ' (too hungry to focus!)' : ''), 'good');
+  else toast(names[key] + ' is maxed out!', 'good');
+}
+function checkGoal(){
+  if (!state.goalToasted && netWorth() >= GOAL && !state.penthouse){
+    state.goalToasted = true;
+    toast('You can afford the PENTHOUSE! Go home to buy it.', 'good');
+  }
+}
+
+// act: generic gated action used by building panels
+function act(o){
+  if (o.price && state.cash < o.price){ toast('Not enough cash.', 'bad'); return; }
+  if (o.energy && state.energy < o.energy){ toast('Too tired — sleep or grab an energy drink.', 'bad'); return; }
+  if (o.price) state.cash -= o.price;
+  if (o.energy) state.energy = clamp(state.energy - o.energy, 0, 100);
+  var ok = o.mins ? spend(o.mins) : true;
+  if (o.fn) o.fn();
+  checkGoal();
+  save();
+  updateHUD();
+  if (ok && currentBuilding) openBuilding(currentBuilding, true);
+  else if (ok && currentPanel === 'menu') openMenu();
+}
+
+// ---------- building panels ----------
+function isOpen(b){
+  if (!b.open) return true;
+  var h = hour(), s = b.open[0], e = b.open[1];
+  if (e <= 24) return h >= s && h < e;
+  return h >= s || h < e - 24;
+}
+function openLabel(b){
+  if (!b.open) return 'Open 24 hours';
+  var e = b.open[1] % 24;
+  return 'Open ' + b.open[0] + ':00 – ' + (e<10?'0':'') + e + ':00';
+}
+
+function openBuilding(b, force){
+  if (!force && !isOpen(b)){
+    toast(b.name + ' is closed. ' + openLabel(b) + '.', 'bad');
+    return;
+  }
+  currentBuilding = b;
+  currentPanel = b.id;
+  var body = showPanel(b.name, openLabel(b));
+  PANELS[b.id](body, b);
+}
+
+var PANELS = {
+  home: function(body){
+    pText(body, state.penthouse
+      ? 'Your <b>penthouse</b> gleams above the city. Silk sheets, skyline views.'
+      : 'A lumpy mattress, a kettle, and big dreams.');
+    pBtn(body, { label:'😴 Sleep until 8:00', sub:'Full energy · new day begins', cls:'accent',
+      onClick:function(){
+        newDay();
+        state.energy = 100;
+        state.hunger = clamp(state.hunger + 22, 0, 100);
+        if (state.penthouse && state.cha < 100){ state.cha = clamp(state.cha + 1, 0, 100); }
+        toast(state.penthouse ? 'You wake up feeling fabulous. +1 Charm' : 'A new day dawns!', 'good');
+        updateHUD();
+        openBuilding(BUILDINGS[0], true);
+      }});
+    pBtn(body, { label:'🛋️ Quick nap', sub:'3 hours · +30 energy',
+      onClick:function(){ act({ mins:180, fn:function(){
+        state.energy = clamp(state.energy + 30, 0, 100);
+        toast('+30 energy', 'good');
+      }}); }});
+    if (!state.penthouse){
+      var afford = state.cash >= GOAL;
+      pBtn(body, { label:'🏙️ Buy the Penthouse', sub:'The goal of every stick in town',
+        tag:fmtGBP(GOAL), tagCost:true, locked:!afford,
+        lockMsg:'You need ' + fmtGBP(GOAL) + ' in cash. (Withdraw from the bank!)',
+        onClick:function(){
+          state.cash -= GOAL;
+          state.penthouse = true;
+          state.won = true;
+          save(); updateHUD(); closePanel();
+          showBanner('🏆 PENTHOUSE OWNER!',
+            'Day ' + state.day + ': from £100 and a lumpy mattress to the top of Stickville. ' +
+            'The city is yours — keep playing, keep growing, keep being a magnificent stick.');
+        }});
+    }
+  },
+
+  office: function(body){
+    if (state.job < 0){
+      pText(body, 'The receptionist looks you up and down. <b>Everyone starts somewhere.</b>');
+    } else {
+      pText(body, 'Current job: <b>' + JOBS[state.job].name + '</b> — ' +
+        fmtGBP(JOBS[state.job].pay) + ' per shift (+charm bonus).');
+    }
+    if (state.job >= 0){
+      var wage = JOBS[state.job].pay + Math.floor(state.cha / 4) * 2;
+      pBtn(body, { label:'💼 Work a shift', sub:'6 hours · −25 energy', tag:'+' + fmtGBP(wage), cls:'accent',
+        onClick:function(){ act({ mins:360, energy:25, fn:function(){
+          state.cash += wage;
+          toast('Shift done! +' + fmtGBP(wage), 'good');
+        }}); }});
+    }
+    pText(body, '<b>Career ladder</b> — better jobs need better stats:');
+    JOBS.forEach(function(j, i){
+      var req = [];
+      if (j.req.str) req.push('STR ' + j.req.str);
+      if (j.req.int) req.push('INT ' + j.req.int);
+      if (j.req.cha) req.push('CHA ' + j.req.cha);
+      var meets = (!j.req.str || state.str >= j.req.str) &&
+                  (!j.req.int || state.int >= j.req.int) &&
+                  (!j.req.cha || state.cha >= j.req.cha);
+      if (i === state.job){
+        pBtn(body, { label:'✅ ' + j.name, sub:'Your current job', tag:fmtGBP(j.pay) + '/shift', locked:true });
+      } else if (i < state.job){
+        pBtn(body, { label:j.name, sub:'Been there, done that', tag:fmtGBP(j.pay) + '/shift', locked:true });
+      } else {
+        pBtn(body, { label:(meets ? '📝 Apply: ' : '🔒 ') + j.name,
+          sub:req.length ? 'Needs ' + req.join(', ') : 'No requirements',
+          tag:fmtGBP(j.pay) + '/shift', locked:!meets,
+          lockMsg:'Not qualified yet — hit the gym, uni or bar!',
+          onClick:function(){
+            state.job = i;
+            toast('You got the job: ' + j.name + '!', 'good');
+            save(); updateHUD(); openBuilding(currentBuilding, true);
+          }});
+      }
+    });
+  },
+
+  uni: function(body){
+    pText(body, 'Dusty books, bright minds. Intelligence: <b>' + state.int + '/100</b>.');
+    pBtn(body, { label:'🎓 Attend a lecture', sub:'3 hours · −15 energy · +2 INT', tag:'£40', tagCost:true, cls:'accent',
+      onClick:function(){ act({ price:40, mins:180, energy:15, fn:function(){ gainStat('int', 2); }}); }});
+    pBtn(body, { label:'📚 Read in the library', sub:'2 hours · −8 energy · +1 INT · free',
+      onClick:function(){ act({ mins:120, energy:8, fn:function(){ gainStat('int', 1); }}); }});
+  },
+
+  gym: function(body){
+    pText(body, 'Clanging iron and questionable grunting. Strength: <b>' + state.str + '/100</b>.');
+    pBtn(body, { label:'🏋️ Training session', sub:'2 hours · −20 energy · +2 STR', tag:'£12', tagCost:true, cls:'accent',
+      onClick:function(){ act({ price:12, mins:120, energy:20, fn:function(){
+        gainStat('str', 2);
+        state.hunger = clamp(state.hunger + 8, 0, 100);
+      }}); }});
+    pBtn(body, { label:'🏃 Jog around the block', sub:'1 hour · −12 energy · +1 STR · free',
+      onClick:function(){ act({ mins:60, energy:12, fn:function(){ gainStat('str', 1); }}); }});
+  },
+
+  bar: function(body){
+    pText(body, 'Sticky floors, friendly faces. Charm: <b>' + state.cha + '/100</b>.');
+    pBtn(body, { label:'🗣️ Chat with the locals', sub:'1 hour · −5 energy · +1 CHA', tag:'£10', tagCost:true,
+      onClick:function(){ act({ price:10, mins:60, energy:5, fn:function(){ gainStat('cha', 1); }}); }});
+    pBtn(body, { label:'🍻 Buy a round of drinks', sub:'2 hours · −8 energy · +2 CHA', tag:'£30', tagCost:true, cls:'accent',
+      onClick:function(){ act({ price:30, mins:120, energy:8, fn:function(){ gainStat('cha', 2); }}); }});
+    pBtn(body, { label:'🥧 Pub pie & mash', sub:'45 min · +45 food', tag:'£14', tagCost:true,
+      onClick:function(){ act({ price:14, mins:45, fn:function(){
+        state.hunger = clamp(state.hunger - 45, 0, 100);
+        toast('Delicious. +45 food', 'good');
+      }}); }});
+  },
+
+  store: function(body){
+    pText(body, 'Fluorescent lights hum over snack-laden shelves.');
+    pBtn(body, { label:'🥪 Sandwich', sub:'+35 food', tag:'£8', tagCost:true,
+      onClick:function(){ act({ price:8, mins:10, fn:function(){
+        state.hunger = clamp(state.hunger - 35, 0, 100); toast('+35 food', 'good');
+      }}); }});
+    pBtn(body, { label:'🍜 Instant noodles', sub:'+20 food', tag:'£4', tagCost:true,
+      onClick:function(){ act({ price:4, mins:10, fn:function(){
+        state.hunger = clamp(state.hunger - 20, 0, 100); toast('+20 food', 'good');
+      }}); }});
+    pBtn(body, { label:'⚡ Energy drink', sub:'+25 energy', tag:'£6', tagCost:true,
+      onClick:function(){ act({ price:6, mins:10, fn:function(){
+        state.energy = clamp(state.energy + 25, 0, 100); toast('+25 energy. Heart racing!', 'good');
+      }}); }});
+    pBtn(body, { label:'🎟️ Lottery ticket', sub:'1-in-20 chance of £120', tag:'£5', tagCost:true,
+      onClick:function(){ act({ price:5, mins:10, fn:function(){
+        if (Math.random() < 0.05){ state.cash += 120; toast('WINNER! +£120', 'good'); }
+        else toast('Not a winner. Maybe next time…');
+      }}); }});
+  },
+
+  bank: function(body){
+    pText(body, 'Balance: <b>' + fmtGBP(state.bank) + '</b> · earns <b>3% interest</b> every night.<br>' +
+      'Cash in pocket: <b>' + fmtGBP(state.cash) + '</b>');
+    pText(body, '<b>Deposit</b>');
+    var r1 = pRow(body);
+    [100, 500].forEach(function(n){
+      pBtn(r1, { label:'£' + n, locked:state.cash < n, lockMsg:'Not enough cash.',
+        onClick:function(){ act({ mins:10, fn:function(){
+          state.cash -= n; state.bank += n; toast('Deposited £' + n);
+        }}); }});
+    });
+    pBtn(r1, { label:'All', locked:state.cash < 1, lockMsg:'Pockets are empty.',
+      onClick:function(){ act({ mins:10, fn:function(){
+        var n = state.cash; state.bank += n; state.cash = 0; toast('Deposited ' + fmtGBP(n));
+      }}); }});
+    pText(body, '<b>Withdraw</b>');
+    var r2 = pRow(body);
+    [100, 500].forEach(function(n){
+      pBtn(r2, { label:'£' + n, locked:state.bank < n, lockMsg:'Not enough in the bank.',
+        onClick:function(){ act({ mins:10, fn:function(){
+          state.bank -= n; state.cash += n; toast('Withdrew £' + n);
+        }}); }});
+    });
+    pBtn(r2, { label:'All', locked:state.bank < 1, lockMsg:'Account is empty.',
+      onClick:function(){ act({ mins:10, fn:function(){
+        var n = state.bank; state.cash += n; state.bank = 0; toast('Withdrew ' + fmtGBP(n));
+      }}); }});
+  },
+
+  casino: function(body){
+    renderCasino(body);
+  }
+};
+
+// ---------- casino: blackjack + slots ----------
+var bj = null;
+function drawCard(){
+  var v = 1 + Math.floor(Math.random() * 13);
+  var s = '♠♥♦♣'.charAt(Math.floor(Math.random() * 4));
+  return { v:v, s:s };
+}
+function handVal(cards){
+  var t = 0, aces = 0;
+  cards.forEach(function(c){
+    if (c.v === 1){ aces++; t += 11; } else t += Math.min(10, c.v);
+  });
+  while (t > 21 && aces > 0){ t -= 10; aces--; }
+  return t;
+}
+function cardStr(c){
+  var face = { 1:'A', 11:'J', 12:'Q', 13:'K' };
+  var red = (c.s === '♥' || c.s === '♦');
+  return '<span' + (red ? ' class="red"' : '') + '>' + (face[c.v] || c.v) + c.s + '</span>';
+}
+function handStr(cards, hideSecond){
+  return cards.map(function(c, i){
+    return (hideSecond && i > 0) ? '🂠' : cardStr(c);
+  }).join(' ');
+}
+function bjResolve(){
+  var pv = handVal(bj.p), dv = handVal(bj.d);
+  var msg, win = 0;
+  if (pv > 21){ msg = 'Bust! You lose ' + fmtGBP(bj.bet) + '.'; }
+  else if (bj.p.length === 2 && pv === 21 && bj.d.length === 2 && dv !== 21){
+    win = Math.floor(bj.bet * 2.5); msg = 'BLACKJACK! You win ' + fmtGBP(win - bj.bet) + '!';
+  }
+  else if (dv > 21){ win = bj.bet * 2; msg = 'Dealer busts on ' + dv + '! You win ' + fmtGBP(bj.bet) + '!'; }
+  else if (pv > dv){ win = bj.bet * 2; msg = pv + ' beats ' + dv + '. You win ' + fmtGBP(bj.bet) + '!'; }
+  else if (pv === dv){ win = bj.bet; msg = 'Push at ' + pv + '. Bet returned.'; }
+  else { msg = 'Dealer’s ' + dv + ' beats your ' + pv + '. You lose.'; }
+  if (win > 0) state.cash += win;
+  bj.done = true;
+  bj.msg = msg;
+  if (win > bj.bet) toast(msg, 'good');
+  else if (win === 0) toast(msg, 'bad');
+  checkGoal(); save(); updateHUD();
+}
+function renderCasino(body){
+  if (!bj){
+    pText(body, 'Velvet, neon and bad decisions. Cash: <b>' + fmtGBP(state.cash) + '</b>');
+    pText(body, '<b>♠ Blackjack</b> — place your bet:');
+    var r = pRow(body);
+    [10, 50, 250].forEach(function(n){
+      pBtn(r, { label:'£' + n, locked:state.cash < n, lockMsg:'Not enough cash.',
+        onClick:function(){
+          state.cash -= n;
+          bj = { bet:n, p:[drawCard(), drawCard()], d:[drawCard(), drawCard()], done:false, msg:'' };
+          if (!spend(30)) return;
+          if (handVal(bj.p) === 21) bjResolve();
+          save(); updateHUD(); openBuilding(currentBuilding, true);
+        }});
+    });
+    pBtn(body, { label:'🎰 Lucky slots', sub:'One pull · jackpot £300', tag:'£5', tagCost:true,
+      onClick:function(){ act({ price:5, mins:10, fn:function(){
+        var r = Math.random();
+        if (r < 0.01){ state.cash += 300; toast('💎💎💎 JACKPOT! +£300', 'good'); }
+        else if (r < 0.10){ state.cash += 40; toast('🍒🍒🍒 +£40', 'good'); }
+        else toast('🍋🍒💀 No luck.');
+      }}); }});
+    return;
+  }
+  var pv = handVal(bj.p), dv = handVal(bj.d);
+  pText(body, 'Bet: <b>' + fmtGBP(bj.bet) + '</b>');
+  pText(body, 'Dealer ' + (bj.done ? '(' + dv + ')' : '') + ':<div class="cards">' +
+    handStr(bj.d, !bj.done) + '</div>');
+  pText(body, 'You (' + pv + '):<div class="cards">' + handStr(bj.p) + '</div>');
+  if (!bj.done){
+    var r2 = pRow(body);
+    pBtn(r2, { label:'Hit', cls:'accent', onClick:function(){
+      bj.p.push(drawCard());
+      if (handVal(bj.p) > 21) bjResolve();
+      openBuilding(currentBuilding, true);
+    }});
+    pBtn(r2, { label:'Stand', onClick:function(){
+      while (handVal(bj.d) < 17) bj.d.push(drawCard());
+      bjResolve();
+      openBuilding(currentBuilding, true);
+    }});
+  } else {
+    pText(body, '<b>' + bj.msg + '</b>');
+    var r3 = pRow(body);
+    pBtn(r3, { label:'New hand', cls:'accent', onClick:function(){
+      bj = null; openBuilding(currentBuilding, true);
+    }});
+    pBtn(r3, { label:'Walk away', onClick:closePanel });
+  }
+}
+
+// ---------- menu / welcome / banner ----------
+function openMenu(){
+  currentBuilding = null;
+  currentPanel = 'menu';
+  var body = showPanel('Stickville', 'A tiny life, one tap at a time');
+  pText(body, 'Job: <b>' + (state.job >= 0 ? JOBS[state.job].name : 'Unemployed') +
+    '</b> · Day <b>' + state.day + '</b><br>Net worth: <b>' + fmtGBP(netWorth()) +
+    '</b> / ' + fmtGBP(GOAL) + ' goal' +
+    (state.penthouse ? '<br><b>🏆 Penthouse owner</b>' : ''));
+  pText(body, '<b>How to play</b><br>' +
+    '• Tap (or click) the streets to walk; tap a building to enter it.<br>' +
+    '• Desktop: WASD / arrow keys walk, Enter opens a door you stand on.<br>' +
+    '• Study, lift and chat to raise INT / STR / CHA, then climb the job ladder at the Office.<br>' +
+    '• Keep Energy and Food up — sleep at Home, eat at the Store.<br>' +
+    '• Bank savings earn 3% nightly. Midnight outside = bad news.<br>' +
+    '• Goal: <b>' + fmtGBP(GOAL) + '</b> and the penthouse. Then… keep living.');
+  pBtn(body, { label:'Resume', cls:'accent', onClick:closePanel });
+  pBtn(body, { label:'New game', sub:'Erase progress and start over', cls:'danger',
+    onClick:function(){
+      var body2 = showPanel('Start over?', 'This wipes your saved life');
+      currentPanel = 'confirm';
+      pText(body2, 'Day ' + state.day + ', ' + fmtGBP(netWorth()) + ' net worth — gone forever. Sure?');
+      pBtn(body2, { label:'Yes, wipe it', cls:'danger', onClick:function(){
+        state = freshState();
+        player.x = state.px; player.y = state.py;
+        player.path = []; pendingBuilding = null;
+        save(); updateHUD(); closePanel();
+        toast('A new stick is born. Good luck!', 'good');
+      }});
+      pBtn(body2, { label:'No, keep my life', cls:'accent', onClick:openMenu });
+    }});
+}
+$('menuBtn').addEventListener('click', function(){
+  if (currentPanel === 'menu') closePanel(); else openMenu();
+});
+
+function showBanner(title, text){
+  $('bannerTitle').textContent = title;
+  $('bannerText').textContent = text;
+  $('banner').classList.remove('hidden');
+}
+$('bannerBtn').addEventListener('click', function(){
+  $('banner').classList.add('hidden');
+});
+
+function openWelcome(){
+  currentPanel = 'welcome';
+  var body = showPanel('Welcome to Stickville', 'You arrive with £100 and a dream');
+  pText(body, 'Build your <b>Strength</b>, <b>Intelligence</b> and <b>Charm</b>, climb the career ' +
+    'ladder, and amass a net worth of <b>' + fmtGBP(GOAL) + '</b> to buy the penthouse.');
+  pText(body, '<b>Tap the streets to walk. Tap a building to head inside.</b> Your life auto-saves.');
+  pBtn(body, { label:'Start living', cls:'accent', onClick:closePanel });
+}
+
+// ---------- player & movement ----------
+var player = { x:4.5, y:4.5, path:[], phase:0, flip:false, moving:false };
+var pendingBuilding = null;
+var destTile = null;
+var tilesSinceEvent = 99;
+
+function bfsPath(sx, sy, tx, ty){
+  if (sx === tx && sy === ty) return [];
+  if (!walkable(tx, ty)) return null;
+  var key = function(x,y){ return x + ',' + y; };
+  var prev = {}; prev[key(sx,sy)] = null;
+  var q = [[sx,sy]], head = 0;
+  var dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  while (head < q.length){
+    var c = q[head++];
+    if (c[0] === tx && c[1] === ty){
+      var path = [], cur = key(tx,ty);
+      while (prev[cur]){
+        var parts = cur.split(',');
+        path.unshift([+parts[0], +parts[1]]);
+        cur = prev[cur];
+      }
+      return path;
+    }
+    for (var i=0; i<4; i++){
+      var nx = c[0] + dirs[i][0], ny = c[1] + dirs[i][1];
+      if (walkable(nx,ny) && !(key(nx,ny) in prev)){
+        prev[key(nx,ny)] = key(c[0],c[1]);
+        q.push([nx,ny]);
+      }
+    }
+  }
+  return null;
+}
+
+function goTo(tx, ty, building){
+  var sx = Math.floor(player.x), sy = Math.floor(player.y);
+  var path = bfsPath(sx, sy, tx, ty);
+  if (path === null){ return false; }
+  player.path = path;
+  pendingBuilding = building || null;
+  destTile = (path.length || building) ? [tx,ty] : null;
+  if (path.length === 0 && building) tryEnter(building);
+  return true;
+}
+
+function tryEnter(b){
+  pendingBuilding = null;
+  destTile = null;
+  openBuilding(b, false);
+}
+
+function onTileReached(tx, ty){
+  state.px = player.x; state.py = player.y;
+  if (!spend(MIN_PER_TILE)){ player.path = []; pendingBuilding = null; destTile = null; return; }
+  tilesSinceEvent++;
+  maybeStreetEvent();
+  if (player.path.length === 0){
+    destTile = null;
+    if (pendingBuilding) tryEnter(pendingBuilding);
+    save();
+  }
+}
+
+function maybeStreetEvent(){
+  if (tilesSinceEvent < 18) return;
+  var h = hour();
+  var night = (h >= 22 || h < 5);
+  if (night && Math.random() < 0.07){
+    tilesSinceEvent = 0;
+    if (state.str >= 40){
+      gainStat('str', 1);
+      toast('A mugger lunges — you flex and he flees!', 'good');
+    } else {
+      var loss = Math.min(200, Math.max(5, Math.floor(state.cash * 0.2)));
+      if (state.cash > 0){ state.cash -= loss; toast('Mugged in the dark! −' + fmtGBP(loss), 'bad'); }
+      else toast('A mugger checks your pockets. Empty. He apologises.', 'bad');
+    }
+    save(); updateHUD();
+    return;
+  }
+  if (Math.random() < 0.045){
+    tilesSinceEvent = 0;
+    var r = Math.random();
+    if (r < 0.45){
+      var found = 5 + Math.floor(Math.random() * 11);
+      state.cash += found;
+      toast('You spot ' + fmtGBP(found) + ' on the pavement!', 'good');
+    } else if (r < 0.65){
+      state.energy = clamp(state.energy + 10, 0, 100);
+      toast('An unopened energy drink! +10 energy', 'good');
+    } else if (r < 0.8 && state.cha < 100){
+      state.cha = clamp(state.cha + 1, 0, 100);
+      toast('A friendly dog trots beside you. +1 Charm', 'good');
+    } else {
+      state.hunger = clamp(state.hunger - 8, 0, 100);
+      toast('Free samples outside the store! +8 food', 'good');
+    }
+    checkGoal(); save(); updateHUD();
+  }
+}
+
+// ---------- input ----------
+var camX = 0, camY = 0, viewW = 0, viewH = 0;
+
+function screenToWorldPx(sx, sy){
+  return [ sx - (viewW/2 - camX), sy - (viewH*0.46 - camY) ];
+}
+function worldPxToTile(wx, wy){
+  var fx = (wx / HW + wy / HH) / 2;
+  var fy = (wy / HH - wx / HW) / 2;
+  return [Math.floor(fx), Math.floor(fy)];
+}
+
+cv.addEventListener('pointerdown', function(e){
+  if (!panelWrap.classList.contains('hidden')) return;
+  if (!$('banner').classList.contains('hidden')) return;
+  var rect = cv.getBoundingClientRect();
+  var p = screenToWorldPx(e.clientX - rect.left, e.clientY - rect.top);
+  // building hit test (frontmost first)
+  var hit = null;
+  var sorted = BUILDINGS.slice().sort(function(a,b){
+    return (b.x + b.w + b.y + b.h) - (a.x + a.w + a.y + a.h);
+  });
+  for (var i=0; i<sorted.length; i++){
+    var b = sorted[i];
+    var x1 = isoX(b.x, b.y + b.h), x2 = isoX(b.x + b.w, b.y);
+    var y1 = isoY(b.x, b.y) - b.hpx - 30, y2 = isoY(b.x + b.w, b.y + b.h);
+    if (p[0] >= x1 && p[0] <= x2 && p[1] >= y1 && p[1] <= y2){ hit = b; break; }
+  }
+  if (hit){ goTo(hit.door.x, hit.door.y, hit); return; }
+  var t = worldPxToTile(p[0], p[1]);
+  if (walkable(t[0], t[1])){
+    var b2 = doorLookup[t[0] + ',' + t[1]] || null;
+    goTo(t[0], t[1], b2);
+  }
+});
+
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive:false });
+
+var keys = {};
+var KEYMAP = {
+  ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
+  w:[0,-1], s:[0,1], a:[-1,0], d:[1,0],
+  W:[0,-1], S:[0,1], A:[-1,0], D:[1,0]
+};
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ closePanel(); return; }
+  if (!panelWrap.classList.contains('hidden')) return;
+  if (KEYMAP[e.key]){ keys[e.key] = true; e.preventDefault(); }
+  if (e.key === 'Enter' || e.key === ' '){
+    var tx = Math.floor(player.x), ty = Math.floor(player.y);
+    var b = doorLookup[tx + ',' + ty];
+    if (b){ tryEnter(b); e.preventDefault(); }
+  }
+});
+document.addEventListener('keyup', function(e){ delete keys[e.key]; });
+
+function keyboardStep(){
+  if (player.path.length) return;
+  for (var k in keys){
+    var d = KEYMAP[k];
+    if (!d) continue;
+    var tx = Math.floor(player.x) + d[0], ty = Math.floor(player.y) + d[1];
+    if (walkable(tx, ty)){
+      player.path = [[tx, ty]];
+      var b = doorLookup[tx + ',' + ty];
+      pendingBuilding = b || null;
+      destTile = null;
+    }
+    return;
+  }
+}
+
+// ---------- update ----------
+function update(dt){
+  keyboardStep();
+  player.moving = player.path.length > 0;
+  if (player.moving){
+    var n = player.path[0];
+    var tx = n[0] + 0.5, ty = n[1] + 0.5;
+    var dx = tx - player.x, dy = ty - player.y;
+    var dist = Math.hypot(dx, dy);
+    var step = WALK_SPEED * dt;
+    var sdx = isoX(dx, dy);
+    if (Math.abs(sdx) > 0.5) player.flip = sdx < 0;
+    if (dist <= step){
+      player.x = tx; player.y = ty;
+      player.path.shift();
+      onTileReached(n[0], n[1]);
+    } else {
+      player.x += dx / dist * step;
+      player.y += dy / dist * step;
+    }
+    player.phase += dt * 11;
+  } else {
+    player.phase += dt * 2.2;
+  }
+  // camera follows
+  var txp = isoX(player.x, player.y), typ = isoY(player.x, player.y);
+  var minX = isoX(0, MAPH) - HW, maxX = isoX(MAPW, 0) + HW;
+  var minY = -160, maxY = isoY(MAPW, MAPH) + 60;
+  var cxT = (maxX - minX > viewW) ? clamp(txp, minX + viewW/2, maxX - viewW/2) : (minX + maxX)/2;
+  var cyT = (maxY - minY > viewH*0.92) ? clamp(typ, minY + viewH*0.46, maxY - viewH*0.5) : (minY + maxY)/2;
+  camX += (cxT - camX) * Math.min(1, dt * 6);
+  camY += (cyT - camY) * Math.min(1, dt * 6);
+}
+
+// ---------- floor pre-render ----------
+var floorCv = document.createElement('canvas');
+var FOFF_X = isoX(0, MAPH) * -1 + HW;   // padding so all x >= 0
+var FOFF_Y = HH;
+(function renderFloor(){
+  floorCv.width = isoX(MAPW, 0) + FOFF_X + HW;
+  floorCv.height = isoY(MAPW, MAPH) + FOFF_Y + HH;
+  var f = floorCv.getContext('2d');
+  f.translate(FOFF_X, FOFF_Y);
+  function diamond(x, y, fill){
+    f.fillStyle = fill;
+    f.beginPath();
+    f.moveTo(isoX(x, y),     isoY(x, y));
+    f.lineTo(isoX(x+1, y),   isoY(x+1, y));
+    f.lineTo(isoX(x+1, y+1), isoY(x+1, y+1));
+    f.lineTo(isoX(x, y+1),   isoY(x, y+1));
+    f.closePath();
+    f.fill();
+  }
+  for (var y=0; y<MAPH; y++){
+    for (var x=0; x<MAPW; x++){
+      var t = map[y][x], alt = (x + y) % 2 === 0;
+      if (t === ROAD){
+        diamond(x, y, '#8d939c');
+      } else if (t === PAVE){
+        diamond(x, y, alt ? '#d8d1c5' : '#d0c8ba');
+      } else { // grass + under buildings
+        diamond(x, y, alt ? '#82b96d' : '#7ab164');
+      }
+    }
+  }
+  // road centre dashes
+  f.strokeStyle = '#f1ead8';
+  f.lineWidth = 2.5;
+  f.lineCap = 'round';
+  for (y=0; y<MAPH; y++){
+    for (x=0; x<MAPW; x++){
+      if (map[y][x] !== ROAD) continue;
+      var cx = isoX(x+0.5, y+0.5), cy = isoY(x+0.5, y+0.5);
+      var horiz = (y===6 || y===12 || y===18) && x !== 9;
+      var vert = x === 9 && !(y===6 || y===12 || y===18);
+      if (horiz){
+        f.beginPath();
+        f.moveTo(cx - HW*0.32, cy - HH*0.32);
+        f.lineTo(cx + HW*0.32, cy + HH*0.32);
+        f.stroke();
+      } else if (vert){
+        f.beginPath();
+        f.moveTo(cx + HW*0.32, cy - HH*0.32);
+        f.lineTo(cx - HW*0.32, cy + HH*0.32);
+        f.stroke();
+      }
+    }
+  }
+  // door mats
+  f.fillStyle = '#b8543f';
+  BUILDINGS.forEach(function(b){
+    var dx = b.door.x, dy = b.door.y;
+    var cx = isoX(dx+0.5, dy+0.5), cy = isoY(dx+0.5, dy+0.5);
+    f.beginPath();
+    f.moveTo(cx, cy - HH*0.45);
+    f.lineTo(cx + HW*0.45, cy);
+    f.lineTo(cx, cy + HH*0.45);
+    f.lineTo(cx - HW*0.45, cy);
+    f.closePath();
+    f.fill();
+  });
+})();
+
+// ---------- drawing ----------
+function nightAlpha(){
+  var h = hour();
+  if (h >= 7 && h < 18) return 0;
+  if (h >= 18 && h < 21) return 0.5 * (h - 18) / 3;
+  if (h >= 21 || h < 5) return 0.5;
+  return 0.5 * (7 - h) / 2; // 5..7 dawn
+}
+
+function drawBuilding(c, b){
+  var night = nightAlpha() > 0.2;
+  var t = -b.hpx;
+  var A = [isoX(b.x, b.y),         isoY(b.x, b.y)];
+  var B = [isoX(b.x+b.w, b.y),     isoY(b.x+b.w, b.y)];
+  var C = [isoX(b.x+b.w, b.y+b.h), isoY(b.x+b.w, b.y+b.h)];
+  var D = [isoX(b.x, b.y+b.h),     isoY(b.x, b.y+b.h)];
+  function poly(pts, fill){
+    c.fillStyle = fill;
+    c.beginPath();
+    c.moveTo(pts[0][0], pts[0][1]);
+    for (var i=1; i<pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+    c.closePath();
+    c.fill();
+  }
+  // left (SW-facing) wall: D-C edge
+  poly([[D[0],D[1]],[C[0],C[1]],[C[0],C[1]+t],[D[0],D[1]+t]], b.c);
+  // right (SE-facing) wall: B-C edge
+  poly([[B[0],B[1]],[C[0],C[1]],[C[0],C[1]+t],[B[0],B[1]+t]], shade(b.c, 0.72));
+  // roof
+  poly([[A[0],A[1]+t],[B[0],B[1]+t],[C[0],C[1]+t],[D[0],D[1]+t]], b.roof);
+  // roof rim
+  c.strokeStyle = shade(b.roof, 0.75);
+  c.lineWidth = 2;
+  c.beginPath();
+  c.moveTo(D[0], D[1]+t); c.lineTo(C[0], C[1]+t); c.lineTo(B[0], B[1]+t);
+  c.stroke();
+
+  // windows — left wall (along x at wy = b.y + b.h)
+  var winC = night ? '#ffd98c' : shade(b.c, 0.55);
+  var rows = b.hpx > 75 ? 3 : (b.hpx > 45 ? 2 : 1);
+  for (var r=0; r<rows; r++){
+    var top = -b.hpx + 12 + r * (b.hpx - 18) / rows;
+    var wh = Math.min(13, (b.hpx - 22) / rows);
+    for (var i=b.x; i<b.x+b.w; i++){
+      if (i === b.doorX && r === rows-1) continue; // leave room for the door
+      var p1x = isoX(i+0.28, b.y+b.h), p1y = isoY(i+0.28, b.y+b.h);
+      var p2x = isoX(i+0.72, b.y+b.h), p2y = isoY(i+0.72, b.y+b.h);
+      poly([[p1x,p1y+top],[p2x,p2y+top],[p2x,p2y+top+wh],[p1x,p1y+top+wh]], winC);
+    }
+    for (var j=b.y; j<b.y+b.h; j++){
+      var q1x = isoX(b.x+b.w, j+0.28), q1y = isoY(b.x+b.w, j+0.28);
+      var q2x = isoX(b.x+b.w, j+0.72), q2y = isoY(b.x+b.w, j+0.72);
+      poly([[q1x,q1y+top],[q2x,q2y+top],[q2x,q2y+top+wh],[q1x,q1y+top+wh]],
+        night ? '#f3c068' : shade(b.c, 0.45));
+    }
+  }
+  // door on left wall at doorX
+  var d1x = isoX(b.doorX+0.22, b.y+b.h), d1y = isoY(b.doorX+0.22, b.y+b.h);
+  var d2x = isoX(b.doorX+0.78, b.y+b.h), d2y = isoY(b.doorX+0.78, b.y+b.h);
+  poly([[d1x,d1y],[d2x,d2y],[d2x,d2y-26],[d1x,d1y-26]], '#2c2620');
+  c.fillStyle = '#e8c84f';
+  c.beginPath(); c.arc(d2x-5, (d1y+d2y)/2-12, 1.8, 0, 7); c.fill();
+
+  // floating sign
+  var sx = (A[0]+C[0]) / 2, sy = A[1] + (C[1]-A[1])*0.18 + t - 14;
+  c.font = '700 13px -apple-system, "Segoe UI", sans-serif';
+  var tw = c.measureText(b.name).width;
+  c.fillStyle = 'rgba(25,31,38,.85)';
+  var bx = sx - tw/2 - 8;
+  c.beginPath();
+  if (c.roundRect) c.roundRect(bx, sy-11, tw+16, 21, 10);
+  else c.rect(bx, sy-11, tw+16, 21);
+  c.fill();
+  c.fillStyle = '#f2efe8';
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(b.name, sx, sy);
+}
+
+function drawTree(c, tx, ty){
+  var x = isoX(tx+0.5, ty+0.5), y = isoY(tx+0.5, ty+0.5);
+  c.fillStyle = 'rgba(0,0,0,.16)';
+  c.beginPath(); c.ellipse(x, y, 13, 6, 0, 0, 7); c.fill();
+  c.strokeStyle = '#7a5236'; c.lineWidth = 4; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x, y); c.lineTo(x, y-16); c.stroke();
+  c.fillStyle = '#4e8d4a';
+  c.beginPath(); c.arc(x, y-26, 13, 0, 7); c.fill();
+  c.fillStyle = '#5fa257';
+  c.beginPath(); c.arc(x-4, y-29, 8, 0, 7); c.fill();
+}
+
+function drawLamp(c, tx, ty){
+  var x = isoX(tx+0.5, ty+0.5), y = isoY(tx+0.5, ty+0.5);
+  c.strokeStyle = '#3a4350'; c.lineWidth = 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x, y); c.lineTo(x, y-30); c.stroke();
+  c.fillStyle = nightAlpha() > 0.2 ? '#ffd98c' : '#aab4bf';
+  c.beginPath(); c.arc(x, y-32, 4, 0, 7); c.fill();
+}
+
+function drawPlayer(c){
+  var x = isoX(player.x, player.y), y = isoY(player.x, player.y);
+  var sw = player.moving ? Math.sin(player.phase) : Math.sin(player.phase) * 0.15;
+  var dir = player.flip ? -1 : 1;
+  c.fillStyle = 'rgba(0,0,0,.2)';
+  c.beginPath(); c.ellipse(x, y, 9, 4.5, 0, 0, 7); c.fill();
+  c.strokeStyle = '#222b33'; c.lineWidth = 3; c.lineCap = 'round';
+  var hipY = y - 13, shY = y - 25, headY = y - 31;
+  // legs
+  c.beginPath();
+  c.moveTo(x, hipY); c.lineTo(x + dir * sw * 6, y - Math.abs(sw) * 1.5);
+  c.moveTo(x, hipY); c.lineTo(x - dir * sw * 6, y - Math.abs(Math.sin(player.phase + 3.14)) * 1.5);
+  c.stroke();
+  // body
+  c.beginPath(); c.moveTo(x, hipY); c.lineTo(x, shY); c.stroke();
+  // arms
+  c.beginPath();
+  c.moveTo(x, shY+2); c.lineTo(x - dir * sw * 5, shY + 10);
+  c.moveTo(x, shY+2); c.lineTo(x + dir * sw * 5, shY + 10);
+  c.stroke();
+  // head
+  c.fillStyle = '#222b33';
+  c.beginPath(); c.arc(x, headY, 5.5, 0, 7); c.fill();
+  // jaunty cap accent
+  c.fillStyle = '#e2725b';
+  c.beginPath(); c.arc(x, headY - 1.5, 5.5, Math.PI, 0); c.fill();
+}
+
+function draw(){
+  ctx.clearRect(0, 0, viewW, viewH);
+  ctx.fillStyle = '#5f9755';
+  ctx.fillRect(0, 0, viewW, viewH);
+
+  ctx.save();
+  ctx.translate(Math.round(viewW/2 - camX), Math.round(viewH*0.46 - camY));
+
+  ctx.drawImage(floorCv, -FOFF_X, -FOFF_Y);
+
+  // destination marker
+  if (destTile){
+    var mx = isoX(destTile[0]+0.5, destTile[1]+0.5);
+    var my = isoY(destTile[0]+0.5, destTile[1]+0.5);
+    var pulse = 0.55 + 0.45 * Math.sin(performance.now() / 180);
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.45 + 0.4*pulse) + ')';
+    ctx.lineWidth = 2.5;
+    var s = 0.32 + pulse * 0.12;
+    ctx.beginPath();
+    ctx.moveTo(mx, my - HH*2*s*0.5);
+    ctx.lineTo(mx + HW*2*s*0.5, my);
+    ctx.lineTo(mx, my + HH*2*s*0.5);
+    ctx.lineTo(mx - HW*2*s*0.5, my);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // depth-sorted entities
+  var ents = [];
+  BUILDINGS.forEach(function(b){
+    ents.push({ d:b.x + b.w - 1 + b.y + b.h - 1, f:function(){ drawBuilding(ctx, b); } });
+  });
+  TREES.forEach(function(t){
+    ents.push({ d:t[0] + t[1], f:function(){ drawTree(ctx, t[0], t[1]); } });
+  });
+  LAMPS.forEach(function(t){
+    ents.push({ d:t[0] + t[1], f:function(){ drawLamp(ctx, t[0], t[1]); } });
+  });
+  ents.push({ d:player.x + player.y - 1, f:function(){ drawPlayer(ctx); } });
+  ents.sort(function(a,b){ return a.d - b.d; });
+  ents.forEach(function(e){ e.f(); });
+
+  ctx.restore();
+
+  // day/night tint
+  var na = nightAlpha();
+  if (na > 0.01){
+    ctx.fillStyle = 'rgba(14,20,52,' + na.toFixed(3) + ')';
+    ctx.fillRect(0, 0, viewW, viewH);
+    // lamp glow above the tint
+    ctx.save();
+    ctx.translate(Math.round(viewW/2 - camX), Math.round(viewH*0.46 - camY));
+    ctx.fillStyle = 'rgba(255,214,120,' + (na * 0.35).toFixed(3) + ')';
+    LAMPS.forEach(function(t){
+      var x = isoX(t[0]+0.5, t[1]+0.5), y = isoY(t[0]+0.5, t[1]+0.5);
+      ctx.beginPath(); ctx.arc(x, y - 30, 46, 0, 7); ctx.fill();
+    });
+    ctx.restore();
+  }
+}
+
+// ---------- resize / loop / lifecycle ----------
+function resize(){
+  var dpr = Math.min(window.devicePixelRatio || 1, 3);
+  viewW = window.innerWidth;
+  viewH = window.innerHeight;
+  cv.width = Math.round(viewW * dpr);
+  cv.height = Math.round(viewH * dpr);
+  cv.style.width = viewW + 'px';
+  cv.style.height = viewH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', function(){ setTimeout(resize, 120); });
+
+var lastT = 0, paused = false, hudTimer = 0;
+function loop(t){
+  requestAnimationFrame(loop);
+  if (paused) return;
+  var dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+  lastT = t;
+  update(dt);
+  draw();
+  hudTimer += dt;
+  if (hudTimer > 0.25){ hudTimer = 0; updateHUD(); }
+}
+document.addEventListener('visibilitychange', function(){
+  paused = document.hidden;
+  if (!paused) lastT = performance.now();
+  else save();
+});
+window.addEventListener('beforeunload', save);
+window.addEventListener('pagehide', save);
+
+// ---------- boot ----------
+(function boot(){
+  var loaded = load();
+  if (loaded){
+    state = loaded;
+    player.x = state.px; player.y = state.py;
+    if (!walkable(Math.floor(player.x), Math.floor(player.y))){
+      player.x = 4.5; player.y = 4.5;
+    }
+    toast('Welcome back — Day ' + state.day + ', ' + fmtGBP(netWorth()) + ' net worth.');
+  } else {
+    state = freshState();
+    save();
+  }
+  resize();
+  camX = isoX(player.x, player.y);
+  camY = isoY(player.x, player.y);
+  updateHUD();
+  if (!loaded) openWelcome();
+  requestAnimationFrame(loop);
+  setInterval(save, 8000);
+})();
+</script>
+</body>
+</html>
