@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Horde Defense</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #0b0e14;
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  #game {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: #1a2030;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8);
+  }
+  #muteBtn {
+    position: absolute; top: 10px; right: 10px;
+    z-index: 5;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.35);
+    color: #fff; font-size: 20px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<button id="muteBtn">🔊</button>
+<script>
+'use strict';
+
+// ---------- Canvas / scaling ----------
+const W = 480, H = 854;
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(W * scale * dpr);
+  canvas.height = Math.round(H * scale * dpr);
+  canvas.style.width = (W * scale) + 'px';
+  canvas.style.height = (H * scale) + 'px';
+  ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---------- Audio (tiny synth) ----------
+let audioCtx = null, muted = false;
+const muteBtn = document.getElementById('muteBtn');
+muteBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  muted = !muted;
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+});
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function sfx(type) {
+  if (muted || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  if (type === 'shoot') {
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(700, t);
+    o.frequency.exponentialRampToValueAtTime(250, t + 0.07);
+    g.gain.setValueAtTime(0.025, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    o.start(t); o.stop(t + 0.08);
+  } else if (type === 'hit') {
+    o.type = 'square';
+    o.frequency.setValueAtTime(180, t);
+    o.frequency.exponentialRampToValueAtTime(60, t + 0.1);
+    g.gain.setValueAtTime(0.05, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o.start(t); o.stop(t + 0.11);
+  } else if (type === 'good') {
+    o.type = 'sine';
+    o.frequency.setValueAtTime(440, t);
+    o.frequency.setValueAtTime(660, t + 0.08);
+    o.frequency.setValueAtTime(880, t + 0.16);
+    g.gain.setValueAtTime(0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o.start(t); o.stop(t + 0.3);
+  } else if (type === 'bad') {
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(300, t);
+    o.frequency.exponentialRampToValueAtTime(80, t + 0.35);
+    g.gain.setValueAtTime(0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    o.start(t); o.stop(t + 0.36);
+  } else if (type === 'boom') {
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(120, t);
+    o.frequency.exponentialRampToValueAtTime(30, t + 0.5);
+    g.gain.setValueAtTime(0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    o.start(t); o.stop(t + 0.5);
+  } else if (type === 'pickup') {
+    o.type = 'sine';
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(1040, t + 0.12);
+    g.gain.setValueAtTime(0.07, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    o.start(t); o.stop(t + 0.18);
+  }
+}
+
+// ---------- Helpers ----------
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+function fmt(n) {
+  n = Math.floor(n);
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e4) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+// ---------- Game state ----------
+const HORDE_Y = H - 150;
+let state = 'menu'; // menu | playing | gameover
+let time = 0, distance = 0, kills = 0, score = 0;
+let best = parseInt(localStorage.getItem('hordeBest') || '0', 10);
+
+const horde = {
+  x: W / 2, targetX: W / 2,
+  count: 15,
+  fireRate: 1, dmgMult: 1,
+  volleyTimer: 0,
+  formation: [], formationFor: -1,
+  hurtFlash: 0,
+};
+
+let arrows = [], enemies = [], gates = [], pickups = [], particles = [], floaters = [];
+let spawnTimer = 1.5, gateTimer = 3, pickupTimer = 9, bossTimer = 40;
+let shake = 0;
+let buffs = { rage: 0, freeze: 0 };
+let groundScroll = 0;
+
+function difficulty() { return 1 + time / 22 + distance / 900; }
+
+function reset() {
+  time = 0; distance = 0; kills = 0; score = 0;
+  horde.x = horde.targetX = W / 2;
+  horde.count = 15;
+  horde.fireRate = 1; horde.dmgMult = 1;
+  horde.volleyTimer = 0; horde.formationFor = -1; horde.hurtFlash = 0;
+  arrows = []; enemies = []; gates = []; pickups = []; particles = []; floaters = [];
+  spawnTimer = 1.2; gateTimer = 2.5; pickupTimer = 9; bossTimer = 40;
+  shake = 0;
+  buffs.rage = 0; buffs.freeze = 0;
+}
+
+// ---------- Formation ----------
+function buildFormation(n) {
+  // wedge of rows behind a leader, widening toward the back
+  const pts = [{ x: 0, y: 0 }];
+  let row = 1;
+  while (pts.length < n) {
+    const inRow = Math.min(row + 2, 11);
+    const spacing = 19;
+    for (let i = 0; i < inRow && pts.length < n; i++) {
+      const off = (i - (inRow - 1) / 2) * spacing;
+      pts.push({ x: off + rand(-2, 2), y: row * 16 + rand(-2, 2) });
+    }
+    row++;
+  }
+  return pts;
+}
+function hordeHalfWidth() {
+  const shown = Math.min(Math.floor(horde.count), 130);
+  const rows = Math.ceil(Math.sqrt(shown));
+  return clamp(Math.min(rows + 2, 11) * 19 / 2 + 10, 22, 115);
+}
+
+// ---------- Floaters / particles ----------
+function floater(x, y, text, color, size) {
+  floaters.push({ x, y, text, color, size: size || 18, life: 1 });
+}
+function burst(x, y, color, n, speed) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, Math.PI * 2), s = rand(20, speed || 140);
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+      life: rand(0.3, 0.7), maxLife: 0.7,
+      color, r: rand(1.5, 4),
+    });
+  }
+}
+
+// ---------- Enemies ----------
+const ENEMY_TYPES = {
+  grunt:  { hp: 12,  speed: 85,  power: 2,  r: 13, color: '#7da348', dark: '#55702f', score: 1 },
+  runner: { hp: 7,   speed: 150, power: 1,  r: 10, color: '#b06ad4', dark: '#7b449a', score: 1 },
+  brute:  { hp: 70,  speed: 52,  power: 8,  r: 20, color: '#c4533a', dark: '#8a3322', score: 3 },
+  giant:  { hp: 450, speed: 28,  power: 32, r: 36, color: '#4a4f63', dark: '#2e3242', score: 15 },
+};
+// contact damage as a fraction of the horde, so the stream stays scary at any size
+const POWER_PCT = { grunt: 0.02, runner: 0.01, brute: 0.06, giant: 0.25 };
+function spawnEnemy(type, x) {
+  const t = ENEMY_TYPES[type];
+  const d = difficulty();
+  // hp also scales sublinearly with horde size, so snowballing stays rewarding
+  const hpScale = d * Math.max(1, Math.pow(horde.count / 25, 0.85));
+  enemies.push({
+    type, x: x !== undefined ? x : rand(40, W - 40), y: -50,
+    hp: t.hp * hpScale, maxHp: t.hp * hpScale,
+    speed: t.speed * rand(0.9, 1.1),
+    power: Math.max(Math.round(t.power * (1 + (d - 1) * 0.35)), Math.round(horde.count * POWER_PCT[type])),
+    r: t.r, color: t.color, dark: t.dark, score: t.score,
+    wob: rand(0, Math.PI * 2),
+    flash: 0,
+  });
+}
+function spawnWave() {
+  const d = difficulty();
+  // no brutes in the opening seconds
+  const roll = time < 12 ? Math.random() * 0.75 : Math.random();
+  if (roll < 0.5) {
+    // line of grunts
+    const n = randInt(2, Math.min(3 + Math.floor(d), 9));
+    const cx = rand(70, W - 70);
+    for (let i = 0; i < n; i++) spawnEnemy('grunt', clamp(cx + rand(-90, 90), 30, W - 30));
+  } else if (roll < 0.75) {
+    const n = randInt(2, Math.min(2 + Math.floor(d * 0.8), 7));
+    for (let i = 0; i < n; i++) spawnEnemy('runner');
+  } else {
+    spawnEnemy('brute');
+    if (d > 2.5 && Math.random() < 0.5) spawnEnemy('brute');
+    if (Math.random() < 0.4) spawnEnemy('grunt');
+  }
+}
+
+// ---------- Gates ----------
+function makeGateEffect(good) {
+  const d = difficulty();
+  if (good) {
+    const r = Math.random();
+    if (r < 0.42) {
+      const n = Math.max(5, Math.round(horde.count * rand(0.25, 0.5) + 3 * d));
+      return { label: '+' + fmt(n), apply: () => addSoldiers(n), color: '#3b9dff' };
+    } else if (r < 0.62) {
+      return { label: 'x2', apply: () => multSoldiers(2), color: '#3b9dff' };
+    } else if (r < 0.68) {
+      return { label: 'x3', apply: () => multSoldiers(3), color: '#ffd23b' };
+    } else if (r < 0.85) {
+      return { label: '🏹 RATE+', apply: () => {
+        horde.fireRate = Math.min(horde.fireRate * 1.2, 5);
+        floater(horde.x, HORDE_Y - 60, 'FIRE RATE UP!', '#7df0ff', 22);
+      }, color: '#27c8a8' };
+    } else {
+      return { label: '⚔ DMG+', apply: () => {
+        horde.dmgMult = Math.min(horde.dmgMult * 1.25, 8);
+        floater(horde.x, HORDE_Y - 60, 'DAMAGE UP!', '#ffb36b', 22);
+      }, color: '#27c8a8' };
+    }
+  } else {
+    const r = Math.random();
+    if (r < 0.55) {
+      const n = Math.max(3, Math.round(horde.count * rand(0.2, 0.45)));
+      return { label: '-' + fmt(n), apply: () => loseSoldiers(n, true), color: '#e8443a' };
+    } else {
+      return { label: '÷2', apply: () => {
+        loseSoldiers(Math.floor(horde.count / 2), true);
+      }, color: '#e8443a' };
+    }
+  }
+}
+function spawnGatePair() {
+  const goodLeft = Math.random() < 0.5;
+  // sometimes both good (one better), mostly good vs bad
+  const bothGood = Math.random() < 0.25;
+  gates.push({
+    y: -70,
+    left: makeGateEffect(bothGood ? true : goodLeft),
+    right: makeGateEffect(bothGood ? true : !goodLeft),
+    speed: 95 + difficulty() * 6,
+    done: false,
+  });
+}
+
+// ---------- Pickups ----------
+const PICKUP_DEFS = [
+  { kind: 'rage',   icon: '🔥', color: '#ff5a3c', label: 'RAGE x3' },
+  { kind: 'freeze', icon: '❄️', color: '#6fd5ff', label: 'FREEZE' },
+  { kind: 'bomb',   icon: '💥', color: '#ffd23b', label: 'BOMB' },
+];
+function spawnPickup() {
+  const def = PICKUP_DEFS[randInt(0, PICKUP_DEFS.length - 1)];
+  pickups.push({
+    ...def,
+    x: rand(50, W - 50), y: -30,
+    speed: 110, wob: rand(0, Math.PI * 2),
+  });
+}
+
+// ---------- Horde changes ----------
+function addSoldiers(n) {
+  horde.count += n;
+  floater(horde.x, HORDE_Y - 40, '+' + fmt(n), '#5db8ff', 26);
+  burst(horde.x, HORDE_Y + 20, '#5db8ff', 14, 120);
+  sfx('good');
+}
+function multSoldiers(m) {
+  const gained = Math.floor(horde.count * (m - 1));
+  horde.count += gained;
+  floater(horde.x, HORDE_Y - 40, 'x' + m + '!', '#ffd23b', 34);
+  burst(horde.x, HORDE_Y + 20, '#ffd23b', 22, 160);
+  sfx('good');
+}
+function loseSoldiers(n, fromGate) {
+  n = Math.min(n, Math.ceil(horde.count));
+  if (n <= 0) return;
+  horde.count -= n;
+  horde.hurtFlash = 0.25;
+  floater(horde.x, HORDE_Y - 40, '-' + fmt(n), '#ff4d4d', fromGate ? 28 : 20);
+  burst(horde.x + rand(-30, 30), HORDE_Y + rand(0, 40), '#c93030', Math.min(4 + n, 18), 130);
+  shake = Math.min(shake + (fromGate ? 7 : 4), 14);
+  sfx('bad');
+  if (horde.count < 1) gameOver();
+}
+function gameOver() {
+  if (state !== 'playing') return;
+  state = 'gameover';
+  score = Math.floor(kills * 10 + distance);
+  if (score > best) {
+    best = score;
+    localStorage.setItem('hordeBest', String(best));
+  }
+  shake = 16;
+  burst(horde.x, HORDE_Y, '#c93030', 50, 220);
+  sfx('boom');
+}
+
+// ---------- Input ----------
+let dragging = false, dragLastX = 0;
+const keys = {};
+
+function pointerXY(e) {
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.touches ? e.touches[0].clientX : e.clientX);
+  return (cx - rect.left) / rect.width * W;
+}
+function onDown(e) {
+  ensureAudio();
+  if (state !== 'playing') {
+    reset();
+    state = 'playing';
+    return;
+  }
+  dragging = true;
+  dragLastX = pointerXY(e);
+}
+function onMove(e) {
+  if (!dragging || state !== 'playing') return;
+  const x = pointerXY(e);
+  horde.targetX += (x - dragLastX) * 1.5;
+  horde.targetX = clamp(horde.targetX, hordeHalfWidth(), W - hordeHalfWidth());
+  dragLastX = x;
+  if (e.cancelable) e.preventDefault();
+}
+function onUp() { dragging = false; }
+
+canvas.addEventListener('mousedown', onDown);
+canvas.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
+canvas.addEventListener('touchstart', onDown, { passive: true });
+canvas.addEventListener('touchmove', onMove, { passive: false });
+window.addEventListener('touchend', onUp);
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (state !== 'playing' && (e.key === ' ' || e.key === 'Enter')) {
+    ensureAudio(); reset(); state = 'playing';
+  }
+});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// ---------- Update ----------
+function update(dt) {
+  time += dt;
+  const d = difficulty();
+  const marchSpeed = 130;
+  distance += marchSpeed * dt * 0.1;
+  groundScroll = (groundScroll + marchSpeed * dt) % 90;
+
+  // buffs
+  buffs.rage = Math.max(0, buffs.rage - dt);
+  buffs.freeze = Math.max(0, buffs.freeze - dt);
+  horde.hurtFlash = Math.max(0, horde.hurtFlash - dt);
+
+  // keyboard steering
+  const kdir = (keys['ArrowRight'] || keys['d'] ? 1 : 0) - (keys['ArrowLeft'] || keys['a'] ? 1 : 0);
+  if (kdir) horde.targetX += kdir * 380 * dt;
+  horde.targetX = clamp(horde.targetX, hordeHalfWidth(), W - hordeHalfWidth());
+  horde.x = lerp(horde.x, horde.targetX, Math.min(1, dt * 14));
+
+  // ---- firing ----
+  const interval = 0.42 / horde.fireRate;
+  horde.volleyTimer -= dt;
+  if (horde.volleyTimer <= 0) {
+    horde.volleyTimer = interval;
+    const count = horde.count;
+    const nArrows = clamp(Math.round(2 + Math.sqrt(count) * 0.9), 3, 16);
+    const rageMult = buffs.rage > 0 ? 3 : 1;
+    const dmgEach = (count * 1.6 * horde.dmgMult * rageMult) / nArrows;
+    const hw = hordeHalfWidth();
+    for (let i = 0; i < nArrows; i++) {
+      const fx = horde.x + rand(-hw * 0.8, hw * 0.8);
+      // light homing target: nearest enemy roughly ahead
+      arrows.push({
+        x: fx, y: HORDE_Y - 6 + rand(-6, 6),
+        vx: rand(-25, 25), vy: -rand(560, 640),
+        dmg: dmgEach,
+        rage: buffs.rage > 0,
+      });
+    }
+    sfx('shoot');
+  }
+
+  // arrows
+  for (let i = arrows.length - 1; i >= 0; i--) {
+    const a = arrows[i];
+    // gentle homing
+    let nearest = null, nd = 1e9;
+    for (const e of enemies) {
+      if (e.y > a.y - 10) continue;
+      const dx = e.x - a.x, dy = e.y - a.y;
+      const dist2 = dx * dx + dy * dy;
+      if (dist2 < nd) { nd = dist2; nearest = e; }
+    }
+    if (nearest && nd < 220 * 220) {
+      a.vx += clamp((nearest.x - a.x) * 6, -400, 400) * dt;
+    }
+    a.x += a.vx * dt;
+    a.y += a.vy * dt;
+    if (a.y < -30) { arrows.splice(i, 1); continue; }
+    // collide
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const e = enemies[j];
+      const dx = e.x - a.x, dy = e.y - a.y;
+      if (dx * dx + dy * dy < (e.r + 5) * (e.r + 5)) {
+        e.hp -= a.dmg;
+        e.flash = 0.08;
+        arrows.splice(i, 1);
+        particles.push({
+          x: a.x, y: a.y, vx: rand(-40, 40), vy: rand(-80, -20),
+          life: 0.25, maxLife: 0.25, color: a.rage ? '#ff5a3c' : '#ffe9a8', r: 2.5,
+        });
+        if (e.hp <= 0) killEnemy(j);
+        break;
+      }
+    }
+  }
+
+  // enemies
+  const freezeMult = buffs.freeze > 0 ? 0.3 : 1;
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    e.wob += dt * 6;
+    e.flash = Math.max(0, e.flash - dt);
+    e.y += e.speed * freezeMult * dt;
+    // home toward horde when close
+    if (e.y > H * 0.45) {
+      e.x += clamp(horde.x - e.x, -1, 1) * 55 * freezeMult * dt;
+    }
+    e.x += Math.sin(e.wob) * 12 * dt;
+    if (e.y >= HORDE_Y - 18) {
+      // crash into the horde
+      loseSoldiers(e.power, false);
+      burst(e.x, HORDE_Y - 10, e.color, 12, 150);
+      enemies.splice(i, 1);
+      sfx('hit');
+    }
+  }
+
+  // gates
+  for (let i = gates.length - 1; i >= 0; i--) {
+    const g = gates[i];
+    g.y += g.speed * dt;
+    if (!g.done && g.y >= HORDE_Y - 24) {
+      g.done = true;
+      const eff = horde.x < W / 2 ? g.left : g.right;
+      eff.apply();
+    }
+    if (g.y > H + 60) gates.splice(i, 1);
+  }
+
+  // pickups
+  for (let i = pickups.length - 1; i >= 0; i--) {
+    const p = pickups[i];
+    p.wob += dt * 4;
+    p.y += p.speed * dt;
+    p.x += Math.sin(p.wob) * 18 * dt;
+    const hw = hordeHalfWidth();
+    if (p.y > HORDE_Y - 30 && Math.abs(p.x - horde.x) < hw + 16) {
+      applyPickup(p);
+      pickups.splice(i, 1);
+    } else if (p.y > H + 40) {
+      pickups.splice(i, 1);
+    }
+  }
+
+  // particles & floaters
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vy += 260 * dt;
+  }
+  for (let i = floaters.length - 1; i >= 0; i--) {
+    const f = floaters[i];
+    f.life -= dt * 0.8;
+    f.y -= 45 * dt;
+    if (f.life <= 0) floaters.splice(i, 1);
+  }
+
+  shake = Math.max(0, shake - dt * 30);
+
+  // spawning
+  spawnTimer -= dt;
+  if (spawnTimer <= 0) {
+    spawnWave();
+    spawnTimer = clamp(rand(1.4, 2.2) / Math.sqrt(d), 0.45, 2.2);
+  }
+  gateTimer -= dt;
+  if (gateTimer <= 0) {
+    spawnGatePair();
+    gateTimer = rand(6, 9);
+  }
+  pickupTimer -= dt;
+  if (pickupTimer <= 0) {
+    spawnPickup();
+    pickupTimer = rand(9, 14);
+  }
+  bossTimer -= dt;
+  if (bossTimer <= 0) {
+    spawnEnemy('giant', rand(90, W - 90));
+    floater(W / 2, 130, '⚠ GIANT INCOMING ⚠', '#ff8c5a', 26);
+    bossTimer = rand(34, 46);
+    sfx('bad');
+  }
+}
+
+function killEnemy(j) {
+  const e = enemies[j];
+  enemies.splice(j, 1);
+  kills += e.score;
+  burst(e.x, e.y, e.color, e.type === 'giant' ? 36 : 10, e.type === 'giant' ? 240 : 130);
+  if (e.type === 'giant') {
+    floater(e.x, e.y, 'GIANT SLAIN! +' + Math.round(8 + horde.count * 0.15), '#ffd23b', 24);
+    addSoldiers(Math.round(8 + horde.count * 0.15));
+    shake = Math.min(shake + 10, 16);
+    sfx('boom');
+  } else if (e.type === 'brute') {
+    sfx('hit');
+  }
+}
+
+function applyPickup(p) {
+  sfx('pickup');
+  floater(horde.x, HORDE_Y - 70, p.label + '!', p.color, 26);
+  burst(horde.x, HORDE_Y - 10, p.color, 18, 160);
+  if (p.kind === 'rage') buffs.rage = 6;
+  else if (p.kind === 'freeze') buffs.freeze = 5;
+  else if (p.kind === 'bomb') {
+    shake = 14;
+    sfx('boom');
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const e = enemies[j];
+      e.hp -= 200 * difficulty() * 0.6;
+      e.flash = 0.15;
+      burst(e.x, e.y, '#ffd23b', 6, 180);
+      if (e.hp <= 0) killEnemy(j);
+    }
+  }
+}
+
+// ---------- Drawing ----------
+function drawBackground() {
+  // ground
+  const grd = ctx.createLinearGradient(0, 0, 0, H);
+  grd.addColorStop(0, '#2c3a2a');
+  grd.addColorStop(0.6, '#37452f');
+  grd.addColorStop(1, '#41503a');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // marching texture: dirt patches scrolling down
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  for (let row = -1; row < H / 90 + 1; row++) {
+    const y = row * 90 + groundScroll;
+    for (let col = 0; col < 5; col++) {
+      const x = col * 110 + (row % 2 ? 55 : 0);
+      ctx.beginPath();
+      ctx.ellipse(x + 30, y, 34, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  // path edges
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(0, 0, 14, H);
+  ctx.fillRect(W - 14, 0, 14, H);
+
+  if (buffs.freeze > 0) {
+    ctx.fillStyle = 'rgba(120,200,255,0.10)';
+    ctx.fillRect(0, 0, W, H);
+  }
+  if (buffs.rage > 0) {
+    ctx.fillStyle = 'rgba(255,70,30,0.07)';
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function drawSoldier(x, y, phase, rage) {
+  const bob = Math.sin(phase) * 2;
+  // body
+  ctx.fillStyle = rage ? '#a33326' : '#3d6ea5';
+  ctx.fillRect(x - 4, y - 8 + bob, 8, 10);
+  // head
+  ctx.fillStyle = '#e8c39e';
+  ctx.beginPath();
+  ctx.arc(x, y - 12 + bob, 4.5, 0, Math.PI * 2);
+  ctx.fill();
+  // helmet
+  ctx.fillStyle = rage ? '#ff6b4a' : '#9fb8d4';
+  ctx.beginPath();
+  ctx.arc(x, y - 13 + bob, 4.5, Math.PI, 0);
+  ctx.fill();
+  // bow arm hint
+  ctx.strokeStyle = '#6b4a2f';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x + 4, y - 6 + bob);
+  ctx.lineTo(x + 8, y - 12 + bob);
+  ctx.stroke();
+}
+
+function drawHorde() {
+  const shown = Math.min(Math.floor(horde.count), 130);
+  if (horde.formationFor !== shown) {
+    horde.formation = buildFormation(Math.max(shown, 1));
+    horde.formationFor = shown;
+  }
+  const rage = buffs.rage > 0;
+  for (let i = horde.formation.length - 1; i >= 0; i--) {
+    const p = horde.formation[i];
+    drawSoldier(horde.x + p.x, HORDE_Y + p.y, time * 9 + i * 1.7, rage);
+  }
+  if (horde.hurtFlash > 0) {
+    ctx.fillStyle = `rgba(255,40,40,${horde.hurtFlash * 1.4})`;
+    const hw = hordeHalfWidth();
+    ctx.beginPath();
+    ctx.ellipse(horde.x, HORDE_Y + 30, hw + 14, 60, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // count badge
+  const label = 'x' + fmt(horde.count);
+  ctx.font = 'bold 24px sans-serif';
+  ctx.textAlign = 'center';
+  const tw = ctx.measureText(label).width;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath();
+  ctx.roundRect(horde.x - tw / 2 - 10, HORDE_Y - 46, tw + 20, 30, 15);
+  ctx.fill();
+  ctx.fillStyle = rage ? '#ff8a6b' : '#fff';
+  ctx.fillText(label, horde.x, HORDE_Y - 24);
+}
+
+function drawEnemy(e) {
+  const bob = Math.sin(e.wob) * 2;
+  const frozen = buffs.freeze > 0;
+  ctx.save();
+  ctx.translate(e.x, e.y + bob);
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(0, e.r * 0.8, e.r * 0.9, e.r * 0.3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // body
+  ctx.fillStyle = e.flash > 0 ? '#ffffff' : (frozen ? '#8fc8e8' : e.color);
+  ctx.beginPath();
+  ctx.arc(0, 0, e.r, 0, Math.PI * 2);
+  ctx.fill();
+  // face
+  ctx.fillStyle = e.flash > 0 ? '#ddd' : e.dark;
+  ctx.beginPath();
+  ctx.arc(-e.r * 0.3, e.r * 0.15, e.r * 0.16, 0, Math.PI * 2);
+  ctx.arc(e.r * 0.3, e.r * 0.15, e.r * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  // horns for brutes/giants
+  if (e.type === 'brute' || e.type === 'giant') {
+    ctx.strokeStyle = '#ddd0b8';
+    ctx.lineWidth = e.r * 0.18;
+    ctx.beginPath();
+    ctx.moveTo(-e.r * 0.7, -e.r * 0.5);
+    ctx.lineTo(-e.r * 1.1, -e.r * 1.1);
+    ctx.moveTo(e.r * 0.7, -e.r * 0.5);
+    ctx.lineTo(e.r * 1.1, -e.r * 1.1);
+    ctx.stroke();
+  }
+  ctx.restore();
+  // hp bar
+  if (e.hp < e.maxHp) {
+    const w = e.r * 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(e.x - w / 2, e.y - e.r - 12, w, 5);
+    ctx.fillStyle = e.type === 'giant' ? '#ff8c5a' : '#6bdb6b';
+    ctx.fillRect(e.x - w / 2, e.y - e.r - 12, w * clamp(e.hp / e.maxHp, 0, 1), 5);
+  }
+}
+
+function drawGate(g) {
+  const h = 56;
+  const halves = [
+    { eff: g.left, x0: 16, x1: W / 2 - 4 },
+    { eff: g.right, x0: W / 2 + 4, x1: W - 16 },
+  ];
+  for (const { eff, x0, x1 } of halves) {
+    const grad = ctx.createLinearGradient(0, g.y - h / 2, 0, g.y + h / 2);
+    grad.addColorStop(0, eff.color + '33');
+    grad.addColorStop(0.5, eff.color + '88');
+    grad.addColorStop(1, eff.color + '33');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x0, g.y - h / 2, x1 - x0, h);
+    ctx.strokeStyle = eff.color;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(x0, g.y - h / 2, x1 - x0, h);
+    // posts
+    ctx.fillStyle = eff.color;
+    ctx.fillRect(x0 - 3, g.y - h / 2 - 6, 6, h + 12);
+    ctx.fillRect(x1 - 3, g.y - h / 2 - 6, 6, h + 12);
+    // label
+    ctx.font = 'bold 26px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 6;
+    ctx.fillText(eff.label, (x0 + x1) / 2, g.y + 9);
+    ctx.shadowBlur = 0;
+  }
+}
+
+function drawPickup(p) {
+  const pulse = 1 + Math.sin(p.wob * 2) * 0.12;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.scale(pulse, pulse);
+  ctx.fillStyle = p.color + '44';
+  ctx.beginPath();
+  ctx.arc(0, 0, 24, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = p.color + '99';
+  ctx.beginPath();
+  ctx.arc(0, 0, 17, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.font = '20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(p.icon, 0, 7);
+  ctx.restore();
+}
+
+function drawHUD() {
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 17px sans-serif';
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath();
+  ctx.roundRect(10, 10, 215, 64, 10);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.fillText('🏃 ' + Math.floor(distance) + 'm', 22, 33);
+  ctx.fillText('💀 ' + fmt(kills), 22, 56);
+  ctx.fillStyle = '#ffd23b';
+  ctx.fillText('🏆 ' + fmt(best), 120, 33);
+  ctx.fillStyle = '#9fdcff';
+  ctx.fillText('⚔ x' + horde.dmgMult.toFixed(1) + '  🏹 x' + horde.fireRate.toFixed(1), 120, 56);
+
+  // buff timers
+  let bx = 18;
+  ctx.font = 'bold 15px sans-serif';
+  if (buffs.rage > 0) {
+    ctx.fillStyle = '#ff5a3c';
+    ctx.fillText('🔥 RAGE ' + buffs.rage.toFixed(1) + 's', bx, 96);
+    bx += 120;
+  }
+  if (buffs.freeze > 0) {
+    ctx.fillStyle = '#6fd5ff';
+    ctx.fillText('❄ FREEZE ' + buffs.freeze.toFixed(1) + 's', bx, 96);
+  }
+}
+
+function drawMenu() {
+  ctx.fillStyle = 'rgba(8,10,18,0.72)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd23b';
+  ctx.font = 'bold 46px sans-serif';
+  ctx.fillText('HORDE DEFENSE', W / 2, 230);
+  ctx.fillStyle = '#fff';
+  ctx.font = '19px sans-serif';
+  ctx.fillText('Lead your horde against the endless stream.', W / 2, 290);
+  ctx.fillText('Steer through the BLUE gates. Avoid the RED.', W / 2, 320);
+  ctx.fillText('Your army fires automatically — grow it or die.', W / 2, 350);
+  ctx.fillStyle = '#9fdcff';
+  ctx.fillText('Drag to move  ·  or use ← → / A D', W / 2, 410);
+  const blink = Math.sin(time * 5) > -0.3;
+  if (blink) {
+    ctx.fillStyle = '#6bdb6b';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('TAP TO START', W / 2, 500);
+  }
+  if (best > 0) {
+    ctx.fillStyle = '#ffd23b';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('🏆 Best score: ' + fmt(best), W / 2, 560);
+  }
+}
+
+function drawGameOver() {
+  ctx.fillStyle = 'rgba(20,6,6,0.7)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff5a3c';
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillText('HORDE FALLEN', W / 2, 260);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('Score: ' + fmt(score), W / 2, 330);
+  ctx.font = '19px sans-serif';
+  ctx.fillText('Marched ' + Math.floor(distance) + 'm  ·  ' + fmt(kills) + ' kills', W / 2, 368);
+  if (score >= best && score > 0) {
+    ctx.fillStyle = '#ffd23b';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('★ NEW BEST! ★', W / 2, 410);
+  } else {
+    ctx.fillStyle = '#ffd23b';
+    ctx.fillText('Best: ' + fmt(best), W / 2, 410);
+  }
+  const blink = Math.sin(time * 5) > -0.3;
+  if (blink) {
+    ctx.fillStyle = '#6bdb6b';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText('TAP TO TRY AGAIN', W / 2, 490);
+  }
+}
+
+function draw() {
+  ctx.save();
+  if (shake > 0) {
+    ctx.translate(rand(-shake, shake) * 0.5, rand(-shake, shake) * 0.5);
+  }
+  drawBackground();
+
+  for (const g of gates) drawGate(g);
+  for (const p of pickups) drawPickup(p);
+
+  // arrows
+  ctx.lineWidth = 2.5;
+  for (const a of arrows) {
+    ctx.strokeStyle = a.rage ? '#ff7a4c' : '#ffe9a8';
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(a.x - a.vx * 0.02, a.y - a.vy * 0.022);
+    ctx.stroke();
+  }
+
+  for (const e of enemies) drawEnemy(e);
+  if (state !== 'gameover') drawHorde();
+
+  // particles
+  for (const p of particles) {
+    ctx.globalAlpha = clamp(p.life / p.maxLife, 0, 1);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // floaters
+  for (const f of floaters) {
+    ctx.globalAlpha = clamp(f.life, 0, 1);
+    ctx.font = 'bold ' + f.size + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur = 5;
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, f.x, f.y);
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
+  if (state === 'playing' || state === 'gameover') drawHUD();
+  ctx.restore();
+
+  if (state === 'menu') drawMenu();
+  else if (state === 'gameover') drawGameOver();
+}
+
+// ---------- Main loop ----------
+let lastT = performance.now();
+function frame(now) {
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
+  time += state === 'playing' ? 0 : dt; // menu blink uses time too
+  if (state === 'playing') update(dt);
+  else {
+    // ambient drift on menus
+    groundScroll = (groundScroll + 40 * dt) % 90;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 260 * dt;
+    }
+    for (let i = floaters.length - 1; i >= 0; i--) {
+      const f = floaters[i];
+      f.life -= dt * 0.8; f.y -= 45 * dt;
+      if (f.life <= 0) floaters.splice(i, 1);
+    }
+    shake = Math.max(0, shake - dt * 30);
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
