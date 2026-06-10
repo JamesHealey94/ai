@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#03040a">
+<title>Liquid Light — a fluid simulation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #03040a;
+    overscroll-behavior: none;
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  #c { display: block; width: 100%; height: 100%; }
+
+  #ui {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    display: flex; gap: 8px;
+    z-index: 10;
+  }
+  .btn {
+    min-width: 44px; height: 44px;
+    padding: 0 12px;
+    border: 1px solid rgba(170, 190, 255, 0.22);
+    border-radius: 12px;
+    background: rgba(10, 14, 30, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #d5ddff;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .btn:active { background: rgba(80, 100, 200, 0.45); transform: scale(0.94); }
+  .btn.off { opacity: 0.45; }
+
+  #paletteName {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: rgba(10, 14, 30, 0.5);
+    border: 1px solid rgba(170, 190, 255, 0.15);
+    color: #9aa6d8;
+    font-size: 13px;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  #paletteName.show { opacity: 1; }
+
+  #title {
+    position: fixed; inset: 0;
+    z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px;
+    text-align: center;
+    padding: 24px;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+  }
+  #title.hidden { opacity: 0; }
+  #title h1 {
+    font-size: clamp(36px, 10vw, 64px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(110deg, #7fd4ff, #c79bff 45%, #ff9bc8 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 18px rgba(120, 140, 255, 0.35));
+  }
+  #title p {
+    color: rgba(200, 210, 245, 0.85);
+    font-size: 16px;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <button class="btn" id="btnPalette" aria-label="Change palette">🎨</button>
+  <button class="btn" id="btnAuto" aria-label="Toggle auto-stir">✨</button>
+  <button class="btn" id="btnClear" aria-label="Clear">↺</button>
+</div>
+
+<div id="paletteName"></div>
+
+<div id="title">
+  <h1>Liquid Light</h1>
+  <p>Drag to stir the light — try two fingers</p>
+</div>
+
+<script>
+'use strict';
+
+// ============================================================
+// Fluid solver — Jos Stam's "Stable Fluids" on a staggered-free
+// uniform grid, with vorticity confinement. Velocity is stored
+// in grid cells per second; dye is three independent channels.
+// Pure function of its inputs: no DOM access in here.
+// ============================================================
+function createFluid(NX, NY) {
+  const SX = NX + 2, SY = NY + 2;
+  const SIZE = SX * SY;
+  const IX = (x, y) => x + SX * y;
+
+  const u = new Float32Array(SIZE), v = new Float32Array(SIZE);
+  const u0 = new Float32Array(SIZE), v0 = new Float32Array(SIZE);
+  const r = new Float32Array(SIZE), g = new Float32Array(SIZE), b = new Float32Array(SIZE);
+  const r0 = new Float32Array(SIZE), g0 = new Float32Array(SIZE), b0 = new Float32Array(SIZE);
+  const p = new Float32Array(SIZE), div = new Float32Array(SIZE);
+  const curl = new Float32Array(SIZE);
+
+  function setBnd(bnd, x) {
+    for (let i = 1; i <= NX; i++) {
+      x[IX(i, 0)] = bnd === 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
+      x[IX(i, NY + 1)] = bnd === 2 ? -x[IX(i, NY)] : x[IX(i, NY)];
+    }
+    for (let j = 1; j <= NY; j++) {
+      x[IX(0, j)] = bnd === 1 ? -x[IX(1, j)] : x[IX(1, j)];
+      x[IX(NX + 1, j)] = bnd === 1 ? -x[IX(NX, j)] : x[IX(NX, j)];
+    }
+    x[IX(0, 0)] = 0.5 * (x[IX(1, 0)] + x[IX(0, 1)]);
+    x[IX(0, NY + 1)] = 0.5 * (x[IX(1, NY + 1)] + x[IX(0, NY)]);
+    x[IX(NX + 1, 0)] = 0.5 * (x[IX(NX, 0)] + x[IX(NX + 1, 1)]);
+    x[IX(NX + 1, NY + 1)] = 0.5 * (x[IX(NX, NY + 1)] + x[IX(NX + 1, NY)]);
+  }
+
+  function linSolve(bnd, x, x0, a, c, iters) {
+    const invC = 1 / c;
+    for (let k = 0; k < iters; k++) {
+      for (let j = 1; j <= NY; j++) {
+        let idx = IX(1, j);
+        for (let i = 1; i <= NX; i++, idx++) {
+          x[idx] = (x0[idx] + a * (x[idx - 1] + x[idx + 1] + x[idx - SX] + x[idx + SX])) * invC;
+        }
+      }
+      setBnd(bnd, x);
+    }
+  }
+
+  function advect(bnd, d, d0, uu, vv, dt) {
+    for (let j = 1; j <= NY; j++) {
+      let idx = IX(1, j);
+      for (let i = 1; i <= NX; i++, idx++) {
+        let x = i - dt * uu[idx];
+        let y = j - dt * vv[idx];
+        if (x < 0.5) x = 0.5; else if (x > NX + 0.5) x = NX + 0.5;
+        if (y < 0.5) y = 0.5; else if (y > NY + 0.5) y = NY + 0.5;
+        const i0 = x | 0, j0 = y | 0;
+        const s1 = x - i0, s0 = 1 - s1;
+        const t1 = y - j0, t0 = 1 - t1;
+        const base = IX(i0, j0);
+        d[idx] =
+          s0 * (t0 * d0[base] + t1 * d0[base + SX]) +
+          s1 * (t0 * d0[base + 1] + t1 * d0[base + 1 + SX]);
+      }
+    }
+    setBnd(bnd, d);
+  }
+
+  function project() {
+    for (let j = 1; j <= NY; j++) {
+      let idx = IX(1, j);
+      for (let i = 1; i <= NX; i++, idx++) {
+        div[idx] = -0.5 * (u[idx + 1] - u[idx - 1] + v[idx + SX] - v[idx - SX]);
+        p[idx] = 0;
+      }
+    }
+    setBnd(0, div); setBnd(0, p);
+    linSolve(0, p, div, 1, 4, 16);
+    for (let j = 1; j <= NY; j++) {
+      let idx = IX(1, j);
+      for (let i = 1; i <= NX; i++, idx++) {
+        u[idx] -= 0.5 * (p[idx + 1] - p[idx - 1]);
+        v[idx] -= 0.5 * (p[idx + SX] - p[idx - SX]);
+      }
+    }
+    setBnd(1, u); setBnd(2, v);
+  }
+
+  function vorticity(eps, dt) {
+    for (let j = 1; j <= NY; j++) {
+      let idx = IX(1, j);
+      for (let i = 1; i <= NX; i++, idx++) {
+        curl[idx] = 0.5 * (v[idx + 1] - v[idx - 1] - u[idx + SX] + u[idx - SX]);
+      }
+    }
+    for (let j = 2; j < NY; j++) {
+      let idx = IX(2, j);
+      for (let i = 2; i < NX; i++, idx++) {
+        const dx = 0.5 * (Math.abs(curl[idx + 1]) - Math.abs(curl[idx - 1]));
+        const dy = 0.5 * (Math.abs(curl[idx + SX]) - Math.abs(curl[idx - SX]));
+        const len = Math.sqrt(dx * dx + dy * dy) + 1e-5;
+        const c = curl[idx] * eps * dt;
+        u[idx] += (dy / len) * c;
+        v[idx] -= (dx / len) * c;
+      }
+    }
+  }
+
+  function step(dt, fade) {
+    vorticity(28, dt);
+    project();
+    u0.set(u); v0.set(v);
+    advect(1, u, u0, u0, v0, dt);
+    advect(2, v, v0, u0, v0, dt);
+    project();
+    const damp = Math.pow(0.65, dt);
+    for (let i = 0; i < SIZE; i++) { u[i] *= damp; v[i] *= damp; }
+
+    r0.set(r); g0.set(g); b0.set(b);
+    advect(0, r, r0, u, v, dt);
+    advect(0, g, g0, u, v, dt);
+    advect(0, b, b0, u, v, dt);
+    const dyeFade = Math.pow(fade, dt);
+    for (let i = 0; i < SIZE; i++) { r[i] *= dyeFade; g[i] *= dyeFade; b[i] *= dyeFade; }
+  }
+
+  // Gaussian splat of velocity and dye centred at grid coords (cx, cy)
+  function splat(cx, cy, fx, fy, cr, cg, cb, radius, dyeAmt) {
+    const rad = Math.max(1.5, radius);
+    const r2 = rad * rad;
+    const x0 = Math.max(1, Math.floor(cx - rad * 2));
+    const x1 = Math.min(NX, Math.ceil(cx + rad * 2));
+    const y0 = Math.max(1, Math.floor(cy - rad * 2));
+    const y1 = Math.min(NY, Math.ceil(cy + rad * 2));
+    for (let j = y0; j <= y1; j++) {
+      for (let i = x0; i <= x1; i++) {
+        const dx = i - cx, dy = j - cy;
+        const w = Math.exp(-(dx * dx + dy * dy) / r2);
+        if (w < 0.01) continue;
+        const idx = IX(i, j);
+        u[idx] += fx * w;
+        v[idx] += fy * w;
+        r[idx] = Math.min(1.6, r[idx] + cr * dyeAmt * w);
+        g[idx] = Math.min(1.6, g[idx] + cg * dyeAmt * w);
+        b[idx] = Math.min(1.6, b[idx] + cb * dyeAmt * w);
+      }
+    }
+  }
+
+  function clear() {
+    u.fill(0); v.fill(0);
+    r.fill(0); g.fill(0); b.fill(0);
+  }
+
+  return { NX, NY, SX, SY, u, v, r, g, b, IX, step, splat, clear };
+}
+
+// Expose for non-browser testing
+if (typeof module !== 'undefined') module.exports = { createFluid };
+
+// ============================================================
+// App
+// ============================================================
+if (typeof window !== 'undefined') (() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0;
+
+  let fluid = null;
+  let off = null, offCtx = null, img = null;
+
+  const TARGET_CELLS = 15000;
+
+  function rebuild() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+    const aspect = W / H;
+    const nx = Math.max(40, Math.round(Math.sqrt(TARGET_CELLS * aspect)));
+    const ny = Math.max(40, Math.round(nx / aspect));
+    fluid = createFluid(nx, ny);
+    off = document.createElement('canvas');
+    off.width = nx;
+    off.height = ny;
+    offCtx = off.getContext('2d');
+    img = offCtx.createImageData(nx, ny);
+    // opaque base
+    const d = img.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = 255;
+  }
+
+  // ---------- Palettes ----------
+  function hsv(h, s, vv) {
+    h = ((h % 360) + 360) % 360;
+    const c = vv * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = vv - c;
+    let rr = 0, gg = 0, bb = 0;
+    if (h < 60) { rr = c; gg = x; }
+    else if (h < 120) { rr = x; gg = c; }
+    else if (h < 180) { gg = c; bb = x; }
+    else if (h < 240) { gg = x; bb = c; }
+    else if (h < 300) { rr = x; bb = c; }
+    else { rr = c; bb = x; }
+    return [rr + m, gg + m, bb + m];
+  }
+
+  const PALETTES = [
+    { name: 'Aurora',  color: (t) => hsv(150 + 80 * Math.sin(t * 0.7), 0.95, 1) },
+    { name: 'Rainbow', color: (t) => hsv(t * 40, 0.9, 1) },
+    { name: 'Ember',   color: (t) => hsv(15 + 30 * (0.5 + 0.5 * Math.sin(t * 0.9)), 1, 1) },
+    { name: 'Deep Sea', color: (t) => hsv(195 + 45 * Math.sin(t * 0.6), 0.9, 1) },
+    { name: 'Moonlight', color: (t) => hsv(225, 0.18 + 0.1 * Math.sin(t), 1) }
+  ];
+  let paletteIndex = 0;
+  let colorClock = 0;
+
+  // ---------- Input ----------
+  const pointers = new Map();
+  let lastTouchTime = -10;
+
+  function toGrid(x, y) {
+    return [x / W * fluid.NX + 0.5, y / H * fluid.NY + 0.5];
+  }
+
+  function stir(px, py, x, y, dt) {
+    const [gx, gy] = toGrid(x, y);
+    const [pgx, pgy] = toGrid(px, py);
+    let fx = (gx - pgx) / Math.max(dt, 1 / 240);
+    let fy = (gy - pgy) / Math.max(dt, 1 / 240);
+    const mag = Math.hypot(fx, fy);
+    const CAP = 220;
+    if (mag > CAP) { fx *= CAP / mag; fy *= CAP / mag; }
+    const col = PALETTES[paletteIndex].color(colorClock);
+    const radius = fluid.NX * 0.028;
+    // splat along the swipe so fast flicks leave a continuous streak
+    const dist = Math.hypot(gx - pgx, gy - pgy);
+    const steps = Math.min(12, Math.max(1, Math.ceil(dist / (radius * 0.6))));
+    for (let s = 0; s < steps; s++) {
+      const f = steps === 1 ? 1 : s / (steps - 1);
+      fluid.splat(
+        pgx + (gx - pgx) * f, pgy + (gy - pgy) * f,
+        fx * 0.45, fy * 0.45,
+        col[0], col[1], col[2],
+        radius, 0.5 / steps + 0.06
+      );
+    }
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    lastTouchTime = perfNow();
+    canvas.setPointerCapture(e.pointerId);
+    document.getElementById('title').classList.add('hidden');
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    const pt = pointers.get(e.pointerId);
+    if (!pt) return;
+    lastTouchTime = perfNow();
+    const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of events) {
+      stir(pt.x, pt.y, ev.clientX, ev.clientY, 1 / 60);
+      pt.x = ev.clientX;
+      pt.y = ev.clientY;
+    }
+  });
+
+  const lift = (e) => pointers.delete(e.pointerId);
+  canvas.addEventListener('pointerup', lift);
+  canvas.addEventListener('pointercancel', lift);
+
+  function perfNow() { return performance.now() / 1000; }
+
+  // ---------- Auto-stir (idle attract mode) ----------
+  let autoOn = true;
+  let nextAuto = 1.2;
+
+  function autoStir(t) {
+    if (!autoOn || t < nextAuto || t - lastTouchTime < 4) {
+      if (t - lastTouchTime < 4) nextAuto = t + 1.5;
+      return;
+    }
+    nextAuto = t + 1.2 + Math.random() * 1.8;
+    const gx = fluid.NX * (0.2 + Math.random() * 0.6);
+    const gy = fluid.NY * (0.2 + Math.random() * 0.6);
+    const a = Math.random() * Math.PI * 2;
+    const sp = 40 + Math.random() * 70;
+    const col = PALETTES[paletteIndex].color(colorClock + Math.random() * 3);
+    fluid.splat(gx, gy, Math.cos(a) * sp, Math.sin(a) * sp,
+      col[0], col[1], col[2], fluid.NX * 0.035, 0.5);
+  }
+
+  // ---------- Render ----------
+  function render() {
+    const { NX, NY, SX, r, g, b } = fluid;
+    const d = img.data;
+    let di = 0;
+    for (let j = 1; j <= NY; j++) {
+      let idx = j * SX + 1;
+      for (let i = 1; i <= NX; i++, idx++, di += 4) {
+        // soft-clip: keeps bright cores white without harsh clamping
+        const rr = r[idx], gg = g[idx], bb = b[idx];
+        d[di]     = 255 * (1 - Math.exp(-rr * 1.7)) + 3;
+        d[di + 1] = 255 * (1 - Math.exp(-gg * 1.7)) + 4;
+        d[di + 2] = 255 * (1 - Math.exp(-bb * 1.7)) + 10;
+      }
+    }
+    offCtx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'medium';
+    ctx.drawImage(off, 0, 0, W, H);
+  }
+
+  // ---------- Main loop ----------
+  let lastT = 0;
+  function frame(ms) {
+    requestAnimationFrame(frame);
+    const t = ms / 1000;
+    const dt = Math.min(Math.max(t - lastT, 1 / 240), 1 / 30);
+    lastT = t;
+    if (document.hidden) return;
+    colorClock += dt;
+    autoStir(t);
+    fluid.step(dt, 0.5);
+    render();
+  }
+
+  // ---------- UI ----------
+  const ui = document.getElementById('ui');
+  ui.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+  const paletteNameEl = document.getElementById('paletteName');
+  let paletteNameTimer = null;
+  function showPaletteName() {
+    paletteNameEl.textContent = PALETTES[paletteIndex].name;
+    paletteNameEl.classList.add('show');
+    clearTimeout(paletteNameTimer);
+    paletteNameTimer = setTimeout(() => paletteNameEl.classList.remove('show'), 1600);
+  }
+
+  document.getElementById('btnPalette').addEventListener('click', () => {
+    paletteIndex = (paletteIndex + 1) % PALETTES.length;
+    showPaletteName();
+  });
+
+  const btnAuto = document.getElementById('btnAuto');
+  btnAuto.addEventListener('click', () => {
+    autoOn = !autoOn;
+    btnAuto.classList.toggle('off', !autoOn);
+  });
+
+  document.getElementById('btnClear').addEventListener('click', () => fluid.clear());
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(rebuild, 200);
+  });
+
+  rebuild();
+  requestAnimationFrame((ms) => { lastT = ms / 1000; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
