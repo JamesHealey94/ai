@@ -1,0 +1,1372 @@
+<!-- Model: Claude Fable 5 | Prompt: Create 3d game with three.js where you're in Whitby getting fish and chips and seagulls keep trying to eat them -->
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Gulls of Whitby — Mind Yer Chips!</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body {
+    width:100%; height:100%; overflow:hidden;
+    background:#9fd4ee;
+    font-family: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
+    touch-action:none;
+    user-select:none; -webkit-user-select:none;
+    overscroll-behavior:none;
+  }
+  canvas { display:block; }
+
+  /* ---------- HUD ---------- */
+  #hud {
+    position:fixed; left:0; right:0; top:0;
+    padding: calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left));
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    pointer-events:none; z-index:20;
+  }
+  .panel {
+    background:rgba(16,42,64,0.72);
+    border:2px solid rgba(255,255,255,0.25);
+    border-radius:14px;
+    color:#fff;
+    padding:8px 14px;
+    min-width:88px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,0.25);
+  }
+  .panel .lbl { font-size:11px; letter-spacing:2px; color:#9fd9ff; text-transform:uppercase; }
+  .panel .val { font-size:24px; font-weight:bold; line-height:1.1; }
+  #chipsVal { color:#ffd34d; }
+  #chipBarWrap {
+    width:110px; height:9px; border-radius:5px; overflow:hidden;
+    background:rgba(255,255,255,0.18); margin:5px auto 2px auto;
+  }
+  #chipBar {
+    height:100%; width:100%;
+    background:linear-gradient(90deg,#ff9a3d,#ffd34d);
+    transition:width 0.25s ease;
+  }
+
+  /* ---------- Message banner ---------- */
+  #banner {
+    position:fixed; top:22%; left:50%; transform:translate(-50%,-50%) scale(0.9);
+    z-index:25; pointer-events:none;
+    color:#fff; font-size:clamp(20px, 5vw, 34px); font-weight:bold;
+    text-align:center; padding:0 18px;
+    text-shadow:0 2px 0 rgba(20,40,70,0.85), 0 4px 14px rgba(0,0,0,0.4);
+    opacity:0; transition:opacity 0.25s ease, transform 0.25s ease;
+    white-space:pre-line;
+  }
+  #banner.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+
+  /* ---------- Buttons ---------- */
+  #btns {
+    position:fixed; z-index:30;
+    right:calc(14px + env(safe-area-inset-right));
+    bottom:calc(16px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  .gamebtn {
+    border:none; border-radius:50%;
+    color:#fff; font-weight:bold; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow:0 5px 0 rgba(0,0,0,0.28), 0 8px 18px rgba(0,0,0,0.3);
+    cursor:pointer; touch-action:none;
+  }
+  .gamebtn:active { transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,0.28); }
+  #eatBtn {
+    width:84px; height:84px; font-size:20px;
+    background:radial-gradient(circle at 32% 28%, #ffd95e, #f08c1e 70%);
+    border:3px solid #fff3cf; color:#5b3206;
+  }
+  #shooBtn {
+    width:62px; height:62px; font-size:14px;
+    background:radial-gradient(circle at 32% 28%, #7fd0ff, #1f6fb0 72%);
+    border:3px solid #d9f1ff; color:#08304f;
+  }
+  .gamebtn .sub { font-size:9px; letter-spacing:1px; opacity:0.8; }
+  .gamebtn.cool { filter:grayscale(0.7) brightness(0.75); }
+
+  /* ---------- Joystick ---------- */
+  #joyBase {
+    position:fixed; z-index:28; width:118px; height:118px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,0.5);
+    background:rgba(255,255,255,0.12);
+    display:none; pointer-events:none;
+    transform:translate(-50%,-50%);
+  }
+  #joyKnob {
+    position:absolute; left:50%; top:50%; width:52px; height:52px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.55);
+    box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    transform:translate(-50%,-50%);
+  }
+  #joyHint {
+    position:fixed; z-index:18; pointer-events:none;
+    left:calc(20px + env(safe-area-inset-left));
+    bottom:calc(26px + env(safe-area-inset-bottom));
+    color:rgba(255,255,255,0.85); font-size:12px; letter-spacing:1px;
+    text-shadow:0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  /* ---------- Overlays ---------- */
+  .overlay {
+    position:fixed; inset:0; z-index:50;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; color:#fff; padding:24px;
+    background:linear-gradient(180deg, rgba(13,38,66,0.82), rgba(8,22,40,0.92));
+  }
+  .overlay h1 {
+    font-size:clamp(30px, 8vw, 56px); margin-bottom:6px;
+    color:#ffd34d; text-shadow:0 3px 0 #8a5a00, 0 6px 18px rgba(0,0,0,0.5);
+    letter-spacing:1px;
+  }
+  .overlay h2 { font-size:clamp(15px, 4vw, 22px); color:#bfe6ff; font-weight:normal; margin-bottom:18px; }
+  .overlay p {
+    max-width:430px; line-height:1.5; font-size:14px; color:#e6f3ff; margin-bottom:8px;
+  }
+  .overlay .stat { font-size:26px; color:#ffd34d; font-weight:bold; margin:10px 0; }
+  .bigbtn {
+    margin-top:18px; padding:16px 38px; font-size:20px; font-weight:bold;
+    font-family:inherit; color:#4a2a00; border:3px solid #fff0c8; border-radius:40px;
+    background:linear-gradient(180deg,#ffd95e,#f0941e);
+    box-shadow:0 6px 0 #9c5a08, 0 10px 22px rgba(0,0,0,0.4);
+    cursor:pointer; touch-action:manipulation; min-height:56px;
+  }
+  .bigbtn:active { transform:translateY(4px); box-shadow:0 2px 0 #9c5a08; }
+  .hidden { display:none !important; }
+  #pauseTag {
+    position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center;
+    background:rgba(10,25,45,0.55); color:#fff; font-size:30px; font-weight:bold;
+    letter-spacing:4px; text-shadow:0 2px 8px rgba(0,0,0,0.6);
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="panel">
+    <div class="lbl">Chips</div>
+    <div class="val" id="chipsVal">20</div>
+    <div id="chipBarWrap"><div id="chipBar"></div></div>
+  </div>
+  <div class="panel">
+    <div class="lbl">Wave</div>
+    <div class="val" id="waveVal">1</div>
+  </div>
+  <div class="panel">
+    <div class="lbl">Score</div>
+    <div class="val" id="scoreVal">0</div>
+  </div>
+</div>
+
+<div id="banner"></div>
+
+<div id="btns">
+  <button class="gamebtn" id="shooBtn"><span>SHOO!</span><span class="sub">SPACE</span></button>
+  <button class="gamebtn" id="eatBtn"><span>EAT</span><span class="sub">CHIP (E)</span></button>
+</div>
+
+<div id="joyBase"><div id="joyKnob"></div></div>
+<div id="joyHint">drag left side to walk &middot; tap a gull to shoo it</div>
+
+<div class="overlay" id="startOverlay">
+  <h1>Gulls of Whitby</h1>
+  <h2>Eee, mind yer chips, pet!</h2>
+  <p>You've just got a lovely tray of fish &amp; chips from t'chippy on Whitby quayside &mdash; and every gull in Yorkshire knows it.</p>
+  <p><b>Walk</b> with the left-side joystick (or WASD). <b>EAT</b> your chips with the big button. <b>Tap a diving gull</b> or hit <b>SHOO</b> to send the cheeky beggars packing.</p>
+  <p>Finish the tray and you'll get a fresh one &mdash; but the gulls get bolder every time...</p>
+  <button class="bigbtn" id="startBtn">Get Yer Chips!</button>
+</div>
+
+<div class="overlay hidden" id="overOverlay">
+  <h1>Them Gulls 'Ave 'Ad The Lot!</h1>
+  <h2 id="overQuip">Robbed in broad daylight on t'quayside.</h2>
+  <div class="stat" id="finalScore">Score: 0</div>
+  <p id="finalStats"></p>
+  <button class="bigbtn" id="restartBtn">'Ave Another Go</button>
+</div>
+
+<div id="pauseTag" class="hidden">PAUSED</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   GULLS OF WHITBY — a chip-defence game on the quayside
+   Everything procedural, three.js r128 global build, no textures.
+   ===================================================================== */
+(function(){
+'use strict';
+
+// ---------------------------------------------------------------
+// Basic setup
+// ---------------------------------------------------------------
+var W = window.innerWidth, H = window.innerHeight;
+
+var renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9fd4ee);
+scene.fog = new THREE.Fog(0xc4e4f4, 45, 170);
+
+var camera = new THREE.PerspectiveCamera(60, W/H, 0.1, 320);
+
+window.addEventListener('resize', function(){
+  W = window.innerWidth; H = window.innerHeight;
+  camera.aspect = W/H;
+  camera.updateProjectionMatrix();
+  renderer.setSize(W, H);
+});
+
+// Lights — bright seaside afternoon
+var hemi = new THREE.HemisphereLight(0xcfe9ff, 0x6f8a5a, 0.95);
+scene.add(hemi);
+var sun = new THREE.DirectionalLight(0xfff2d8, 0.85);
+sun.position.set(-30, 50, 20);
+scene.add(sun);
+
+// ---------------------------------------------------------------
+// Shared materials & geometries (reused everywhere)
+// ---------------------------------------------------------------
+var MAT = {
+  cobble:   new THREE.MeshLambertMaterial({ color:0x9a958c }),
+  quayWall: new THREE.MeshLambertMaterial({ color:0x7e7468 }),
+  stone:    new THREE.MeshLambertMaterial({ color:0x6e6a62 }),
+  darkStone:new THREE.MeshLambertMaterial({ color:0x57534c }),
+  slate:    new THREE.MeshLambertMaterial({ color:0x4e5560 }),
+  redRoof:  new THREE.MeshLambertMaterial({ color:0xb5563c }),
+  wood:     new THREE.MeshLambertMaterial({ color:0x7a5a3a }),
+  woodDark: new THREE.MeshLambertMaterial({ color:0x5b432c }),
+  white:    new THREE.MeshLambertMaterial({ color:0xf4f1ea }),
+  bone:     new THREE.MeshLambertMaterial({ color:0xe9e4d2 }),
+  window:   new THREE.MeshLambertMaterial({ color:0x274b66, emissive:0x16344a }),
+  warmWin:  new THREE.MeshLambertMaterial({ color:0xffca5e, emissive:0xcf8a18 }),
+  black:    new THREE.MeshLambertMaterial({ color:0x23252a }),
+  chip:     new THREE.MeshLambertMaterial({ color:0xf2c14e }),
+  batter:   new THREE.MeshLambertMaterial({ color:0xd99a3c }),
+  paper:    new THREE.MeshLambertMaterial({ color:0xfdfaf0 }),
+  tray:     new THREE.MeshLambertMaterial({ color:0xd9cba8 }),
+  gullBody: new THREE.MeshLambertMaterial({ color:0xf5f5f0 }),
+  gullWing: new THREE.MeshLambertMaterial({ color:0xb9bdc2 }),
+  gullTip:  new THREE.MeshLambertMaterial({ color:0x3c4046 }),
+  beak:     new THREE.MeshLambertMaterial({ color:0xf2a23a }),
+  grass:    new THREE.MeshLambertMaterial({ color:0x6f8f4f }),
+  cliff:    new THREE.MeshLambertMaterial({ color:0x6d7a55 }),
+  jumper:   new THREE.MeshLambertMaterial({ color:0xb33a3a }),
+  trousers: new THREE.MeshLambertMaterial({ color:0x37486b }),
+  skin:     new THREE.MeshLambertMaterial({ color:0xe8b48c }),
+  cap:      new THREE.MeshLambertMaterial({ color:0x4a5a3a }),
+  sea:      new THREE.MeshPhongMaterial({ color:0x2f7ca0, shininess:90, specular:0x88bbdd }),
+  foam:     new THREE.MeshLambertMaterial({ color:0xdff2f8 }),
+  shadow:   new THREE.MeshBasicMaterial({ color:0x10202c, transparent:true, opacity:0.22, depthWrite:false }),
+  signFish: new THREE.MeshLambertMaterial({ color:0xffce4a, emissive:0x6b4a08 }),
+  lampPole: new THREE.MeshLambertMaterial({ color:0x2e3a40 }),
+  lampGlow: new THREE.MeshLambertMaterial({ color:0xfff0b8, emissive:0xb89540 })
+};
+
+var GEO = {
+  box:    new THREE.BoxGeometry(1,1,1),
+  cyl:    new THREE.CylinderGeometry(0.5,0.5,1,8),
+  cyl6:   new THREE.CylinderGeometry(0.5,0.5,1,6),
+  cone:   new THREE.ConeGeometry(0.5,1,8),
+  sphere: new THREE.SphereGeometry(0.5,10,8),
+  sphLow: new THREE.SphereGeometry(0.5,7,6),
+  disc:   new THREE.CircleGeometry(0.5,12),
+  halfTorus: new THREE.TorusGeometry(1, 0.07, 6, 14, Math.PI)
+};
+
+function mesh(geo, mat, x, y, z, sx, sy, sz){
+  var m = new THREE.Mesh(geo, mat);
+  m.position.set(x||0, y||0, z||0);
+  if (sx !== undefined) m.scale.set(sx, sy === undefined ? sx : sy, sz === undefined ? sx : sz);
+  return m;
+}
+function box(mat, w, h, d, x, y, z){
+  return mesh(GEO.box, mat, x, y, z, w, h, d);
+}
+
+// ---------------------------------------------------------------
+// World: Whitby harbourside
+//   Quay runs along the X axis. Sea is at z < -2. Cottages at z ~ 18+.
+//   East Cliff + abbey far at +x, whale bones on a knoll at -x.
+// ---------------------------------------------------------------
+var world = new THREE.Group();
+scene.add(world);
+
+// Cobbled quay
+world.add(box(MAT.cobble, 170, 1, 42, 0, -0.5, 17));
+// a few darker cobble patches for variety
+for (var ci = 0; ci < 14; ci++){
+  var patch = box(MAT.quayWall, 2 + Math.random()*4, 0.04, 2 + Math.random()*3,
+    -75 + Math.random()*150, 0.011, 1 + Math.random()*28);
+  patch.rotation.y = Math.random()*Math.PI;
+  world.add(patch);
+}
+// Quay wall dropping to sea
+world.add(box(MAT.quayWall, 170, 3.4, 1.6, 0, -1.7, -4.6));
+// Quay edge kerb
+world.add(box(MAT.stone, 170, 0.28, 1.0, 0, 0.14, -4.2));
+
+// Sea — animated plane
+var seaGeo = new THREE.PlaneGeometry(260, 130, 30, 16);
+var sea = new THREE.Mesh(seaGeo, MAT.sea);
+sea.rotation.x = -Math.PI/2;
+sea.position.set(0, -2.1, -64);
+world.add(sea);
+var seaPos = seaGeo.attributes.position;
+var seaBase = new Float32Array(seaPos.array.length);
+seaBase.set(seaPos.array);
+
+// foam strip against the quay wall
+world.add(box(MAT.foam, 170, 0.08, 1.2, 0, -1.95, -6.0));
+
+// ---- Cottages -------------------------------------------------
+function gableRoof(w, d, wallTop, mat, wallMat){
+  var g = new THREE.Group();
+  var roofH = d * 0.34;
+  var slope = Math.sqrt(d*d/4 + roofH*roofH);
+  var ang = Math.atan2(roofH, d/2);
+  var front = box(mat, w + 0.5, 0.16, slope + 0.35, 0, wallTop + roofH/2, d/4);
+  front.rotation.x = ang;
+  var back = box(mat, w + 0.5, 0.16, slope + 0.35, 0, wallTop + roofH/2, -d/4);
+  back.rotation.x = -ang;
+  g.add(front, back);
+  // gable end triangles
+  var tri = new THREE.Shape();
+  tri.moveTo(-w/2, 0); tri.lineTo(w/2, 0); tri.lineTo(0, roofH); tri.lineTo(-w/2, 0);
+  var triGeo = new THREE.ShapeGeometry(tri);
+  var gMat = wallMat;
+  var e1 = new THREE.Mesh(triGeo, gMat); e1.position.set(0, wallTop, d/2 - 0.02);
+  var e2 = new THREE.Mesh(triGeo, gMat); e2.position.set(0, wallTop, -d/2 + 0.02); e2.rotation.y = Math.PI;
+  g.add(e1, e2);
+  return g;
+}
+
+var cottageColours = [0xe7d7b8, 0xc96f5a, 0x8fb0c9, 0xd8a957, 0xb8c9a0, 0xe0e0d8, 0xc9879f, 0x9a8fb8];
+var cottageMats = cottageColours.map(function(c){ return new THREE.MeshLambertMaterial({ color:c }); });
+
+function cottage(x, w, h, d, matIdx, roofMat){
+  var g = new THREE.Group();
+  var wallMat = cottageMats[matIdx % cottageMats.length];
+  g.add(box(wallMat, w, h, d, 0, h/2, 0));
+  g.add(gableRoof(w, d, h, roofMat, wallMat));
+  // chimney
+  g.add(box(MAT.stone, 0.6, 1.1, 0.6, w*0.3, h + d*0.34, 0));
+  // door
+  g.add(box(MAT.woodDark, 0.9, 1.7, 0.1, -w*0.22, 0.85, d/2 + 0.04));
+  // windows (front faces the quay, -z side of group; we'll rotate group so front faces -z)
+  var rows = h > 4.4 ? 2 : 1;
+  for (var r = 0; r < rows; r++){
+    for (var wn = 0; wn < 2; wn++){
+      g.add(box(MAT.window, 0.8, 0.9, 0.08, (wn === 0 ? w*0.18 : -w*0.02) + wn*w*0.22, 1.6 + r*2.1, d/2 + 0.04));
+      g.add(box(MAT.white, 0.95, 1.05, 0.05, (wn === 0 ? w*0.18 : -w*0.02) + wn*w*0.22, 1.6 + r*2.1, d/2 + 0.02));
+    }
+  }
+  g.position.set(x, 0, 22);
+  g.rotation.y = Math.PI; // door/windows face the quay (-z)
+  world.add(g);
+  return g;
+}
+
+var cx = -72;
+var ci2 = 0;
+while (cx < 76){
+  var wWidth = 5.5 + Math.random()*3.5;
+  if (cx > -6 && cx < 8){ cx = 9; continue; } // leave gap for chip shop
+  cottage(cx + wWidth/2, wWidth, 3.6 + Math.random()*2.6, 5.5,
+    ci2, (ci2 % 3 === 0) ? MAT.redRoof : MAT.slate);
+  cx += wWidth + 0.7;
+  ci2++;
+}
+
+// ---- The Chip Shop --------------------------------------------
+(function buildChippy(){
+  var g = new THREE.Group();
+  var w = 11, h = 5.6, d = 7;
+  var wall = new THREE.MeshLambertMaterial({ color:0xf2e3c0 });
+  g.add(box(wall, w, h, d, 0, h/2, 0));
+  g.add(gableRoof(w, d, h, MAT.redRoof, wall));
+  g.add(box(MAT.stone, 0.7, 1.3, 0.7, -w*0.28, h + d*0.34, 0));
+  // big warm shop window + door (front = +z in local before flip)
+  g.add(box(MAT.warmWin, 4.6, 2.0, 0.1, -1.6, 1.7, d/2 + 0.05));
+  g.add(box(MAT.white, 4.9, 2.3, 0.06, -1.6, 1.7, d/2 + 0.02));
+  g.add(box(MAT.woodDark, 1.1, 2.2, 0.12, 3.2, 1.1, d/2 + 0.05));
+  // striped awning
+  for (var s = 0; s < 7; s++){
+    var sm = (s % 2 === 0) ? MAT.white : MAT.jumper;
+    var aw = box(sm, 1.5, 0.1, 1.8, -4.5 + s*1.5, 3.1, d/2 + 0.85);
+    aw.rotation.x = 0.32;
+    g.add(aw);
+  }
+  // fascia board
+  g.add(box(MAT.jumper, w*0.92, 0.7, 0.14, 0, 3.75, d/2 + 0.06));
+  // big golden fish sign on a pole
+  var pole = mesh(GEO.cyl, MAT.lampPole, 4.2, 5.4, d/2 + 1.2, 0.16, 2.6, 0.16);
+  g.add(pole);
+  var fish = new THREE.Group();
+  var fbody = mesh(GEO.sphere, MAT.signFish, 0, 0, 0, 2.6, 1.3, 0.5);
+  var ftail = mesh(GEO.cone, MAT.signFish, -1.55, 0, 0, 0.9, 1.4, 0.4);
+  ftail.rotation.z = Math.PI/2;
+  var feye = mesh(GEO.sphLow, MAT.black, 0.75, 0.18, 0.27, 0.22);
+  fish.add(fbody, ftail, feye);
+  fish.position.set(4.2, 6.9, d/2 + 1.2);
+  g.add(fish);
+  g.userData.fish = fish;
+  g.position.set(1.5, 0, 22.8);
+  g.rotation.y = Math.PI;
+  world.add(g);
+  world.userData.chippy = g;
+})();
+
+// ---- Pier with lighthouse -------------------------------------
+(function buildPier(){
+  var g = new THREE.Group();
+  var len = 34;
+  g.add(box(MAT.stone, 4.5, 1.2, len, 0, 0.0, -len/2));
+  g.add(box(MAT.quayWall, 4.9, 0.5, len, 0, -0.8, -len/2));
+  // railings
+  for (var i = 0; i < 12; i++){
+    g.add(mesh(GEO.cyl6, MAT.lampPole, -2.0, 1.05, -2 - i*2.7, 0.07, 0.9, 0.07));
+    g.add(mesh(GEO.cyl6, MAT.lampPole, 2.0, 1.05, -2 - i*2.7, 0.07, 0.9, 0.07));
+  }
+  var railL = box(MAT.lampPole, 0.08, 0.08, len - 2, -2.0, 1.5, -len/2);
+  var railR = box(MAT.lampPole, 0.08, 0.08, len - 2, 2.0, 1.5, -len/2);
+  g.add(railL, railR);
+  // lighthouse at the end
+  var lh = new THREE.Group();
+  lh.add(mesh(GEO.cyl, MAT.white, 0, 3.2, 0, 2.2, 6.4, 2.2));
+  lh.add(mesh(GEO.cyl, MAT.jumper, 0, 5.1, 0, 1.95, 1.2, 1.95));
+  lh.add(mesh(GEO.cyl, MAT.black, 0, 6.8, 0, 1.5, 1.0, 1.5));
+  lh.add(mesh(GEO.sphere, MAT.lampGlow, 0, 6.8, 0, 1.1));
+  lh.add(mesh(GEO.cone, MAT.jumper, 0, 7.9, 0, 1.7, 1.2, 1.7));
+  lh.position.set(0, 0.6, -len + 1.5);
+  g.add(lh);
+  g.position.set(34, 0.6, -5.4);
+  world.add(g);
+})();
+
+// ---- Swing bridge (decorative, near west end) ------------------
+(function buildBridge(){
+  var g = new THREE.Group();
+  g.add(box(MAT.wood, 3.4, 0.5, 14, 0, 0.4, -7));
+  for (var i = 0; i < 6; i++){
+    g.add(mesh(GEO.cyl6, MAT.lampPole, -1.5, 1.2, -1.2 - i*2.3, 0.08, 1.1, 0.08));
+    g.add(mesh(GEO.cyl6, MAT.lampPole, 1.5, 1.2, -1.2 - i*2.3, 0.08, 1.1, 0.08));
+  }
+  g.add(box(MAT.lampPole, 0.1, 0.1, 13, -1.5, 1.7, -7));
+  g.add(box(MAT.lampPole, 0.1, 0.1, 13, 1.5, 1.7, -7));
+  // central pivot drum
+  g.add(mesh(GEO.cyl, MAT.darkStone, 0, -0.6, -7, 2.6, 2.2, 2.6));
+  g.position.set(-34, 0, -4.5);
+  world.add(g);
+})();
+
+// ---- Boats bobbing in the harbour ------------------------------
+var boats = [];
+function boat(x, z, hullColor, rot){
+  var g = new THREE.Group();
+  var hullMat = new THREE.MeshLambertMaterial({ color:hullColor });
+  g.add(box(hullMat, 2.2, 1.0, 5.6, 0, 0.3, 0));
+  var bow = mesh(GEO.cone, hullMat, 0, 0.3, 3.3, 2.2, 1.4, 1.0);
+  bow.rotation.x = Math.PI/2;
+  g.add(bow);
+  g.add(box(MAT.white, 1.6, 1.0, 1.8, 0, 1.2, -1.2));
+  g.add(mesh(GEO.cyl6, MAT.woodDark, 0, 2.6, 0.8, 0.12, 3.2, 0.12));
+  g.position.set(x, -1.7, z);
+  g.rotation.y = rot;
+  world.add(g);
+  boats.push({ g:g, phase:Math.random()*6.28, baseY:-1.7 });
+}
+boat(-12, -14, 0xc94f3a, 0.4);
+boat(8, -20, 0x3a6fc9, -0.7);
+boat(-46, -22, 0x3f8f5a, 2.4);
+boat(20, -12, 0xd8a93f, 1.8);
+
+// ---- East Cliff + Abbey ruin -----------------------------------
+(function buildCliff(){
+  var g = new THREE.Group();
+  // cliff mass
+  var cliff = box(MAT.cliff, 70, 22, 90, 0, 11, 0);
+  g.add(cliff);
+  g.add(box(MAT.grass, 70, 0.6, 90, 0, 22.2, 0));
+  // 199 steps suggestion — staircase blocks running down the near corner
+  for (var s = 0; s < 9; s++){
+    g.add(box(MAT.stone, 4, 0.8, 3.2, -35 - 1.0, 21 - s*2.4, 40 - s*3.6));
+  }
+  // Abbey ruin on top: end wall + arches
+  var ab = new THREE.Group();
+  // gable end wall with pointy top
+  ab.add(box(MAT.darkStone, 10, 9, 1.2, 0, 4.5, 0));
+  var apex = mesh(GEO.cone, MAT.darkStone, 0, 10.4, 0, 7, 4.4, 1.2);
+  apex.rotation.y = Math.PI/4;
+  ab.add(apex);
+  // rose window
+  var rose = mesh(GEO.halfTorus, MAT.darkStone, 0, 6.4, 0, 1.6, 1.6, 3.5);
+  rose.rotation.z = Math.PI; // upper half
+  ab.add(mesh(new THREE.TorusGeometry(1.2, 0.28, 6, 12), MAT.darkStone, 0, 6.4, 0));
+  ab.add(rose);
+  // lancet hole hints (dark boxes)
+  ab.add(box(MAT.black, 1.1, 3.2, 1.3, -2.4, 3.2, 0));
+  ab.add(box(MAT.black, 1.1, 3.2, 1.3, 2.4, 3.2, 0));
+  // row of broken arches behind
+  for (var a = 0; a < 4; a++){
+    var z = -4 - a*5;
+    ab.add(box(MAT.darkStone, 1.2, 6 + (a%2), 1.2, -4.5, (6+(a%2))/2, z));
+    ab.add(box(MAT.darkStone, 1.2, 6 + ((a+1)%2), 1.2, 4.5, (6+((a+1)%2))/2, z));
+    if (a < 3){
+      var arcL = box(MAT.darkStone, 1.0, 3.4, 1.0, -2.5, 7.4, z);
+      arcL.rotation.z = -0.85;
+      var arcR = box(MAT.darkStone, 1.0, 3.4, 1.0, 2.5, 7.4, z);
+      arcR.rotation.z = 0.85;
+      ab.add(arcL, arcR);
+    }
+  }
+  ab.position.set(5, 22.5, -10);
+  ab.rotation.y = -0.5;
+  g.add(ab);
+  g.position.set(118, 0, -8);
+  world.add(g);
+})();
+
+// ---- West knoll with whale-bone arch ---------------------------
+(function buildWhaleBones(){
+  var g = new THREE.Group();
+  g.add(mesh(GEO.sphere, MAT.grass, 0, -4.5, 0, 36, 12, 30));
+  var b1 = mesh(GEO.halfTorus, MAT.bone, -0.5, 1.4, 0, 3.4, 4.4, 3.4);
+  b1.rotation.z = 0; b1.rotation.y = 0.12;
+  var b2 = mesh(GEO.halfTorus, MAT.bone, 0.5, 1.4, 0, 3.4, 4.4, 3.4);
+  b2.rotation.y = -0.12;
+  g.add(b1, b2);
+  g.position.set(-96, 0.8, 6);
+  world.add(g);
+})();
+
+// ---- Street furniture ------------------------------------------
+for (var lp = 0; lp < 6; lp++){
+  var lx = -65 + lp*26;
+  var lamp = new THREE.Group();
+  lamp.add(mesh(GEO.cyl, MAT.lampPole, 0, 2.1, 0, 0.16, 4.2, 0.16));
+  lamp.add(mesh(GEO.sphere, MAT.lampGlow, 0, 4.4, 0, 0.55));
+  lamp.add(mesh(GEO.cone, MAT.lampPole, 0, 4.85, 0, 0.7, 0.5, 0.7));
+  lamp.position.set(lx, 0, -2.6);
+  world.add(lamp);
+}
+for (var bl = 0; bl < 9; bl++){
+  world.add(mesh(GEO.cyl, MAT.black, -68 + bl*17, 0.45, -3.6, 0.5, 0.9, 0.5));
+}
+// crates & lobster pots by the quay
+for (var cr = 0; cr < 7; cr++){
+  var crx = -60 + Math.random()*120, crz = -1 + Math.random()*4;
+  if (Math.random() < 0.5){
+    world.add(box(MAT.wood, 1.2, 1.0, 1.2, crx, 0.5, crz));
+  } else {
+    world.add(mesh(GEO.cyl6, MAT.woodDark, crx, 0.45, crz, 1.0, 0.9, 1.0));
+  }
+}
+// distant headland across the harbour
+world.add(box(MAT.cliff, 120, 8, 18, -40, 2.5, -98));
+world.add(box(MAT.grass, 120, 0.5, 18, -40, 6.8, -98));
+
+// clouds — flat white puffs
+var cloudMat = new THREE.MeshLambertMaterial({ color:0xffffff, transparent:true, opacity:0.85 });
+var clouds = [];
+for (var cl = 0; cl < 7; cl++){
+  var cg = new THREE.Group();
+  for (var p = 0; p < 3; p++){
+    cg.add(mesh(GEO.sphLow, cloudMat, p*2.4 - 2.4, Math.random()*0.8, Math.random()*1.4, 3 + Math.random()*2.4, 1.6, 2.2));
+  }
+  cg.position.set(-120 + Math.random()*240, 34 + Math.random()*16, -110 + Math.random()*70);
+  world.add(cg);
+  clouds.push(cg);
+}
+
+// ---------------------------------------------------------------
+// Player + tray of fish & chips
+// ---------------------------------------------------------------
+var player = new THREE.Group();
+// legs pivot at the hip so they can swing
+function pivotLeg(x){
+  var g = new THREE.Group();
+  g.position.set(x, 0.9, 0);
+  g.add(box(MAT.trousers, 0.32, 0.9, 0.34, 0, -0.45, 0));
+  return g;
+}
+var hipL = pivotLeg(-0.2), hipR = pivotLeg(0.2);
+player.add(hipL, hipR);
+var torso = box(MAT.jumper, 0.95, 1.05, 0.55, 0, 1.45, 0);
+player.add(torso);
+var head = mesh(GEO.sphere, MAT.skin, 0, 2.35, 0, 0.62);
+player.add(head);
+var capTop = mesh(GEO.cyl, MAT.cap, 0, 2.62, 0, 0.66, 0.18, 0.66);
+var capPeak = box(MAT.cap, 0.5, 0.07, 0.4, 0, 2.56, 0.42);
+player.add(capTop, capPeak);
+// arms reaching forward
+var armL = box(MAT.jumper, 0.24, 0.26, 0.85, -0.42, 1.55, 0.5);
+var armR = box(MAT.jumper, 0.24, 0.26, 0.85, 0.42, 1.55, 0.5);
+player.add(armL, armR);
+player.add(mesh(GEO.sphLow, MAT.skin, -0.42, 1.55, 0.95, 0.22));
+player.add(mesh(GEO.sphLow, MAT.skin, 0.42, 1.55, 0.95, 0.22));
+
+// The tray
+var tray = new THREE.Group();
+tray.add(box(MAT.tray, 1.05, 0.16, 0.75, 0, 0, 0));
+tray.add(box(MAT.paper, 0.95, 0.1, 0.65, 0, 0.1, 0));
+var fishMesh = mesh(GEO.sphere, MAT.batter, 0, 0.22, -0.12, 0.8, 0.22, 0.42);
+tray.add(fishMesh);
+var chipMeshes = [];
+for (var ch = 0; ch < 10; ch++){
+  var cm = box(MAT.chip, 0.1, 0.1, 0.34, -0.38 + (ch%5)*0.19, 0.24 + Math.floor(ch/5)*0.1, 0.18);
+  cm.rotation.y = (Math.random()-0.5)*0.6;
+  tray.add(cm);
+  chipMeshes.push(cm);
+}
+tray.position.set(0, 1.62, 0.92);
+player.add(tray);
+// player blob shadow
+var pShadow = mesh(GEO.disc, MAT.shadow, 0, 0.02, 0, 1.6);
+pShadow.rotation.x = -Math.PI/2;
+player.add(pShadow);
+player.position.set(0, 0, 8);
+scene.add(player);
+
+// Tray world position helper
+var trayWorld = new THREE.Vector3();
+function getTrayWorld(){
+  tray.getWorldPosition(trayWorld);
+  return trayWorld;
+}
+
+// ---------------------------------------------------------------
+// Seagulls
+// ---------------------------------------------------------------
+var MAX_GULLS = 12;
+var gulls = [];
+
+function makeWing(side){
+  var g = new THREE.Group();
+  var inner = box(MAT.gullWing, 0.9, 0.06, 0.42, side*0.45, 0, 0);
+  var tipG = new THREE.Group();
+  tipG.position.set(side*0.9, 0, 0);
+  tipG.add(box(MAT.gullTip, 0.6, 0.05, 0.34, side*0.3, 0, -0.04));
+  g.add(inner, tipG);
+  g.userData.tip = tipG;
+  return g;
+}
+
+function makeGull(){
+  var g = new THREE.Group();
+  var body = mesh(GEO.sphere, MAT.gullBody, 0, 0, 0, 0.62, 0.5, 1.0);
+  var headM = mesh(GEO.sphLow, MAT.gullBody, 0, 0.18, 0.55, 0.4);
+  var beak = mesh(GEO.cone, MAT.beak, 0, 0.16, 0.85, 0.14, 0.34, 0.14);
+  beak.rotation.x = Math.PI/2;
+  var eyeL = mesh(GEO.sphLow, MAT.black, -0.12, 0.27, 0.66, 0.07);
+  var eyeR = mesh(GEO.sphLow, MAT.black, 0.12, 0.27, 0.66, 0.07);
+  var tail = box(MAT.gullWing, 0.34, 0.05, 0.5, 0, 0.05, -0.6);
+  var wingL = makeWing(-1); wingL.position.set(-0.25, 0.1, 0);
+  var wingR = makeWing(1);  wingR.position.set(0.25, 0.1, 0);
+  var carried = box(MAT.chip, 0.12, 0.12, 0.4, 0, -0.02, 0.95);
+  carried.visible = false;
+  g.add(body, headM, beak, eyeL, eyeR, tail, wingL, wingR, carried);
+  var shadowM = mesh(GEO.disc, MAT.shadow, 0, 0, 0, 1.1);
+  shadowM.rotation.x = -Math.PI/2;
+  scene.add(shadowM);
+  scene.add(g);
+  return {
+    g:g, wingL:wingL, wingR:wingR, carried:carried, shadow:shadowM,
+    state:'idle', active:false,
+    angle:Math.random()*Math.PI*2, radius:12, height:8, orbitDir:1,
+    speed:1, diveSpeed:8, timer:2 + Math.random()*5,
+    vel:new THREE.Vector3(), fleeTarget:new THREE.Vector3(),
+    flapPhase:Math.random()*6.28, squawkT:Math.random()*8
+  };
+}
+for (var gi = 0; gi < MAX_GULLS; gi++) gulls.push(makeGull());
+
+function resetGullOrbit(gl){
+  gl.state = 'circle';
+  gl.radius = 9 + Math.random()*8;
+  gl.height = 6 + Math.random()*5;
+  gl.orbitDir = Math.random() < 0.5 ? -1 : 1;
+  gl.angle = Math.random()*Math.PI*2;
+  gl.timer = (2.5 + Math.random()*6) / game.aggression;
+  gl.carried.visible = false;
+}
+
+function spawnGull(gl){
+  gl.active = true;
+  gl.g.visible = true;
+  gl.shadow.visible = true;
+  resetGullOrbit(gl);
+  // start far out so they glide in
+  var a = Math.random()*Math.PI*2;
+  gl.g.position.set(player.position.x + Math.cos(a)*40, 14 + Math.random()*8, player.position.z + Math.sin(a)*40);
+}
+
+function deactivateGull(gl){
+  gl.active = false;
+  gl.state = 'idle';
+  gl.g.visible = false;
+  gl.shadow.visible = false;
+}
+
+// ---------------------------------------------------------------
+// Audio — subtle WebAudio squawks & chomps
+// ---------------------------------------------------------------
+var actx = null, noiseBuf = null, masterGain = null;
+function initAudio(){
+  if (actx) return;
+  try {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = actx.createGain();
+    masterGain.gain.value = 0.5;
+    masterGain.connect(actx.destination);
+    var len = Math.floor(actx.sampleRate * 0.4);
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    var data = noiseBuf.getChannelData(0);
+    for (var i = 0; i < len; i++) data[i] = Math.random()*2 - 1;
+  } catch(e){ actx = null; }
+}
+function chirp(when, f0, f1, dur, vol){
+  var src = actx.createBufferSource();
+  src.buffer = noiseBuf; src.loop = true;
+  var bp = actx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.Q.value = 14;
+  bp.frequency.setValueAtTime(f0, when);
+  bp.frequency.exponentialRampToValueAtTime(f1, when + dur);
+  var gn = actx.createGain();
+  gn.gain.setValueAtTime(0.0001, when);
+  gn.gain.exponentialRampToValueAtTime(vol, when + dur*0.25);
+  gn.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+  src.connect(bp); bp.connect(gn); gn.connect(masterGain);
+  src.start(when); src.stop(when + dur + 0.05);
+}
+function sndSquawk(pitch){
+  if (!actx) return;
+  var t = actx.currentTime;
+  var p = pitch || 1;
+  chirp(t, 1500*p, 950*p, 0.16, 0.10);
+  if (Math.random() < 0.7) chirp(t + 0.16, 1600*p, 1000*p, 0.13, 0.07);
+}
+function sndChomp(){
+  if (!actx) return;
+  var t = actx.currentTime;
+  var src = actx.createBufferSource();
+  src.buffer = noiseBuf;
+  var lp = actx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 520;
+  var gn = actx.createGain();
+  gn.gain.setValueAtTime(0.16, t);
+  gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  src.connect(lp); lp.connect(gn); gn.connect(masterGain);
+  src.start(t); src.stop(t + 0.12);
+}
+function sndShoo(){
+  if (!actx) return;
+  var t = actx.currentTime;
+  chirp(t, 700, 2200, 0.12, 0.08);
+}
+function sndWave(){
+  if (!actx) return;
+  var t = actx.currentTime;
+  [523, 659, 784].forEach(function(f, i){
+    var o = actx.createOscillator();
+    o.type = 'triangle'; o.frequency.value = f;
+    var gn = actx.createGain();
+    gn.gain.setValueAtTime(0.0001, t + i*0.11);
+    gn.gain.exponentialRampToValueAtTime(0.06, t + i*0.11 + 0.03);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t + i*0.11 + 0.25);
+    o.connect(gn); gn.connect(masterGain);
+    o.start(t + i*0.11); o.stop(t + i*0.11 + 0.3);
+  });
+}
+
+// ---------------------------------------------------------------
+// Game state
+// ---------------------------------------------------------------
+var TRAY_SIZE = 20;
+var game = {
+  running:false, paused:false,
+  chips:TRAY_SIZE, eaten:0, totalEaten:0, shooed:0,
+  score:0, wave:1, aggression:1,
+  eatCooldown:0, shooCooldown:0, eatAnim:0, shooAnim:0,
+  maxDives:1, ambient:3
+};
+
+var hud = {
+  chips: document.getElementById('chipsVal'),
+  bar:   document.getElementById('chipBar'),
+  wave:  document.getElementById('waveVal'),
+  score: document.getElementById('scoreVal'),
+  banner:document.getElementById('banner')
+};
+
+function updateHUD(){
+  hud.chips.textContent = game.chips;
+  hud.bar.style.width = Math.max(0, (game.chips / TRAY_SIZE) * 100) + '%';
+  hud.wave.textContent = game.wave;
+  hud.score.textContent = game.score;
+  // tray visuals: show proportional chips, hide fish when nearly done
+  var show = Math.ceil((game.chips / TRAY_SIZE) * chipMeshes.length);
+  for (var i = 0; i < chipMeshes.length; i++) chipMeshes[i].visible = i < show;
+  fishMesh.visible = game.chips > TRAY_SIZE * 0.3;
+}
+
+var bannerTimer = null;
+function say(msg, dur){
+  hud.banner.textContent = msg;
+  hud.banner.classList.add('show');
+  if (bannerTimer) clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(function(){ hud.banner.classList.remove('show'); }, dur || 1700);
+}
+
+var STEAL_QUIPS = [
+  "Oi! That gull's nicked a chip!",
+  "Cheeky beggar!",
+  "Gerroff me chips!",
+  "Flippin' gulls!",
+  "That's daylight robbery, that is!"
+];
+var SHOO_QUIPS = [
+  "Shoo! Go on, hop it!",
+  "Not today, feathers!",
+  "On yer bike, gull!",
+  "Ha! Sling yer hook!"
+];
+var EAT_QUIPS = [
+  "Proper lovely, that.",
+  "Champion!",
+  "Best chips on t'coast.",
+  "Mmm... salt 'n' vinegar."
+];
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function gullsForWave(w){ return Math.min(3 + w, MAX_GULLS); }
+
+function startWave(w){
+  game.wave = w;
+  game.chips = TRAY_SIZE;
+  game.eaten = 0;
+  game.aggression = 1 + (w - 1) * 0.22;
+  game.maxDives = Math.min(1 + Math.floor((w - 1) / 2), 4);
+  var n = gullsForWave(w);
+  for (var i = 0; i < MAX_GULLS; i++){
+    if (i < n){
+      if (!gulls[i].active) spawnGull(gulls[i]);
+      else resetGullOrbit(gulls[i]); // fresh orbit, fresh dive timer
+      gulls[i].g.rotation.set(0,0,0);
+      gulls[i].diveSpeed = 8 + w * 0.9 + Math.random()*1.5;
+      gulls[i].speed = 0.55 + w * 0.06 + Math.random()*0.2;
+    } else {
+      deactivateGull(gulls[i]);
+    }
+  }
+  updateHUD();
+}
+
+function resetGame(){
+  game.score = 0; game.shooed = 0; game.totalEaten = 0;
+  player.position.set(0, 0, 8);
+  playerHeading = Math.PI;
+  camYaw = Math.PI;
+  startWave(1);
+}
+
+function gameOver(){
+  game.running = false;
+  document.getElementById('finalScore').textContent = 'Score: ' + game.score;
+  document.getElementById('finalStats').textContent =
+    'You ate ' + game.totalEaten + ' chips, shooed ' + game.shooed +
+    ' gulls and made it to wave ' + game.wave + '.';
+  var quips = [
+    "Robbed in broad daylight on t'quayside.",
+    "Should've kept a tighter grip on that tray, love.",
+    "The gulls of Whitby strike again.",
+    "Not a single chip left. Tragic, that."
+  ];
+  document.getElementById('overQuip').textContent = pick(quips);
+  document.getElementById('overOverlay').classList.remove('hidden');
+}
+
+// ---------------------------------------------------------------
+// Actions: eat, steal, shoo
+// ---------------------------------------------------------------
+function tryEat(){
+  if (!game.running || game.paused) return;
+  if (game.eatCooldown > 0 || game.chips <= 0) return;
+  game.eatCooldown = 0.28;
+  game.eatAnim = 1;
+  game.chips--;
+  game.eaten++; game.totalEaten++;
+  game.score += 10;
+  sndChomp();
+  if (Math.random() < 0.18) say(pick(EAT_QUIPS), 1100);
+  if (game.chips <= 0){
+    // tray finished by eating — fresh tray, next wave
+    game.score += 25;
+    sndWave();
+    say("Tray finished! Fresh one from t'chippy.\nWave " + (game.wave + 1) + " — they're gettin' bolder!", 2400);
+    startWave(game.wave + 1);
+    return;
+  }
+  updateHUD();
+}
+
+function stealChip(gl){
+  game.chips--;
+  gl.carried.visible = true;
+  gl.state = 'flee';
+  gl.fleeTarget.set(
+    player.position.x + (Math.random()-0.5)*80,
+    18 + Math.random()*8,
+    player.position.z - 40 - Math.random()*30
+  );
+  sndSquawk(1.15);
+  if (game.chips <= 0){
+    updateHUD();
+    gameOver();
+    return;
+  }
+  say(pick(STEAL_QUIPS), 1300);
+  updateHUD();
+}
+
+function knockGull(gl, fromTap){
+  if (gl.state === 'knocked') return;
+  var wasDiving = gl.state === 'dive';
+  gl.state = 'knocked';
+  gl.timer = 1.1;
+  gl.carried.visible = false;
+  var away = new THREE.Vector3().subVectors(gl.g.position, player.position);
+  away.y = 0;
+  if (away.lengthSq() < 0.01) away.set(1,0,0);
+  away.normalize().multiplyScalar(9 + Math.random()*4);
+  away.y = 6 + Math.random()*3;
+  gl.vel.copy(away);
+  var pts = wasDiving ? 5 : 2;
+  game.score += pts;
+  game.shooed++;
+  sndSquawk(1.5);
+  if (Math.random() < 0.35) say(pick(SHOO_QUIPS), 1000);
+  updateHUD();
+}
+
+function doShoo(){
+  if (!game.running || game.paused) return;
+  if (game.shooCooldown > 0) return;
+  game.shooCooldown = 0.8;
+  game.shooAnim = 1;
+  sndShoo();
+  var hit = false;
+  for (var i = 0; i < gulls.length; i++){
+    var gl = gulls[i];
+    if (!gl.active) continue;
+    if (gl.state !== 'dive' && gl.state !== 'flee') continue;
+    if (gl.g.position.distanceTo(player.position) < 7.5){
+      knockGull(gl, false);
+      hit = true;
+    }
+  }
+  if (!hit && Math.random() < 0.3) say("Swing and a miss, pet.", 900);
+}
+
+// Tap a gull: screen-space pick (cheap & forgiving on mobile)
+function tapGull(px, py){
+  if (!game.running || game.paused) return false;
+  var v = new THREE.Vector3();
+  var best = null, bestD = 1e9;
+  for (var i = 0; i < gulls.length; i++){
+    var gl = gulls[i];
+    if (!gl.active || gl.state === 'knocked' || gl.state === 'idle') continue;
+    v.copy(gl.g.position).project(camera);
+    if (v.z > 1 || v.z < -1) continue;
+    var sx = (v.x * 0.5 + 0.5) * W;
+    var sy = (-v.y * 0.5 + 0.5) * H;
+    var dist = camera.position.distanceTo(gl.g.position);
+    var thresh = Math.max(36, 1300 / Math.max(dist, 2));
+    var d = Math.hypot(sx - px, sy - py);
+    if (d < thresh && d < bestD){ bestD = d; best = gl; }
+  }
+  if (best){
+    knockGull(best, true);
+    game.shooAnim = 0.8;
+    return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------
+// Input — joystick + keys + buttons
+// ---------------------------------------------------------------
+var joy = { active:false, id:null, ox:0, oy:0, x:0, y:0 };
+var joyBase = document.getElementById('joyBase');
+var joyKnob = document.getElementById('joyKnob');
+var keys = {};
+
+window.addEventListener('keydown', function(e){
+  keys[e.code] = true;
+  if (e.code === 'KeyE' || e.code === 'Enter') tryEat();
+  if (e.code === 'Space' || e.code === 'KeyF'){ e.preventDefault(); doShoo(); }
+});
+window.addEventListener('keyup', function(e){ keys[e.code] = false; });
+
+renderer.domElement.addEventListener('pointerdown', function(e){
+  e.preventDefault();
+  initAudio();
+  if (actx && actx.state === 'suspended') actx.resume();
+  // first: did we tap a gull?
+  if (tapGull(e.clientX, e.clientY)) return;
+  // else: left half starts the joystick
+  if (e.clientX < W * 0.55 && !joy.active){
+    joy.active = true; joy.id = e.pointerId;
+    joy.ox = e.clientX; joy.oy = e.clientY;
+    joy.x = 0; joy.y = 0;
+    joyBase.style.display = 'block';
+    joyBase.style.left = joy.ox + 'px';
+    joyBase.style.top = joy.oy + 'px';
+    joyKnob.style.transform = 'translate(-50%,-50%)';
+  }
+});
+window.addEventListener('pointermove', function(e){
+  if (joy.active && e.pointerId === joy.id){
+    var dx = e.clientX - joy.ox, dy = e.clientY - joy.oy;
+    var len = Math.hypot(dx, dy), max = 48;
+    if (len > max){ dx = dx/len*max; dy = dy/len*max; }
+    joy.x = dx / max; joy.y = dy / max;
+    joyKnob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
+  }
+});
+function joyEnd(e){
+  if (joy.active && e.pointerId === joy.id){
+    joy.active = false; joy.x = 0; joy.y = 0;
+    joyBase.style.display = 'none';
+  }
+}
+window.addEventListener('pointerup', joyEnd);
+window.addEventListener('pointercancel', joyEnd);
+
+var eatBtn = document.getElementById('eatBtn');
+var shooBtn = document.getElementById('shooBtn');
+eatBtn.addEventListener('pointerdown', function(e){
+  e.preventDefault(); e.stopPropagation();
+  initAudio(); if (actx && actx.state === 'suspended') actx.resume();
+  tryEat();
+});
+shooBtn.addEventListener('pointerdown', function(e){
+  e.preventDefault(); e.stopPropagation();
+  initAudio(); if (actx && actx.state === 'suspended') actx.resume();
+  doShoo();
+});
+document.getElementById('startBtn').addEventListener('click', function(){
+  initAudio(); if (actx && actx.state === 'suspended') actx.resume();
+  document.getElementById('startOverlay').classList.add('hidden');
+  resetGame();
+  game.running = true;
+  say("Eee, mind yer chips!", 1800);
+  sndWave();
+});
+document.getElementById('restartBtn').addEventListener('click', function(){
+  document.getElementById('overOverlay').classList.add('hidden');
+  resetGame();
+  game.running = true;
+  say("Round two. Watch t'skies, pet!", 1800);
+  sndWave();
+});
+
+// Pause when tab hidden
+var pauseTag = document.getElementById('pauseTag');
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden){
+    game.paused = true;
+    if (game.running) pauseTag.classList.remove('hidden');
+    if (actx) actx.suspend();
+  } else {
+    game.paused = false;
+    pauseTag.classList.add('hidden');
+    if (actx) actx.resume();
+    clock.getDelta(); // swallow the big delta
+  }
+});
+
+// ---------------------------------------------------------------
+// Movement & camera
+// ---------------------------------------------------------------
+var playerHeading = Math.PI; // facing -z (towards the sea) initially? face camera-forward
+var camYaw = Math.PI;
+var walkPhase = 0;
+var PLAYER_SPEED = 6.5;
+
+function clampPlayer(){
+  var p = player.position;
+  p.x = Math.max(-78, Math.min(78, p.x));
+  p.z = Math.max(-3.4, Math.min(18.2, p.z));
+  // keep out of the chippy frontage
+  if (p.x > -5 && p.x < 8 && p.z > 16.5) p.z = 16.5;
+}
+
+function updatePlayer(dt){
+  var mx = 0, mz = 0;
+  if (keys['KeyW'] || keys['ArrowUp']) mz -= 1;
+  if (keys['KeyS'] || keys['ArrowDown']) mz += 1;
+  if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+  mx += joy.x; mz += joy.y;
+  var len = Math.hypot(mx, mz);
+  if (len > 1){ mx /= len; mz /= len; }
+
+  if (len > 0.08){
+    // move relative to camera yaw
+    var sin = Math.sin(camYaw), cos = Math.cos(camYaw);
+    var wx = mx * cos - mz * sin;
+    var wz = -mx * sin - mz * cos;
+    player.position.x += wx * PLAYER_SPEED * dt * Math.min(len, 1);
+    player.position.z += wz * PLAYER_SPEED * dt * Math.min(len, 1);
+    playerHeading = Math.atan2(wx, wz);
+    walkPhase += dt * 11 * Math.min(len, 1);
+    clampPlayer();
+  } else {
+    walkPhase += dt * 1.5;
+  }
+  // smooth turn the body
+  var dh = playerHeading - player.rotation.y;
+  while (dh > Math.PI) dh -= Math.PI*2;
+  while (dh < -Math.PI) dh += Math.PI*2;
+  player.rotation.y += dh * Math.min(1, dt * 10);
+
+  // walk animation
+  var swing = (len > 0.08 ? 0.55 : 0.04);
+  hipL.rotation.x = Math.sin(walkPhase) * swing;
+  hipR.rotation.x = -Math.sin(walkPhase) * swing;
+  torso.position.y = 1.45 + Math.abs(Math.sin(walkPhase)) * 0.05;
+
+  // eat animation: tray lifts, head dips
+  if (game.eatAnim > 0){
+    game.eatAnim = Math.max(0, game.eatAnim - dt * 4);
+    var k = Math.sin(game.eatAnim * Math.PI);
+    tray.position.y = 1.62 + k * 0.45;
+    tray.position.z = 0.92 - k * 0.3;
+    head.position.z = k * 0.18;
+  } else {
+    tray.position.y = 1.62; tray.position.z = 0.92; head.position.z = 0;
+  }
+  // shoo animation: arms fling up
+  if (game.shooAnim > 0){
+    game.shooAnim = Math.max(0, game.shooAnim - dt * 3.5);
+    var s2 = Math.sin(game.shooAnim * Math.PI);
+    armL.rotation.x = -s2 * 1.6;
+    armR.rotation.x = -s2 * 1.6;
+  } else {
+    armL.rotation.x = 0; armR.rotation.x = 0;
+  }
+
+  game.eatCooldown = Math.max(0, game.eatCooldown - dt);
+  game.shooCooldown = Math.max(0, game.shooCooldown - dt);
+  shooBtn.classList.toggle('cool', game.shooCooldown > 0.15);
+}
+
+function updateCamera(dt){
+  // ease camera yaw toward the player's heading
+  var target = playerHeading;
+  var dy = target - camYaw;
+  while (dy > Math.PI) dy -= Math.PI*2;
+  while (dy < -Math.PI) dy += Math.PI*2;
+  camYaw += dy * Math.min(1, dt * 1.8);
+
+  var dist = 9.5, height = 5.4;
+  var cx2 = player.position.x - Math.sin(camYaw) * dist;
+  var cz2 = player.position.z - Math.cos(camYaw) * dist;
+  // keep camera above the quay & inside bounds-ish
+  var cy2 = height;
+  camera.position.lerp(new THREE.Vector3(cx2, player.position.y + cy2, cz2), Math.min(1, dt * 4.5));
+  var look = new THREE.Vector3(player.position.x, player.position.y + 2.2, player.position.z);
+  camera.lookAt(look);
+}
+
+// ---------------------------------------------------------------
+// Gull AI
+// ---------------------------------------------------------------
+var tmpV = new THREE.Vector3();
+
+function countDiving(){
+  var n = 0;
+  for (var i = 0; i < gulls.length; i++)
+    if (gulls[i].active && gulls[i].state === 'dive') n++;
+  return n;
+}
+
+function updateGull(gl, dt, t){
+  if (!gl.active) return;
+  var g = gl.g;
+  var flapSpeed = 6, flapAmp = 0.55;
+
+  if (gl.state === 'circle'){
+    gl.angle += gl.orbitDir * gl.speed * dt;
+    var px = player.position.x + Math.cos(gl.angle) * gl.radius;
+    var pz = player.position.z + Math.sin(gl.angle) * gl.radius;
+    var py = gl.height + Math.sin(t * 0.8 + gl.flapPhase) * 0.8;
+    tmpV.set(px, py, pz);
+    var toT = tmpV.sub(g.position);
+    var d = toT.length();
+    if (d > 0.01){
+      var step = Math.min(d, (4 + gl.speed * 6) * dt);
+      g.position.addScaledVector(toT.normalize(), step);
+      g.lookAt(g.position.x + toT.x, g.position.y, g.position.z + toT.z);
+    }
+    flapSpeed = 5; flapAmp = 0.45;
+    gl.timer -= dt;
+    if (gl.timer <= 0){
+      if (game.chips > 0 && countDiving() < game.maxDives){
+        gl.state = 'dive';
+        sndSquawk(0.95 + Math.random()*0.2);
+      } else {
+        gl.timer = 0.6 + Math.random()*1.2;
+      }
+    }
+  }
+  else if (gl.state === 'dive'){
+    var tw = getTrayWorld();
+    tmpV.copy(tw).sub(g.position);
+    var dd = tmpV.length();
+    if (dd < 1.0){
+      stealChip(gl);
+    } else {
+      var spd = gl.diveSpeed * (game.aggression * 0.5 + 0.5);
+      g.position.addScaledVector(tmpV.normalize(), Math.min(dd, spd * dt));
+      g.lookAt(tw);
+      flapSpeed = 13; flapAmp = 0.85;
+      // if a dive drags on too long (player ran), give up
+      gl.timer -= dt;
+      if (gl.timer < -6) resetGullOrbit(gl);
+    }
+  }
+  else if (gl.state === 'flee'){
+    tmpV.copy(gl.fleeTarget).sub(g.position);
+    var fd = tmpV.length();
+    if (fd < 2.5){
+      resetGullOrbit(gl);
+    } else {
+      g.position.addScaledVector(tmpV.normalize(), Math.min(fd, 11 * dt));
+      g.lookAt(gl.fleeTarget);
+      flapSpeed = 10; flapAmp = 0.7;
+    }
+  }
+  else if (gl.state === 'knocked'){
+    gl.vel.y -= 18 * dt;
+    g.position.addScaledVector(gl.vel, dt);
+    g.rotation.x += dt * 9;
+    g.rotation.z += dt * 7;
+    if (g.position.y < 1.2) { g.position.y = 1.2; gl.vel.y = Math.abs(gl.vel.y) * 0.3; }
+    gl.timer -= dt;
+    flapSpeed = 2; flapAmp = 0.2;
+    if (gl.timer <= 0){
+      g.rotation.set(0,0,0);
+      resetGullOrbit(gl);
+      // rejoin from where it is, climbing out
+      g.position.y = Math.max(g.position.y, 3);
+    }
+  }
+
+  // flapping
+  gl.flapPhase += dt * flapSpeed;
+  var flap = Math.sin(gl.flapPhase) * flapAmp;
+  gl.wingL.rotation.z = -flap;
+  gl.wingR.rotation.z = flap;
+  gl.wingL.userData.tip.rotation.z = -flap * 0.7;
+  gl.wingR.userData.tip.rotation.z = flap * 0.7;
+
+  // blob shadow
+  var sh = gl.shadow;
+  sh.position.set(g.position.x, 0.03, g.position.z);
+  var hgt = Math.max(1, g.position.y);
+  var sc = Math.max(0.3, 1.4 - hgt * 0.06);
+  sh.scale.set(sc, sc, sc);
+  sh.visible = g.position.z > -5 && g.position.y < 22;
+
+  // ambient squawks
+  gl.squawkT -= dt;
+  if (gl.squawkT <= 0){
+    gl.squawkT = 7 + Math.random()*14;
+    if (Math.random() < 0.5 && g.position.distanceTo(player.position) < 35)
+      sndSquawk(0.8 + Math.random()*0.5);
+  }
+}
+
+// ---------------------------------------------------------------
+// Ambient world animation
+// ---------------------------------------------------------------
+function updateWorld(dt, t){
+  // sea swell
+  var arr = seaPos.array;
+  for (var i = 0; i < arr.length; i += 3){
+    var x = seaBase[i], y = seaBase[i+1];
+    arr[i+2] = Math.sin(x * 0.12 + t * 1.4) * 0.32 + Math.cos(y * 0.18 + t * 0.9) * 0.26;
+  }
+  seaPos.needsUpdate = true;
+
+  // boats bob
+  for (var b = 0; b < boats.length; b++){
+    var bt = boats[b];
+    bt.g.position.y = bt.baseY + Math.sin(t * 1.1 + bt.phase) * 0.18;
+    bt.g.rotation.z = Math.sin(t * 0.9 + bt.phase) * 0.05;
+    bt.g.rotation.x = Math.cos(t * 0.7 + bt.phase) * 0.04;
+  }
+  // clouds drift
+  for (var c = 0; c < clouds.length; c++){
+    clouds[c].position.x += dt * 1.2;
+    if (clouds[c].position.x > 140) clouds[c].position.x = -140;
+  }
+  // chippy sign sways
+  var chippy = world.userData.chippy;
+  if (chippy && chippy.userData.fish){
+    chippy.userData.fish.rotation.z = Math.sin(t * 1.3) * 0.12;
+  }
+}
+
+// ---------------------------------------------------------------
+// Main loop
+// ---------------------------------------------------------------
+var clock = new THREE.Clock();
+var elapsed = 0;
+
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = Math.min(clock.getDelta(), 0.05);
+  if (game.paused){ renderer.render(scene, camera); return; }
+  elapsed += dt;
+
+  updateWorld(dt, elapsed);
+
+  if (game.running){
+    updatePlayer(dt);
+    for (var i = 0; i < gulls.length; i++) updateGull(gulls[i], dt, elapsed);
+  } else {
+    // idle attract: gulls wheel about lazily
+    for (var j = 0; j < gulls.length; j++){
+      if (gulls[j].active) updateGull(gulls[j], dt * 0.6, elapsed);
+    }
+    walkPhase += dt;
+    hipL.rotation.x = Math.sin(walkPhase) * 0.04;
+    hipR.rotation.x = -Math.sin(walkPhase) * 0.04;
+  }
+  updateCamera(dt);
+  renderer.render(scene, camera);
+}
+
+// a few gulls wheeling on the title screen for atmosphere
+game.aggression = 1;
+for (var ig = 0; ig < 4; ig++) spawnGull(gulls[ig]);
+for (var ig2 = 0; ig2 < 4; ig2++) gulls[ig2].timer = 1e9; // never dive pre-game
+
+updateHUD();
+camera.position.set(0, 6, 18);
+camera.lookAt(0, 2, 8);
+animate();
+
+})();
+</script>
+</body>
+</html>
