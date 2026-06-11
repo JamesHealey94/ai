@@ -144,27 +144,38 @@ const horde = {
   x: W / 2, targetX: W / 2,
   count: 15,
   fireRate: 1, dmgMult: 1,
+  weapon: 'spear',
   volleyTimer: 0,
   formation: [], formationFor: -1,
   hurtFlash: 0,
 };
 
-let arrows = [], enemies = [], gates = [], pickups = [], particles = [], floaters = [];
-let spawnTimer = 1.5, gateTimer = 3, pickupTimer = 9, bossTimer = 40;
+const WEAPONS = {
+  spear: { rate: 1,   dmg: 1,    speed: 400, color: '#ffe9a8', label: '🔱 SPEAR', icon: '🔱', tail: 0.045 },
+  bow:   { rate: 1.9, dmg: 0.55, speed: 430, color: '#aef07d', label: '🏹 BOW',   icon: '🏹', tail: 0.028 },
+};
+
+let arrows = [], enemies = [], gates = [], pickups = [], particles = [], floaters = [], grenades = [];
+let spawnTimer = 1.5, gateTimer = 3, pickupTimer = 9;
+let round = 1, roundTime = 0, roundPhase = 'fight', restTimer = 0, bonusScore = 0;
 let shake = 0;
 let buffs = { rage: 0, freeze: 0 };
 let groundScroll = 0;
 
-function difficulty() { return 1 + time / 22 + distance / 900; }
+function difficulty() { return 1 + (round - 1) * 0.5 + Math.min(roundTime, 60) * 0.012; }
+function roundDuration() { return 26 + Math.min(round * 3, 18); }
+function roundCap() { return 30 + 25 * round; }
 
 function reset() {
   time = 0; distance = 0; kills = 0; score = 0;
   horde.x = horde.targetX = W / 2;
   horde.count = 15;
   horde.fireRate = 1; horde.dmgMult = 1;
+  horde.weapon = 'spear';
   horde.volleyTimer = 0; horde.formationFor = -1; horde.hurtFlash = 0;
-  arrows = []; enemies = []; gates = []; pickups = []; particles = []; floaters = [];
-  spawnTimer = 1.2; gateTimer = 2.5; pickupTimer = 9; bossTimer = 40;
+  arrows = []; enemies = []; gates = []; pickups = []; particles = []; floaters = []; grenades = [];
+  spawnTimer = 1.2; gateTimer = 2.5; pickupTimer = 9;
+  round = 1; roundTime = 0; roundPhase = 'fight'; restTimer = 0; bonusScore = 0;
   shake = 0;
   buffs.rage = 0; buffs.freeze = 0;
 }
@@ -212,10 +223,11 @@ const ENEMY_TYPES = {
   grunt:  { hp: 12,  speed: 85,  power: 2,  r: 13, color: '#7da348', dark: '#55702f', score: 1 },
   runner: { hp: 7,   speed: 150, power: 1,  r: 10, color: '#b06ad4', dark: '#7b449a', score: 1 },
   brute:  { hp: 70,  speed: 52,  power: 8,  r: 20, color: '#c4533a', dark: '#8a3322', score: 3 },
+  bomber: { hp: 28,  speed: 26,  power: 3,  r: 15, color: '#d4a13a', dark: '#92691f', score: 2 },
   giant:  { hp: 450, speed: 28,  power: 32, r: 36, color: '#4a4f63', dark: '#2e3242', score: 15 },
 };
 // contact damage as a fraction of the horde, so the stream stays scary at any size
-const POWER_PCT = { grunt: 0.02, runner: 0.01, brute: 0.06, giant: 0.25 };
+const POWER_PCT = { grunt: 0.02, runner: 0.01, brute: 0.06, bomber: 0.03, giant: 0.25 };
 function spawnEnemy(type, x) {
   const t = ENEMY_TYPES[type];
   const d = difficulty();
@@ -229,12 +241,27 @@ function spawnEnemy(type, x) {
     r: t.r, color: t.color, dark: t.dark, score: t.score,
     wob: rand(0, Math.PI * 2),
     flash: 0,
+    throwTimer: rand(1.6, 2.8),
   });
+}
+function throwGrenade(e) {
+  grenades.push({
+    sx: e.x, sy: e.y,
+    tx: clamp(horde.x + rand(-35, 35), 30, W - 30),
+    ty: HORDE_Y + rand(-4, 14),
+    t: 0, dur: 1.5,
+  });
+  sfx('bad');
 }
 function spawnWave() {
   const d = difficulty();
-  // no brutes in the opening seconds
-  const roll = time < 12 ? Math.random() * 0.75 : Math.random();
+  if (round >= 2 && Math.random() < 0.16) {
+    spawnEnemy('bomber');
+    if (d > 3 && Math.random() < 0.5) spawnEnemy('bomber');
+    return;
+  }
+  // no brutes in the opening seconds of round 1
+  const roll = (round === 1 && roundTime < 12) ? Math.random() * 0.75 : Math.random();
   if (roll < 0.5) {
     // line of grunts
     const n = randInt(2, Math.min(3 + Math.floor(d), 9));
@@ -255,23 +282,27 @@ function makeGateEffect(good) {
   const d = difficulty();
   if (good) {
     const r = Math.random();
-    if (r < 0.42) {
+    if (r < 0.38) {
       const n = Math.max(5, Math.round(horde.count * rand(0.25, 0.5) + 3 * d));
       return { label: '+' + fmt(n), apply: () => addSoldiers(n), color: '#3b9dff' };
-    } else if (r < 0.62) {
+    } else if (r < 0.55) {
       return { label: 'x2', apply: () => multSoldiers(2), color: '#3b9dff' };
-    } else if (r < 0.68) {
+    } else if (r < 0.61) {
       return { label: 'x3', apply: () => multSoldiers(3), color: '#ffd23b' };
-    } else if (r < 0.85) {
-      return { label: '🏹 RATE+', apply: () => {
+    } else if (r < 0.74) {
+      return { label: '⏩ RATE+', apply: () => {
         horde.fireRate = Math.min(horde.fireRate * 1.2, 5);
         floater(horde.x, HORDE_Y - 60, 'FIRE RATE UP!', '#7df0ff', 22);
       }, color: '#27c8a8' };
-    } else {
+    } else if (r < 0.87) {
       return { label: '⚔ DMG+', apply: () => {
         horde.dmgMult = Math.min(horde.dmgMult * 1.25, 8);
         floater(horde.x, HORDE_Y - 60, 'DAMAGE UP!', '#ffb36b', 22);
       }, color: '#27c8a8' };
+    } else {
+      // weapon sidegrade: offer whichever weapon the horde isn't using
+      const other = horde.weapon === 'bow' ? 'spear' : 'bow';
+      return { label: WEAPONS[other].label, apply: () => switchWeapon(other), color: '#b58cff' };
     }
   } else {
     const r = Math.random();
@@ -289,13 +320,13 @@ function spawnGatePair() {
   const goodLeft = Math.random() < 0.5;
   // sometimes both good (one better), mostly good vs bad
   const bothGood = Math.random() < 0.25;
-  gates.push({
-    y: -70,
-    left: makeGateEffect(bothGood ? true : goodLeft),
-    right: makeGateEffect(bothGood ? true : !goodLeft),
-    speed: 95 + difficulty() * 6,
-    done: false,
-  });
+  const left = makeGateEffect(bothGood ? true : goodLeft);
+  let right = makeGateEffect(bothGood ? true : !goodLeft);
+  // never offer the same thing on both sides
+  for (let tries = 0; right.label === left.label && tries < 8; tries++) {
+    right = makeGateEffect(bothGood ? true : !goodLeft);
+  }
+  gates.push({ y: -70, left, right, speed: 95 + difficulty() * 6, done: false });
 }
 
 // ---------- Pickups ----------
@@ -327,6 +358,13 @@ function multSoldiers(m) {
   burst(horde.x, HORDE_Y + 20, '#ffd23b', 22, 160);
   sfx('good');
 }
+function switchWeapon(w) {
+  horde.weapon = w;
+  floater(horde.x, HORDE_Y - 60,
+    w === 'bow' ? 'BOWS: rapid fire!' : 'SPEARS: heavy damage!', '#b58cff', 22);
+  burst(horde.x, HORDE_Y + 10, '#b58cff', 14, 130);
+  sfx('good');
+}
 function loseSoldiers(n, fromGate) {
   n = Math.min(n, Math.ceil(horde.count));
   if (n <= 0) return;
@@ -341,7 +379,7 @@ function loseSoldiers(n, fromGate) {
 function gameOver() {
   if (state !== 'playing') return;
   state = 'gameover';
-  score = Math.floor(kills * 10 + distance);
+  score = Math.floor(kills * 10 + distance + bonusScore + (round - 1) * 250);
   if (score > best) {
     best = score;
     localStorage.setItem('hordeBest', String(best));
@@ -414,22 +452,24 @@ function update(dt) {
   horde.x = lerp(horde.x, horde.targetX, Math.min(1, dt * 14));
 
   // ---- firing ----
-  const interval = 0.42 / horde.fireRate;
+  const wpn = WEAPONS[horde.weapon];
+  const interval = 0.42 / (horde.fireRate * wpn.rate);
   horde.volleyTimer -= dt;
   if (horde.volleyTimer <= 0) {
     horde.volleyTimer = interval;
     const count = horde.count;
-    const nArrows = clamp(Math.round(2 + Math.sqrt(count) * 0.9), 3, 16);
+    const nArrows = clamp(Math.round(2 + Math.sqrt(count) * (horde.weapon === 'bow' ? 1.2 : 0.9)), 3, 18);
     const rageMult = buffs.rage > 0 ? 3 : 1;
-    const dmgEach = (count * 1.6 * horde.dmgMult * rageMult) / nArrows;
+    const dmgEach = (count * 1.6 * wpn.dmg * horde.dmgMult * rageMult) / nArrows;
     const hw = hordeHalfWidth();
     for (let i = 0; i < nArrows; i++) {
       const fx = horde.x + rand(-hw * 0.8, hw * 0.8);
       // light homing target: nearest enemy roughly ahead
       arrows.push({
         x: fx, y: HORDE_Y - 6 + rand(-6, 6),
-        vx: rand(-25, 25), vy: -rand(560, 640),
+        vx: rand(-25, 25), vy: -rand(wpn.speed - 25, wpn.speed + 25),
         dmg: dmgEach,
+        color: wpn.color, tail: wpn.tail,
         rage: buffs.rage > 0,
       });
     }
@@ -483,12 +523,38 @@ function update(dt) {
       e.x += clamp(horde.x - e.x, -1, 1) * 55 * freezeMult * dt;
     }
     e.x += Math.sin(e.wob) * 12 * dt;
+    if (e.type === 'bomber' && e.y > 60 && e.y < HORDE_Y - 180) {
+      e.throwTimer -= dt * freezeMult;
+      if (e.throwTimer <= 0) {
+        throwGrenade(e);
+        e.throwTimer = rand(3, 4.5);
+      }
+    }
     if (e.y >= HORDE_Y - 18) {
       // crash into the horde
       loseSoldiers(e.power, false);
       burst(e.x, HORDE_Y - 10, e.color, 12, 150);
       enemies.splice(i, 1);
       sfx('hit');
+    }
+  }
+
+  // grenades: arc toward their marked landing spot, explode unless dodged
+  for (let i = grenades.length - 1; i >= 0; i--) {
+    const g = grenades[i];
+    g.t += dt * freezeMult;
+    if (g.t >= g.dur) {
+      grenades.splice(i, 1);
+      const R = 62;
+      burst(g.tx, g.ty, '#ff8c3a', 22, 200);
+      burst(g.tx, g.ty, '#3a3a3a', 10, 120);
+      shake = Math.min(shake + 6, 14);
+      sfx('boom');
+      if (Math.abs(g.tx - horde.x) < hordeHalfWidth() + R * 0.7) {
+        loseSoldiers(Math.max(2, Math.round(horde.count * 0.1)), false);
+      } else {
+        floater(g.tx, g.ty - 20, 'DODGED!', '#6bdb6b', 18);
+      }
     }
   }
 
@@ -536,11 +602,51 @@ function update(dt) {
 
   shake = Math.max(0, shake - dt * 30);
 
-  // spawning
-  spawnTimer -= dt;
-  if (spawnTimer <= 0) {
-    spawnWave();
-    spawnTimer = clamp(rand(1.4, 2.2) / Math.sqrt(d), 0.45, 2.2);
+  // ---- round flow ----
+  roundTime += dt;
+  if (roundPhase === 'fight') {
+    spawnTimer -= dt;
+    if (spawnTimer <= 0) {
+      spawnWave();
+      spawnTimer = clamp(rand(1.4, 2.2) / Math.sqrt(d), 0.45, 2.2);
+    }
+    if (roundTime >= roundDuration()) {
+      roundPhase = 'boss';
+      const n = 1 + Math.floor((round - 1) / 3);
+      for (let i = 0; i < n; i++) spawnEnemy('giant', W / 2 + (i - (n - 1) / 2) * 115);
+      floater(W / 2, 130, '⚠ GIANT' + (n > 1 ? 'S' : '') + ' INCOMING ⚠', '#ff8c5a', 26);
+      sfx('bad');
+    }
+  } else if (roundPhase === 'boss') {
+    spawnTimer -= dt;
+    if (spawnTimer <= 0) {
+      if (Math.random() < 0.5) spawnEnemy('grunt');
+      spawnTimer = 2.5;
+    }
+    if (enemies.length === 0 && grenades.length === 0) {
+      roundPhase = 'rest';
+      restTimer = 3.2;
+      // cap the army between rounds so power can't snowball forever
+      const cap = roundCap();
+      if (horde.count > cap) {
+        const excess = Math.floor(horde.count - cap);
+        horde.count = cap;
+        const pts = excess * 5;
+        bonusScore += pts;
+        floater(horde.x, HORDE_Y - 70, 'VETERANS RETIRE: +' + fmt(pts) + ' pts', '#ffd23b', 20);
+      }
+      // and never start a round hopeless
+      horde.count = Math.max(horde.count, 12 + 3 * round);
+      sfx('good');
+    }
+  } else { // rest
+    restTimer -= dt;
+    if (restTimer <= 0) {
+      round++;
+      roundTime = 0;
+      roundPhase = 'fight';
+      spawnTimer = 1.2;
+    }
   }
   gateTimer -= dt;
   if (gateTimer <= 0) {
@@ -551,13 +657,6 @@ function update(dt) {
   if (pickupTimer <= 0) {
     spawnPickup();
     pickupTimer = rand(9, 14);
-  }
-  bossTimer -= dt;
-  if (bossTimer <= 0) {
-    spawnEnemy('giant', rand(90, W - 90));
-    floater(W / 2, 130, '⚠ GIANT INCOMING ⚠', '#ff8c5a', 26);
-    bossTimer = rand(34, 46);
-    sfx('bad');
   }
 }
 
@@ -707,6 +806,17 @@ function drawEnemy(e) {
   ctx.arc(-e.r * 0.3, e.r * 0.15, e.r * 0.16, 0, Math.PI * 2);
   ctx.arc(e.r * 0.3, e.r * 0.15, e.r * 0.16, 0, Math.PI * 2);
   ctx.fill();
+  // bombers carry a lit grenade
+  if (e.type === 'bomber') {
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(e.r * 0.9, -e.r * 0.5, e.r * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = Math.sin(e.wob * 3) > 0 ? '#ffd23b' : '#ff5a3c';
+    ctx.beginPath();
+    ctx.arc(e.r * 1.1, -e.r * 0.95, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
   // horns for brutes/giants
   if (e.type === 'brute' || e.type === 'giant') {
     ctx.strokeStyle = '#ddd0b8';
@@ -760,6 +870,37 @@ function drawGate(g) {
   }
 }
 
+function drawGrenade(g) {
+  const p = clamp(g.t / g.dur, 0, 1);
+  // landing reticle: grows and pulses as the fuse runs down
+  const R = 62;
+  ctx.strokeStyle = `rgba(255,60,40,${0.45 + 0.35 * Math.sin(g.t * 14)})`;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(g.tx, g.ty, R * (0.35 + 0.65 * p), 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,60,40,0.13)';
+  ctx.beginPath();
+  ctx.arc(g.tx, g.ty, R * p, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,60,40,0.8)';
+  ctx.beginPath();
+  ctx.moveTo(g.tx - 8, g.ty); ctx.lineTo(g.tx + 8, g.ty);
+  ctx.moveTo(g.tx, g.ty - 8); ctx.lineTo(g.tx, g.ty + 8);
+  ctx.stroke();
+  // the bomb itself, arcing over
+  const bx = lerp(g.sx, g.tx, p);
+  const by = lerp(g.sy, g.ty, p) - Math.sin(p * Math.PI) * 130;
+  ctx.fillStyle = '#1d1d1d';
+  ctx.beginPath();
+  ctx.arc(bx, by, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = Math.sin(g.t * 20) > 0 ? '#ffd23b' : '#ff5a3c';
+  ctx.beginPath();
+  ctx.arc(bx + 4, by - 7, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function drawPickup(p) {
   const pulse = 1 + Math.sin(p.wob * 2) * 0.12;
   ctx.save();
@@ -792,7 +933,17 @@ function drawHUD() {
   ctx.fillStyle = '#ffd23b';
   ctx.fillText('🏆 ' + fmt(best), 120, 33);
   ctx.fillStyle = '#9fdcff';
-  ctx.fillText('⚔ x' + horde.dmgMult.toFixed(1) + '  🏹 x' + horde.fireRate.toFixed(1), 120, 56);
+  ctx.fillText(WEAPONS[horde.weapon].icon + ' ⚔x' + horde.dmgMult.toFixed(1) + ' ⏩x' + horde.fireRate.toFixed(1), 120, 56);
+
+  // round banner, top centre
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur = 5;
+  ctx.fillStyle = roundPhase === 'boss' ? '#ff8c5a' : '#fff';
+  ctx.fillText('ROUND ' + round + (roundPhase === 'boss' ? '  ⚔' : ''), W / 2 + 60, 33);
+  ctx.shadowBlur = 0;
+  ctx.textAlign = 'left';
 
   // buff timers
   let bx = 18;
@@ -817,9 +968,9 @@ function drawMenu() {
   ctx.fillText('HORDE DEFENSE', W / 2, 230);
   ctx.fillStyle = '#fff';
   ctx.font = '19px sans-serif';
-  ctx.fillText('Lead your horde against the endless stream.', W / 2, 290);
+  ctx.fillText('Survive round after round of the stream.', W / 2, 290);
   ctx.fillText('Steer through the BLUE gates. Avoid the RED.', W / 2, 320);
-  ctx.fillText('Your army fires automatically — grow it or die.', W / 2, 350);
+  ctx.fillText('Dodge grenades — your army fires automatically.', W / 2, 350);
   ctx.fillStyle = '#9fdcff';
   ctx.fillText('Drag to move  ·  or use ← → / A D', W / 2, 410);
   const blink = Math.sin(time * 5) > -0.3;
@@ -846,7 +997,7 @@ function drawGameOver() {
   ctx.font = 'bold 26px sans-serif';
   ctx.fillText('Score: ' + fmt(score), W / 2, 330);
   ctx.font = '19px sans-serif';
-  ctx.fillText('Marched ' + Math.floor(distance) + 'm  ·  ' + fmt(kills) + ' kills', W / 2, 368);
+  ctx.fillText('Reached round ' + round + '  ·  ' + fmt(kills) + ' kills  ·  ' + Math.floor(distance) + 'm', W / 2, 368);
   if (score >= best && score > 0) {
     ctx.fillStyle = '#ffd23b';
     ctx.font = 'bold 22px sans-serif';
@@ -876,14 +1027,15 @@ function draw() {
   // arrows
   ctx.lineWidth = 2.5;
   for (const a of arrows) {
-    ctx.strokeStyle = a.rage ? '#ff7a4c' : '#ffe9a8';
+    ctx.strokeStyle = a.rage ? '#ff7a4c' : a.color;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
-    ctx.lineTo(a.x - a.vx * 0.02, a.y - a.vy * 0.022);
+    ctx.lineTo(a.x - a.vx * 0.02, a.y - a.vy * a.tail);
     ctx.stroke();
   }
 
   for (const e of enemies) drawEnemy(e);
+  for (const g of grenades) drawGrenade(g);
   if (state !== 'gameover') drawHorde();
 
   // particles
@@ -910,6 +1062,20 @@ function draw() {
   ctx.globalAlpha = 1;
 
   if (state === 'playing' || state === 'gameover') drawHUD();
+
+  // intermission banner
+  if (state === 'playing' && roundPhase === 'rest') {
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#6bdb6b';
+    ctx.font = 'bold 36px sans-serif';
+    ctx.fillText('ROUND ' + round + ' CLEARED!', W / 2, H * 0.34);
+    ctx.fillStyle = '#fff';
+    ctx.font = '19px sans-serif';
+    ctx.fillText('Round ' + (round + 1) + ' begins in ' + Math.ceil(restTimer) + '…', W / 2, H * 0.34 + 36);
+    ctx.shadowBlur = 0;
+  }
   ctx.restore();
 
   if (state === 'menu') drawMenu();
