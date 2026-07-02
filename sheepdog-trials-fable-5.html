@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#5a9e4b" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Sheepdog Trials</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #5a9e4b; font-family: system-ui, -apple-system, sans-serif; }
+  #game { position: fixed; inset: 0; touch-action: none; display: block; }
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+    pointer-events: none; z-index: 5;
+  }
+  .hud-group { display: flex; gap: 8px; align-items: center; }
+  .pill {
+    background: rgba(30, 45, 25, 0.72); color: #fff; border-radius: 999px;
+    padding: 6px 13px; font-size: 15px; font-weight: 600;
+    backdrop-filter: blur(4px); white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .hud-btn {
+    background: rgba(30, 45, 25, 0.72); color: #fff; border: none; border-radius: 999px;
+    width: 38px; height: 38px; font-size: 17px; cursor: pointer;
+    pointer-events: auto; backdrop-filter: blur(4px);
+  }
+  .hud-btn:active { transform: scale(0.92); }
+  .overlay {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(20, 35, 15, 0.55); backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .card {
+    background: #fdf8ec; border-radius: 20px; padding: 26px 28px;
+    max-width: 340px; width: calc(100% - 48px); text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    border: 3px solid #8a6b42;
+  }
+  .card h1 { font-size: 27px; color: #3d5228; margin-bottom: 4px; }
+  .card h2 { font-size: 23px; color: #3d5228; margin-bottom: 6px; }
+  .card .sub { font-size: 14px; color: #7a6a50; margin-bottom: 14px; }
+  .card p { font-size: 15px; color: #55483a; line-height: 1.45; margin-bottom: 16px; }
+  .stars { font-size: 34px; letter-spacing: 5px; margin-bottom: 6px; }
+  .time-line { font-size: 15px; color: #55483a; margin-bottom: 16px; }
+  .big-btn {
+    background: linear-gradient(#7fbf58, #5a9e3e); color: #fff; border: none;
+    border-radius: 14px; padding: 13px 34px; font-size: 18px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 0 #3e7028; font-family: inherit;
+  }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #3e7028; }
+  .sheep-icon { font-size: 44px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" style="display:none">
+  <div class="hud-group">
+    <div class="pill" id="hudLevel">Level 1</div>
+    <div class="pill" id="hudSheep">🐑 0/6</div>
+  </div>
+  <div class="hud-group">
+    <div class="pill" id="hudTime">0.0s</div>
+    <button class="hud-btn" id="btnSound" title="Toggle sound">🔊</button>
+    <button class="hud-btn" id="btnRestart" title="Restart level">↺</button>
+  </div>
+</div>
+
+<div class="overlay show" id="titleOverlay">
+  <div class="card">
+    <div class="sheep-icon">🐑🐕</div>
+    <h1>Sheepdog Trials</h1>
+    <div class="sub">One dog. Many opinions.</div>
+    <p>Tap or drag anywhere to send your dog. Sheep run from the dog — use that to herd <b>every sheep into the pen</b>. Faster times earn more stars!</p>
+    <button class="big-btn" id="btnStart">Start herding</button>
+  </div>
+</div>
+
+<div class="overlay" id="doneOverlay">
+  <div class="card">
+    <div class="sheep-icon">🎉</div>
+    <h2 id="doneTitle">Level 1 complete!</h2>
+    <div class="stars" id="doneStars">★★★</div>
+    <div class="time-line" id="doneTime">Penned in 24.3s</div>
+    <button class="big-btn" id="btnNext">Next level</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------- Canvas ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1, S = 1;
+
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  S = Math.max(0.75, Math.min(1.5, Math.min(W, H) / 480));
+  buildGrass();
+  if (state === 'playing' || state === 'complete') clampAllToBounds();
+}
+window.addEventListener('resize', resize);
+
+// ---------- Grass texture ----------
+let grassPattern = null;
+function buildGrass() {
+  const t = document.createElement('canvas');
+  t.width = t.height = 160;
+  const g = t.getContext('2d');
+  g.fillStyle = '#63a852';
+  g.fillRect(0, 0, 160, 160);
+  for (let i = 0; i < 320; i++) {
+    const x = Math.random() * 160, y = Math.random() * 160;
+    g.fillStyle = Math.random() < 0.5 ? 'rgba(46,94,38,0.22)' : 'rgba(150,200,110,0.20)';
+    g.fillRect(x, y, 2, 2 + Math.random() * 3);
+  }
+  for (let i = 0; i < 8; i++) {
+    const x = Math.random() * 160, y = Math.random() * 160;
+    g.fillStyle = Math.random() < 0.5 ? '#f2e94e' : '#f7f7f2';
+    g.beginPath(); g.arc(x, y, 1.6, 0, 7); g.fill();
+  }
+  grassPattern = ctx.createPattern(t, 'repeat');
+}
+
+// ---------- Audio ----------
+let audioCtx = null;
+let soundOn = localStorage.getItem('sheepdogSound') !== 'off';
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function tone(freq, dur, type, vol, slide) {
+  if (!soundOn || !audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const gn = audioCtx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t0 + dur);
+  gn.gain.setValueAtTime(0.0001, t0);
+  gn.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+  gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(gn); gn.connect(audioCtx.destination);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function sfxBleat() {
+  const f = 480 + Math.random() * 240;
+  tone(f, 0.16, 'sawtooth', 0.035, -120);
+  setTimeout(() => tone(f * 0.92, 0.13, 'sawtooth', 0.028, -80), 110);
+}
+function sfxDing() { tone(880, 0.18, 'sine', 0.09, 0); setTimeout(() => tone(1320, 0.25, 'sine', 0.07, 0), 90); }
+function sfxWin() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.28, 'triangle', 0.09, 0), i * 130)); }
+
+// ---------- Game state ----------
+let state = 'title';           // title | playing | complete
+let level = 1;
+let sheep = [], obstacles = [], fences = [];
+let pen = null;                // {x, y, w, h} interior rect
+let dog = null;
+let levelTime = 0;
+let popups = [];
+let lastBleat = 0;
+
+const pointer = { x: 0, y: 0, has: false };
+
+// ---------- Helpers ----------
+const rand = (a, b) => a + Math.random() * (b - a);
+const dist2 = (ax, ay, bx, by) => { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; };
+
+function closestOnSeg(px, py, ax, ay, bx, by) {
+  const abx = bx - ax, aby = by - ay;
+  const len2 = abx * abx + aby * aby || 1;
+  let t = ((px - ax) * abx + (py - ay) * aby) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return { x: ax + abx * t, y: ay + aby * t };
+}
+
+function collideCircleSeg(e, seg, pad) {
+  const c = closestOnSeg(e.x, e.y, seg.ax, seg.ay, seg.bx, seg.by);
+  const dx = e.x - c.x, dy = e.y - c.y;
+  const d2 = dx * dx + dy * dy;
+  const r = e.r + pad;
+  if (d2 < r * r && d2 > 0.0001) {
+    const d = Math.sqrt(d2);
+    const push = (r - d);
+    e.x += (dx / d) * push;
+    e.y += (dy / d) * push;
+    const dot = (e.vx * dx + e.vy * dy) / d;
+    if (dot < 0) { e.vx -= (dx / d) * dot; e.vy -= (dy / d) * dot; }
+  }
+}
+
+function collideCircleCircle(e, ox, oy, orad) {
+  const dx = e.x - ox, dy = e.y - oy;
+  const d2 = dx * dx + dy * dy;
+  const r = e.r + orad;
+  if (d2 < r * r && d2 > 0.0001) {
+    const d = Math.sqrt(d2);
+    e.x += (dx / d) * (r - d);
+    e.y += (dy / d) * (r - d);
+  }
+}
+
+function clampToBounds(e) {
+  const m = e.r + 4;
+  if (e.x < m) { e.x = m; if (e.vx < 0) e.vx = 0; }
+  if (e.x > W - m) { e.x = W - m; if (e.vx > 0) e.vx = 0; }
+  const topM = m + 52; // keep clear of HUD
+  if (e.y < topM) { e.y = topM; if (e.vy < 0) e.vy = 0; }
+  if (e.y > H - m) { e.y = H - m; if (e.vy > 0) e.vy = 0; }
+}
+function clampAllToBounds() {
+  if (dog) clampToBounds(dog);
+  for (const s of sheep) clampToBounds(s);
+}
+
+// ---------- Level setup ----------
+function makeLevel(n) {
+  sheep = []; obstacles = []; fences = []; popups = [];
+  levelTime = 0;
+
+  const sheepCount = Math.min(24, 4 + n * 2);
+
+  // Pen: top-centre, gate on the bottom edge
+  const pw = Math.min(W * 0.42, 190 * S);
+  const ph = Math.min(H * 0.2, 130 * S);
+  const px = (W - pw) / 2;
+  const py = 62 + 14 * S;
+  pen = { x: px, y: py, w: pw, h: ph };
+  // Three-sided trial pen: fully open mouth with funnel wings off the corners,
+  // so there are no concave pockets for sheep to wedge into.
+  const gate = pw;
+  const wingX = 30 * S, wingY = 68 * S;
+  fences.push(
+    { ax: px, ay: py, bx: px + pw, by: py },          // top
+    { ax: px, ay: py, bx: px, by: py + ph },          // left
+    { ax: px + pw, ay: py, bx: px + pw, by: py + ph },// right
+    { ax: px, ay: py + ph, bx: px - wingX, by: py + ph + wingY },      // left wing
+    { ax: px + pw, ay: py + ph, bx: px + pw + wingX, by: py + ph + wingY } // right wing
+  );
+
+  // Obstacles in the middle band, clear of pen mouth and sheep spawn
+  const kinds = [];
+  if (n >= 2) kinds.push('rock', 'rock');
+  if (n >= 3) kinds.push('pond');
+  if (n >= 4) kinds.push('tree', 'rock');
+  if (n >= 5) kinds.push('tree');
+  if (n >= 6) kinds.push('pond');
+  for (const kind of kinds) {
+    const r = kind === 'pond' ? rand(34, 46) * S : kind === 'tree' ? rand(24, 30) * S : rand(15, 22) * S;
+    for (let tries = 0; tries < 40; tries++) {
+      const x = rand(r + 20, W - r - 20);
+      const y = rand(py + ph + r + 60 * S, H * 0.62);
+      if (Math.abs(x - W / 2) < gate / 2 + r + 30 * S && y < py + ph + 150 * S) continue; // keep pen approach clear
+      let ok = true;
+      for (const o of obstacles) if (dist2(x, y, o.x, o.y) < (r + o.r + 34 * S) ** 2) { ok = false; break; }
+      if (ok) { obstacles.push({ kind, x, y, r }); break; }
+    }
+  }
+
+  // Sheep: scattered across the lower part of the field
+  for (let i = 0; i < sheepCount; i++) {
+    let x, y;
+    for (let tries = 0; tries < 50; tries++) {
+      x = rand(30, W - 30);
+      y = rand(H * 0.55, H - 40);
+      let ok = true;
+      for (const o of obstacles) if (dist2(x, y, o.x, o.y) < (o.r + 26 * S) ** 2) { ok = false; break; }
+      if (ok) break;
+    }
+    sheep.push({
+      x, y, vx: 0, vy: 0, r: 9 * S,
+      heading: rand(0, Math.PI * 2),
+      wander: rand(0, Math.PI * 2),
+      phase: rand(0, Math.PI * 2),
+      grazeT: rand(0, 4),
+      penned: false,
+      fluff: Array.from({ length: 5 }, () => rand(0.85, 1.15))
+    });
+  }
+
+  dog = {
+    x: W / 2, y: H - 60, vx: 0, vy: 0, r: 10 * S,
+    tx: W / 2, ty: H - 60, heading: -Math.PI / 2
+  };
+  pointer.has = false;
+
+  document.getElementById('hudLevel').textContent = 'Level ' + n;
+  updateSheepHud();
+}
+
+function parTime() { return 16 + sheep.length * 3.2; }
+function updateSheepHud() {
+  const p = sheep.filter(s => s.penned).length;
+  document.getElementById('hudSheep').textContent = '🐑 ' + p + '/' + sheep.length;
+}
+
+// ---------- Input ----------
+function setTarget(e) {
+  const x = e.clientX, y = e.clientY;
+  pointer.x = x; pointer.y = y; pointer.has = true;
+  if (dog) { dog.tx = x; dog.ty = y; }
+}
+canvas.addEventListener('pointerdown', (e) => {
+  ensureAudio();
+  if (state !== 'playing') return;
+  canvas.setPointerCapture(e.pointerId);
+  setTarget(e);
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (state !== 'playing') return;
+  if (e.buttons > 0 || e.pointerType === 'touch') setTarget(e);
+});
+
+// ---------- Simulation ----------
+function updateDog(dt) {
+  const dx = dog.tx - dog.x, dy = dog.ty - dog.y;
+  const d = Math.hypot(dx, dy);
+  const maxSpd = 250 * S;
+  if (d > 6) {
+    const accel = 1600 * S;
+    dog.vx += (dx / d) * accel * dt;
+    dog.vy += (dy / d) * accel * dt;
+  }
+  const spd = Math.hypot(dog.vx, dog.vy);
+  const lim = d > 6 ? maxSpd : maxSpd * 0.2;
+  if (spd > lim) { dog.vx = dog.vx / spd * lim; dog.vy = dog.vy / spd * lim; }
+  dog.vx *= Math.pow(0.001, dt * (d > 6 ? 0.28 : 3.2));
+  dog.vy *= Math.pow(0.001, dt * (d > 6 ? 0.28 : 3.2));
+  dog.x += dog.vx * dt;
+  dog.y += dog.vy * dt;
+  if (spd > 22) {
+    const want = Math.atan2(dog.vy, dog.vx);
+    let diff = ((want - dog.heading + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    dog.heading += diff * Math.min(1, dt * 12);
+  }
+  for (const o of obstacles) collideCircleCircle(dog, o.x, o.y, o.r);
+  for (const f of fences) collideCircleSeg(dog, f, 3);
+  clampToBounds(dog);
+}
+
+function updateSheep(dt) {
+  const FLEE_R = 125 * S;
+  const SEP_R = 26 * S;
+  const COH_R = 85 * S;
+
+  for (const s of sheep) {
+    s.phase += dt * 9;
+
+    if (s.penned) {
+      // Mill about happily inside the pen
+      s.wander += rand(-2.2, 2.2) * dt;
+      s.vx += Math.cos(s.wander) * 22 * S * dt;
+      s.vy += Math.sin(s.wander) * 22 * S * dt;
+      for (const o of sheep) {
+        if (o === s || !o.penned) continue;
+        const d2 = dist2(s.x, s.y, o.x, o.y);
+        const rr = SEP_R * 0.85;
+        if (d2 < rr * rr && d2 > 0.01) {
+          const d = Math.sqrt(d2);
+          s.vx += (s.x - o.x) / d * 60 * S * dt;
+          s.vy += (s.y - o.y) / d * 60 * S * dt;
+        }
+      }
+      const spd = Math.hypot(s.vx, s.vy);
+      const lim = 26 * S;
+      if (spd > lim) { s.vx = s.vx / spd * lim; s.vy = s.vy / spd * lim; }
+      s.x += s.vx * dt; s.y += s.vy * dt;
+      const m = s.r + 6;
+      s.x = Math.max(pen.x + m, Math.min(pen.x + pen.w - m, s.x));
+      s.y = Math.max(pen.y + m, Math.min(pen.y + pen.h - m, s.y));
+      if (spd > 4) s.heading = Math.atan2(s.vy, s.vx);
+      continue;
+    }
+
+    let fx = 0, fy = 0;
+
+    // Flee the dog
+    const ddx = s.x - dog.x, ddy = s.y - dog.y;
+    const dd = Math.hypot(ddx, ddy);
+    let scared = 0;
+    if (dd < FLEE_R && dd > 0.01) {
+      scared = 1 - dd / FLEE_R;
+      const k = scared * scared * 900 * S;
+      fx += (ddx / dd) * k;
+      fy += (ddy / dd) * k;
+    }
+
+    // Flocking
+    let cx = 0, cy = 0, cn = 0;
+    for (const o of sheep) {
+      if (o === s || o.penned) continue;
+      const d2 = dist2(s.x, s.y, o.x, o.y);
+      if (d2 < SEP_R * SEP_R && d2 > 0.01) {
+        const d = Math.sqrt(d2);
+        const k = (1 - d / SEP_R) * 320 * S;
+        fx += (s.x - o.x) / d * k;
+        fy += (s.y - o.y) / d * k;
+      }
+      if (d2 < COH_R * COH_R) { cx += o.x; cy += o.y; cn++; }
+    }
+    if (cn > 0) {
+      cx /= cn; cy /= cn;
+      const k = (14 + scared * 90) * S;
+      const d = Math.hypot(cx - s.x, cy - s.y) || 1;
+      fx += (cx - s.x) / d * k;
+      fy += (cy - s.y) / d * k;
+    }
+
+    // Wander / graze
+    s.grazeT -= dt;
+    if (s.grazeT < 0) s.grazeT = rand(1.5, 5);
+    s.wander += rand(-3, 3) * dt;
+    if (scared < 0.05 && s.grazeT > 1.2) {
+      fx += Math.cos(s.wander) * 16 * S;
+      fy += Math.sin(s.wander) * 16 * S;
+    }
+
+    // Avoid obstacles ahead
+    for (const o of obstacles) {
+      const ox = s.x - o.x, oy = s.y - o.y;
+      const od = Math.hypot(ox, oy);
+      const ar = o.r + 34 * S;
+      if (od < ar && od > 0.01) {
+        const k = (1 - od / ar) * 500 * S;
+        fx += (ox / od) * k;
+        fy += (oy / od) * k;
+      }
+    }
+
+    // Soft wall avoidance
+    const wm = 34 * S;
+    if (s.x < wm) fx += (wm - s.x) * 9;
+    if (s.x > W - wm) fx -= (s.x - (W - wm)) * 9;
+    if (s.y < wm + 52) fy += (wm + 52 - s.y) * 9;
+    if (s.y > H - wm) fy -= (s.y - (H - wm)) * 9;
+
+    // Integrate
+    s.vx += fx * dt;
+    s.vy += fy * dt;
+    const damp = Math.pow(0.001, dt * 0.55);
+    s.vx *= damp; s.vy *= damp;
+    const spd = Math.hypot(s.vx, s.vy);
+    const lim = (34 + scared * 150) * S;
+    if (spd > lim) { s.vx = s.vx / spd * lim; s.vy = s.vy / spd * lim; }
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    if (spd > 8) s.heading = Math.atan2(s.vy, s.vx);
+
+    // Occasional bleat when spooked
+    if (scared > 0.55 && performance.now() - lastBleat > 1400 && Math.random() < dt * 2.2) {
+      lastBleat = performance.now();
+      sfxBleat();
+      popups.push({ x: s.x, y: s.y - 16 * S, t: 0, txt: Math.random() < 0.15 ? 'BAA!' : 'baa!' });
+    }
+  }
+
+  // Hard separation so sheep don't stack
+  for (let i = 0; i < sheep.length; i++) {
+    for (let j = i + 1; j < sheep.length; j++) {
+      const a = sheep[i], b = sheep[j];
+      if (a.penned !== b.penned) continue;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d2 = dx * dx + dy * dy;
+      const rr = a.r + b.r;
+      if (d2 < rr * rr && d2 > 0.0001) {
+        const d = Math.sqrt(d2);
+        const push = (rr - d) / 2;
+        a.x -= dx / d * push; a.y -= dy / d * push;
+        b.x += dx / d * push; b.y += dy / d * push;
+      }
+    }
+  }
+
+  // Collisions + pen capture
+  for (const s of sheep) {
+    if (s.penned) continue;
+    for (const o of obstacles) collideCircleCircle(s, o.x, o.y, o.r);
+    for (const f of fences) collideCircleSeg(s, f, 3);
+    clampToBounds(s);
+    const m = s.r + 5;
+    if (s.x > pen.x + m && s.x < pen.x + pen.w - m &&
+        s.y > pen.y + m && s.y < pen.y + pen.h - m) {
+      s.penned = true;
+      s.vx *= 0.2; s.vy *= 0.2;
+      sfxDing();
+      popups.push({ x: s.x, y: s.y - 16 * S, t: 0, txt: '✓' });
+      updateSheepHud();
+    }
+  }
+}
+
+function checkComplete() {
+  if (sheep.length && sheep.every(s => s.penned)) {
+    state = 'complete';
+    sfxWin();
+    const par = parTime();
+    const stars = levelTime <= par ? 3 : levelTime <= par * 1.8 ? 2 : 1;
+    document.getElementById('doneTitle').textContent = 'Level ' + level + ' complete!';
+    document.getElementById('doneStars').textContent = '★★★'.slice(0, stars) + '☆☆☆'.slice(0, 3 - stars);
+    document.getElementById('doneTime').textContent =
+      'All ' + sheep.length + ' sheep penned in ' + levelTime.toFixed(1) + 's' +
+      (stars === 3 ? ' — champion work!' : stars === 2 ? ' — good run!' : '');
+    document.getElementById('doneOverlay').classList.add('show');
+  }
+}
+
+// ---------- Drawing ----------
+function drawField() {
+  ctx.fillStyle = grassPattern || '#63a852';
+  ctx.fillRect(0, 0, W, H);
+  // Pen floor: trodden earth
+  ctx.fillStyle = 'rgba(150, 118, 74, 0.55)';
+  roundRectPath(pen.x, pen.y, pen.w, pen.h, 8);
+  ctx.fill();
+}
+
+function roundRectPath(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawFences() {
+  for (const f of fences) {
+    const len = Math.hypot(f.bx - f.ax, f.by - f.ay);
+    // rails
+    ctx.strokeStyle = '#7a5a34';
+    ctx.lineWidth = 4 * S;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(f.ax, f.ay); ctx.lineTo(f.bx, f.by); ctx.stroke();
+    ctx.strokeStyle = '#9a7448';
+    ctx.lineWidth = 2 * S;
+    ctx.beginPath(); ctx.moveTo(f.ax, f.ay - 3 * S); ctx.lineTo(f.bx, f.by - 3 * S); ctx.stroke();
+    // posts
+    const n = Math.max(2, Math.round(len / (34 * S)));
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const x = f.ax + (f.bx - f.ax) * t;
+      const y = f.ay + (f.by - f.ay) * t;
+      ctx.fillStyle = '#5e421f';
+      ctx.beginPath(); ctx.arc(x, y, 3.2 * S, 0, 7); ctx.fill();
+    }
+  }
+  // Gate arrows
+  const gy = pen.y + pen.h;
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  const pulse = 3 * Math.sin(performance.now() / 300);
+  for (let i = 0; i < 2; i++) {
+    const ay = gy + 22 * S + i * 14 * S + pulse;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 9 * S, ay);
+    ctx.lineTo(W / 2 + 9 * S, ay);
+    ctx.lineTo(W / 2, ay - 9 * S);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+function drawObstacles() {
+  for (const o of obstacles) {
+    if (o.kind === 'pond') {
+      ctx.fillStyle = 'rgba(40, 70, 40, 0.25)';
+      ctx.beginPath(); ctx.ellipse(o.x, o.y + 3, o.r * 1.05, o.r * 0.85, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#4d8dc4';
+      ctx.beginPath(); ctx.ellipse(o.x, o.y, o.r, o.r * 0.8, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#6aa8d8';
+      ctx.beginPath(); ctx.ellipse(o.x - o.r * 0.2, o.y - o.r * 0.15, o.r * 0.55, o.r * 0.4, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 1.5;
+      const w = performance.now() / 900;
+      ctx.beginPath(); ctx.ellipse(o.x, o.y, o.r * (0.5 + 0.15 * Math.sin(w)), o.r * 0.4 * (0.5 + 0.15 * Math.sin(w)), 0, 0, 7); ctx.stroke();
+    } else if (o.kind === 'rock') {
+      ctx.fillStyle = 'rgba(40, 70, 40, 0.3)';
+      ctx.beginPath(); ctx.ellipse(o.x + 2, o.y + o.r * 0.35, o.r, o.r * 0.5, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#8d8d85';
+      ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, 7); ctx.fill();
+      ctx.fillStyle = '#a8a8a0';
+      ctx.beginPath(); ctx.arc(o.x - o.r * 0.28, o.y - o.r * 0.3, o.r * 0.5, 0, 7); ctx.fill();
+    } else { // tree
+      ctx.fillStyle = 'rgba(40, 70, 40, 0.3)';
+      ctx.beginPath(); ctx.ellipse(o.x + 3, o.y + o.r * 0.5, o.r * 1.05, o.r * 0.45, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#6b4a26';
+      ctx.fillRect(o.x - 3 * S, o.y - 2, 6 * S, o.r * 0.6);
+      ctx.fillStyle = '#3e7a35';
+      ctx.beginPath(); ctx.arc(o.x, o.y - o.r * 0.25, o.r * 0.85, 0, 7); ctx.fill();
+      ctx.fillStyle = '#519645';
+      ctx.beginPath(); ctx.arc(o.x - o.r * 0.25, o.y - o.r * 0.45, o.r * 0.5, 0, 7); ctx.fill();
+    }
+  }
+}
+
+function drawSheep(s) {
+  const moving = Math.hypot(s.vx, s.vy) > 10;
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  // shadow
+  ctx.fillStyle = 'rgba(40, 70, 40, 0.3)';
+  ctx.beginPath(); ctx.ellipse(0, s.r * 0.55, s.r * 1.15, s.r * 0.5, 0, 0, 7); ctx.fill();
+  ctx.rotate(s.heading);
+  // legs
+  if (moving) {
+    ctx.strokeStyle = '#4a4038';
+    ctx.lineWidth = 2 * S;
+    const sw = Math.sin(s.phase) * s.r * 0.45;
+    ctx.beginPath();
+    ctx.moveTo(s.r * 0.5, 0); ctx.lineTo(s.r * 0.5 + sw, s.r * 0.85);
+    ctx.moveTo(-s.r * 0.5, 0); ctx.lineTo(-s.r * 0.5 - sw, s.r * 0.85);
+    ctx.stroke();
+  }
+  // fluffy body
+  const bodyCol = s.penned ? '#fdfdf6' : '#f4f1e6';
+  ctx.fillStyle = bodyCol;
+  ctx.strokeStyle = 'rgba(140,135,120,0.6)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 + s.phase * 0.02;
+    const rx = Math.cos(a) * s.r * 0.5;
+    const ry = Math.sin(a) * s.r * 0.42;
+    ctx.beginPath(); ctx.arc(rx, ry, s.r * 0.62 * s.fluff[i], 0, 7); ctx.fill(); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.ellipse(0, 0, s.r, s.r * 0.85, 0, 0, 7); ctx.fill();
+  // head
+  const grazing = !moving && !s.penned && s.grazeT < 1.2;
+  const hx = s.r * (grazing ? 1.05 : 0.95);
+  ctx.fillStyle = '#57493e';
+  ctx.beginPath(); ctx.ellipse(hx, 0, s.r * 0.42, s.r * 0.34, 0, 0, 7); ctx.fill();
+  // ears
+  ctx.beginPath();
+  ctx.ellipse(hx - s.r * 0.12, -s.r * 0.36, s.r * 0.22, s.r * 0.12, -0.5, 0, 7);
+  ctx.ellipse(hx - s.r * 0.12, s.r * 0.36, s.r * 0.22, s.r * 0.12, 0.5, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawDog() {
+  const d = dog;
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  ctx.fillStyle = 'rgba(40, 70, 40, 0.3)';
+  ctx.beginPath(); ctx.ellipse(0, d.r * 0.55, d.r * 1.2, d.r * 0.5, 0, 0, 7); ctx.fill();
+  ctx.rotate(d.heading);
+  const wag = Math.sin(performance.now() / 90) * 0.5;
+  // tail
+  ctx.strokeStyle = '#26221f';
+  ctx.lineWidth = 3.5 * S;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-d.r * 0.9, 0);
+  ctx.quadraticCurveTo(-d.r * 1.5, wag * d.r, -d.r * 1.8, wag * d.r * 1.4);
+  ctx.stroke();
+  // body
+  ctx.fillStyle = '#26221f';
+  ctx.beginPath(); ctx.ellipse(0, 0, d.r * 1.05, d.r * 0.7, 0, 0, 7); ctx.fill();
+  // white chest
+  ctx.fillStyle = '#f5f2ea';
+  ctx.beginPath(); ctx.ellipse(d.r * 0.35, 0, d.r * 0.45, d.r * 0.42, 0, 0, 7); ctx.fill();
+  // head
+  ctx.fillStyle = '#26221f';
+  ctx.beginPath(); ctx.arc(d.r * 0.95, 0, d.r * 0.5, 0, 7); ctx.fill();
+  // muzzle
+  ctx.fillStyle = '#f5f2ea';
+  ctx.beginPath(); ctx.ellipse(d.r * 1.3, 0, d.r * 0.24, d.r * 0.17, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.arc(d.r * 1.42, 0, d.r * 0.09, 0, 7); ctx.fill();
+  // ears
+  ctx.fillStyle = '#26221f';
+  ctx.beginPath();
+  ctx.moveTo(d.r * 0.75, -d.r * 0.42); ctx.lineTo(d.r * 1.0, -d.r * 0.72); ctx.lineTo(d.r * 1.1, -d.r * 0.3);
+  ctx.moveTo(d.r * 0.75, d.r * 0.42); ctx.lineTo(d.r * 1.0, d.r * 0.72); ctx.lineTo(d.r * 1.1, d.r * 0.3);
+  ctx.fill();
+  ctx.restore();
+
+  // target marker
+  const tdx = d.tx - d.x, tdy = d.ty - d.y;
+  if (tdx * tdx + tdy * tdy > 400) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 2;
+    const rr = 8 + 2.5 * Math.sin(performance.now() / 160);
+    ctx.beginPath(); ctx.arc(d.tx, d.ty, rr, 0, 7); ctx.stroke();
+  }
+}
+
+function drawPopups(dt) {
+  for (let i = popups.length - 1; i >= 0; i--) {
+    const p = popups[i];
+    p.t += dt;
+    if (p.t > 1.1) { popups.splice(i, 1); continue; }
+    const a = 1 - p.t / 1.1;
+    ctx.globalAlpha = a;
+    ctx.font = '700 ' + Math.round(14 * S) + 'px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = p.txt === '✓' ? '#2f7d24' : '#fff';
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 3;
+    const y = p.y - p.t * 26 * S;
+    ctx.strokeText(p.txt, p.x, y);
+    ctx.fillText(p.txt, p.x, y);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ---------- Main loop ----------
+let lastT = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - lastT) / 1000);
+  lastT = now;
+
+  if (state === 'playing') {
+    levelTime += dt;
+    document.getElementById('hudTime').textContent = levelTime.toFixed(1) + 's';
+    updateDog(dt);
+    updateSheep(dt);
+    checkComplete();
+  }
+
+  if (state !== 'title') {
+    drawField();
+    drawObstacles();
+    drawFences();
+    const sorted = [...sheep].sort((a, b) => a.y - b.y);
+    for (const s of sorted) drawSheep(s);
+    drawDog();
+    drawPopups(dt);
+  } else {
+    ctx.fillStyle = grassPattern || '#63a852';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+// ---------- UI wiring ----------
+document.getElementById('btnStart').addEventListener('click', () => {
+  ensureAudio();
+  document.getElementById('titleOverlay').classList.remove('show');
+  document.getElementById('hud').style.display = 'flex';
+  level = 1;
+  makeLevel(level);
+  state = 'playing';
+});
+document.getElementById('btnNext').addEventListener('click', () => {
+  ensureAudio();
+  document.getElementById('doneOverlay').classList.remove('show');
+  level++;
+  makeLevel(level);
+  state = 'playing';
+});
+document.getElementById('btnRestart').addEventListener('click', () => {
+  if (state === 'title') return;
+  document.getElementById('doneOverlay').classList.remove('show');
+  makeLevel(level);
+  state = 'playing';
+});
+const btnSound = document.getElementById('btnSound');
+function renderSoundBtn() { btnSound.textContent = soundOn ? '🔊' : '🔇'; }
+btnSound.addEventListener('click', () => {
+  soundOn = !soundOn;
+  localStorage.setItem('sheepdogSound', soundOn ? 'on' : 'off');
+  if (soundOn) ensureAudio();
+  renderSoundBtn();
+});
+renderSoundBtn();
+
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
