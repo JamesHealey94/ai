@@ -15,7 +15,8 @@
     -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
   body { position: fixed; inset: 0; }
-  #game { position: fixed; inset: 0; touch-action: none; display: block; }
+  #game { position: fixed; top: 0; left: 0; touch-action: none; display: block; }
+  #safeProbe { position: fixed; left: -100px; bottom: 0; width: 1px; height: env(safe-area-inset-bottom, 0px); visibility: hidden; pointer-events: none; }
   #hud {
     position: fixed; top: 0; left: 0; right: 0;
     display: flex; align-items: center; justify-content: space-between;
@@ -36,7 +37,7 @@
   }
   .hud-btn:active { transform: scale(0.92); }
   .overlay {
-    position: fixed; inset: 0; z-index: 10;
+    position: fixed; top: 0; left: 0; right: 0; height: var(--vvh, 100%); z-index: 10;
     display: flex; align-items: center; justify-content: center;
     background: rgba(20, 35, 15, 0.55); backdrop-filter: blur(3px);
     opacity: 0; pointer-events: none; transition: opacity 0.3s;
@@ -47,6 +48,7 @@
     max-width: 340px; width: calc(100% - 48px); text-align: center;
     box-shadow: 0 12px 40px rgba(0,0,0,0.35);
     border: 3px solid #8a6b42;
+    max-height: calc(var(--vvh, 100vh) - 24px); overflow-y: auto;
   }
   .card h1 { font-size: 27px; color: #3d5228; margin-bottom: 4px; }
   .card h2 { font-size: 23px; color: #3d5228; margin-bottom: 6px; }
@@ -71,6 +73,7 @@
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="safeProbe"></div>
 
 <div id="hud" style="display:none">
   <div class="hud-group">
@@ -113,13 +116,23 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W = 0, H = 0, DPR = 1, S = 1;
 
+let SAFE_B = 0; // bottom inset: home indicator / gesture bar
+
 function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 2);
-  W = window.innerWidth; H = window.innerHeight;
+  // Size to the visual viewport: on mobile, window.innerHeight is the layout
+  // viewport and can extend behind the browser toolbar, cutting off the field.
+  const vv = window.visualViewport;
+  W = Math.round(vv ? vv.width : window.innerWidth);
+  H = Math.round(vv ? vv.height : window.innerHeight);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
   canvas.width = Math.round(W * DPR);
   canvas.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   S = Math.max(0.75, Math.min(1.5, Math.min(W, H) / 480));
+  SAFE_B = document.getElementById('safeProbe').offsetHeight;
+  document.documentElement.style.setProperty('--vvh', H + 'px');
   buildGrass();
   if (state === 'playing' || state === 'complete') clampAllToBounds();
 }
@@ -240,7 +253,8 @@ function clampToBounds(e) {
   if (e.x > W - m) { e.x = W - m; if (e.vx > 0) e.vx = 0; }
   const topM = m + 52; // keep clear of HUD
   if (e.y < topM) { e.y = topM; if (e.vy < 0) e.vy = 0; }
-  if (e.y > H - m) { e.y = H - m; if (e.vy > 0) e.vy = 0; }
+  const botM = m + SAFE_B;
+  if (e.y > H - botM) { e.y = H - botM; if (e.vy > 0) e.vy = 0; }
 }
 function clampAllToBounds() {
   if (dog) clampToBounds(dog);
@@ -296,7 +310,7 @@ function makeLevel(n) {
     let x, y;
     for (let tries = 0; tries < 50; tries++) {
       x = rand(30, W - 30);
-      y = rand(H * 0.55, H - 40);
+      y = rand(H * 0.55, H - 40 - SAFE_B);
       let ok = true;
       for (const o of obstacles) if (dist2(x, y, o.x, o.y) < (o.r + 26 * S) ** 2) { ok = false; break; }
       if (ok) break;
@@ -312,9 +326,10 @@ function makeLevel(n) {
     });
   }
 
+  const dogY = H - 60 - SAFE_B;
   dog = {
-    x: W / 2, y: H - 60, vx: 0, vy: 0, r: 10 * S,
-    tx: W / 2, ty: H - 60, heading: -Math.PI / 2
+    x: W / 2, y: dogY, vx: 0, vy: 0, r: 10 * S,
+    tx: W / 2, ty: dogY, heading: -Math.PI / 2
   };
   pointer.has = false;
 
@@ -461,12 +476,25 @@ function updateSheep(dt) {
       }
     }
 
+    // Gentle push off the corner posts where the wings join the pen, so
+    // sheep slide past the joint instead of wedging against it
+    for (const c of [{ x: pen.x, y: pen.y + pen.h }, { x: pen.x + pen.w, y: pen.y + pen.h }]) {
+      const ox = s.x - c.x, oy = s.y - c.y;
+      const od = Math.hypot(ox, oy);
+      const ar = 30 * S;
+      if (od < ar && od > 0.01) {
+        const k = (1 - od / ar) * 420 * S;
+        fx += (ox / od) * k;
+        fy += (oy / od) * k;
+      }
+    }
+
     // Soft wall avoidance
     const wm = 34 * S;
     if (s.x < wm) fx += (wm - s.x) * 9;
     if (s.x > W - wm) fx -= (s.x - (W - wm)) * 9;
     if (s.y < wm + 52) fy += (wm + 52 - s.y) * 9;
-    if (s.y > H - wm) fy -= (s.y - (H - wm)) * 9;
+    if (s.y > H - wm - SAFE_B) fy -= (s.y - (H - wm - SAFE_B)) * 9;
 
     // Integrate
     s.vx += fx * dt;
